@@ -22,18 +22,24 @@
 - **Resend-Powered Serverless Lead Engine**: Integrated glassmorphism contact modal that POSTs lead inquiries directly to Cloudflare Pages Serverless Function (`/functions/api/contact.js`) which proxies secure emails to `mindmaxxxing@gmail.com` via Resend API.
 - **Meet the Founder Showcase**: Dedicated section spotlighting founder **Aryan**, highlighting key achievements (4 profitable AI products, Fortune 500 training, ₹20 Cr+ alumni earnings in 2025, 1:1 C-suite consulting).
 - **100% Mobile Optimized**: Responsive fluid typography (`clamp()`), automatic rail index collapsing on mobile viewports, touch-friendly bottom-sheet lead modal with iOS 16px auto-zoom prevention.
-- **11 Active Showcase Products**:
+- **12 Active Showcase Products**:
   1. **SafeSpot** (`trysafespot.com`): Pre-date verification & background safety checking engine.
   2. **Hisaab** (`hisaab-lilac-rho.vercel.app`): Employment FnF legal notice & Labour Commissioner pack builder.
   3. **Before Token** (`before-token.vercel.app`): Real estate brochure vs MahaRERA registry risk screener.
-  4. **Freedoms AI** (`freedoms.ai/join`): Voice capture & nightly memory pass AI journaling assistant.
-  5. **BUKL** (`bukl.co`): Ultralight friction-lock belt direct-to-consumer storefront.
-  6. **Xalt Watches** (`xaltwatches.com`): Swiss luxury timepiece storefront with bilingual Gulf checkout.
-  7. **Manifest** (`manifest.leblessed.com/lp01`): Direct response book funnel & conversion engine.
-  8. **WhatsApp Autopilot** (`whisper-buddy-21.mindmaxing.workers.dev`): 5-stage automated webinar attendance & support bot.
-  9. **Glaze** (`getglaze.in`): Anonymous peer feedback loop app.
-  10. **Pause**: Native Android distraction blocker built for habit change.
-  11. **Janus** (`janus-engine.vercel.app`): Multi-business content command centre and DM pipeline.
+  4. **Bhoomiputra Foundation** (`bhoomi-roots-foundation.lovable.app`): Digital platform protecting coastal fishing & farming communities in Mumbai.
+  5. **Freedoms AI** (`freedoms.ai/join`): Voice capture & nightly memory pass AI journaling assistant.
+  6. **BUKL** (`bukl.co`): Ultralight friction-lock belt direct-to-consumer storefront.
+  7. **Xalt Watches** (`xaltwatches.com`): Swiss luxury timepiece storefront with bilingual Gulf checkout.
+  8. **Manifest** (`manifest.leblessed.com/lp01`): Direct response book funnel & conversion engine.
+  9. **WhatsApp Autopilot** (`whisper-buddy-21.mindmaxing.workers.dev`): 5-stage automated webinar attendance & support bot.
+  10. **Glaze** (`getglaze.in`): Anonymous peer feedback loop app.
+  11. **Pause**: Native Android distraction blocker built for habit change.
+  12. **Janus** (`janus-engine.vercel.app`): Multi-business content command centre and DM pipeline.
+- **Dedicated Navigation & Pages**:
+  - `About Us` (`/about.html`)
+  - `Case Studies` (`/case-studies.html`)
+  - `Privacy Policy` (`/privacy.html`)
+  - `Terms of Service` (`/terms.html`)
 
 ---
 
@@ -48,6 +54,13 @@
 ---
 
 ## 📜 Full Changelog & Evolution History
+
+### v1.5.0 (2026-08-01)
+- Added **Bhoomiputra Foundation** (`https://bhoomi-roots-foundation.lovable.app/`) as project #04 across portfolio and case study grid.
+- Created dedicated **Case Studies Deep-Dive Page** (`/case-studies.html`) detailing problem statements, technical architecture, and key metrics for all 12 products.
+- Added universal high-contrast typography system (`#ffffff` headings, `#e2e8f0` body text, glowing orange tag pills).
+- Created `About Us` (`/about.html`), `Privacy Policy` (`/privacy.html`), and `Terms of Service` (`/terms.html`) pages.
+- Upgraded copywriting using active voice, 5th-grade vocabulary, visual analogies, and "What We Don't Do" authority framing.
 
 ### v1.4.0 (2026-08-01)
 - 🚀 **GitHub Repository Launch**: Published open-source project to `Aryu55/mindmaxing-creatives`.
