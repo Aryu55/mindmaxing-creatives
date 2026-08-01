@@ -43,6 +43,13 @@
   :focus-visible { outline: 2px solid #ff5a1f; outline-offset: 3px; border-radius: 3px; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; } }
 
+  /* High Contrast Typography System */
+  h1, h2, h3, h4 { color: #ffffff !important; }
+  p { color: #e2e8f0; font-weight: 450; }
+  .tag-pill { background: rgba(255, 90, 31, 0.14) !important; border: 1px solid rgba(255, 90, 31, 0.4) !important; color: #ffffff !important; font-weight: 600 !important; }
+  .nav-link { color: #e2e8f0 !important; font-weight: 500; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .nav-link:hover { color: #ff5a1f !important; }
+
   /* Mobile Responsive Optimizations */
   @media (max-width: 768px) {
     /* Header & Hero Alignment */
@@ -75,7 +82,7 @@
       height: 60px !important;
       padding: 0 16px !important;
     }
-    nav a[href="#work"], nav a[href="#process"] {
+    nav .nav-link {
       display: none !important;
     }
     .btn-start-project {
@@ -149,17 +156,20 @@
 <div ref="{{ rootRef }}" style="position: relative; background: #08090a; color: #f4f1ec; font-family: 'Instrument Sans', system-ui, sans-serif;">
 
   <canvas ref="{{ canvasRef }}" style="position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block;"></canvas>
-  <div style="position: fixed; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(to right, rgba(8,9,10,0.9) 0%, rgba(8,9,10,0.78) 42%, rgba(8,9,10,0.34) 72%, rgba(8,9,10,0.5) 100%);"></div>
+  <div style="position: fixed; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(to right, rgba(8,9,10,0.96) 0%, rgba(8,9,10,0.90) 45%, rgba(8,9,10,0.72) 75%, rgba(8,9,10,0.85) 100%);"></div>
 
   <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 clamp(16px, 3.5vw, 40px); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); background: linear-gradient(to bottom, rgba(8,9,10,0.86), rgba(8,9,10,0.24)); border-bottom: 1px solid rgba(244,241,236,0.07);">
     <a href="#top" style="display: flex; align-items: center; gap: 11px; white-space: nowrap;">
       <span style="width: 11px; height: 11px; border-radius: 999px; background: #ff5a1f; box-shadow: 0 0 20px #ff5a1f; display: block;"></span>
       <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 15px; letter-spacing: -0.02em;">Mindmaxing Creatives</span>
     </a>
-    <div style="display: flex; align-items: center; gap: clamp(14px, 2vw, 26px);">
-      <a href="#work" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(244,241,236,0.8);">Work</a>
-      <a href="#process" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(244,241,236,0.8);">Process</a>
-      <button type="button" class="btn-start-project" onclick="window.openContactModal && window.openContactModal(event)" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 18px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; white-space: nowrap; border: none; cursor: pointer; transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s;">Start a project</button>
+    <div style="display: flex; align-items: center; gap: clamp(12px, 1.8vw, 24px);">
+      <a href="#work" class="nav-link">Work</a>
+      <a href="./about.html" class="nav-link">About</a>
+      <a href="#process" class="nav-link">Process</a>
+      <a href="./privacy.html" class="nav-link">Privacy</a>
+      <a href="./terms.html" class="nav-link">Terms</a>
+      <button type="button" class="btn-start-project" onclick="window.openContactModal && window.openContactModal(event)" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 18px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; white-space: nowrap; border: none; cursor: pointer; transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s;">Start a project</button>
     </div>
   </nav>
 
@@ -171,8 +181,8 @@
       <span data-rise style="display: block; color: #ff5a1f;">the thing.</span>
     </h1>
     <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 30px; margin-top: clamp(28px, 5vh, 56px);">
-      <p data-rise style="font-size: clamp(15px, 1.15vw, 18px); line-height: 1.55; color: rgba(244,241,236,0.86); max-width: 46ch; margin: 0;">Eleven products shipped. Safety, legal recovery, property risk, commerce, and the systems that sell them.</p>
-      <a data-rise href="#work" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 15px 28px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.22); color: #f4f1ec; white-space: nowrap; transition: background .3s, border-color .3s;">See the work</a>
+      <p data-rise style="font-size: clamp(16px, 1.25vw, 20px); line-height: 1.55; color: #f1f5f9; font-weight: 500; max-width: 48ch; margin: 0;">We build software that fixes real problems: legal recovery, safety checks, property risk, and automated sales engines. 11 products shipped.</p>
+      <a data-rise href="#work" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 15px 28px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.3); color: #ffffff; font-weight: 600; white-space: nowrap; transition: background .3s, border-color .3s;">See the work &rarr;</a>
     </div>
   </header>
 
@@ -191,171 +201,171 @@
 
           <article data-panel style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">01</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, live</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">01</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Own product, live</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">SafeSpot</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">The person she is meeting tonight might not exist.</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Pre-date verification that cross-references public records, court filings and social profiles across phone, photo, email and location, then separates verified signals from uncertain ones.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px; color: #ffffff;">SafeSpot</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">Verify who you're meeting before you step out.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">Cross-references public court records, social profiles, and phone registries in seconds. Flags real safety risks so you never walk into a fake setup.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Subject never notified</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Deleted after processing</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Report stays on device</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Subject never notified</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Deleted after processing</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Report stays on device</span>
             </div>
-            <a data-line href="https://trysafespot.com" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open SafeSpot <span style="font-size: 14px;">&#8599;</span></a>
+            <a data-line href="https://trysafespot.com" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open SafeSpot <span style="font-size: 14px;">&#8599;</span></a>
           </article>
 
           <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">02</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, live</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">02</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Own product, live</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Hisaab</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">Your last employer still has not cleared your full and final.</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Ten questions in, a five document recovery pack out: escalating demand emails, a formatted legal notice, a Labour Commissioner complaint draft, gratuity forms and dispatch instructions.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px; color: #ffffff;">Hisaab</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">Recover unpaid salary without hiring an expensive lawyer.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">Companies delay settlement because employees lack legal tools. Answer 10 questions to generate a 5-document legal recovery pack: demand notices, Labour Commissioner complaint drafts, and step-by-step dispatch instructions.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">&#8377;1.84 cr computed</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">&#8377;87,400 average claim</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Four day turnaround</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">&#8377;1.84 cr computed</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">&#8377;87,400 average claim</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Four day turnaround</span>
             </div>
-            <a data-line href="https://hisaab-lilac-rho.vercel.app" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Hisaab <span style="font-size: 14px;">&#8599;</span></a>
+            <a data-line href="https://hisaab-lilac-rho.vercel.app" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Hisaab <span style="font-size: 14px;">&#8599;</span></a>
           </article>
 
           <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">03</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, live</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">03</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Own product, live</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 94px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Before Token</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">You are about to pay token money on a flat nobody has checked.</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">It reads the marketing brochure against the MahaRERA registry to catch contradictions, searches NCLT for builder insolvency, and flags missing occupancy certificates.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 94px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px; color: #ffffff;">Before Token</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">Check real estate promises against government filings before paying token money.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">Builders promise amenities and delivery dates that never show up in filings. We scan sales brochures against government MahaRERA registries to reveal hidden litigation, project delays, and unapproved floors.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Brochure vs registry</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">NCLT insolvency search</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Maharashtra</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Brochure vs registry</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">NCLT insolvency search</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Maharashtra</span>
             </div>
-            <a data-line href="https://before-token.vercel.app" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Before Token <span style="font-size: 14px;">&#8599;</span></a>
+            <a data-line href="https://before-token.vercel.app" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Before Token <span style="font-size: 14px;">&#8599;</span></a>
           </article>
 
           <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">04</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Client work, live</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">04</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Client work, live</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 94px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Freedoms AI</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">A blank journal page has never helped anyone think.</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Speak or write a thought, and the AI asks the question underneath it, reads across every note you have ever written, and turns the pattern into tasks you can actually finish.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 94px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px; color: #ffffff;">Freedoms AI</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">Turn raw daily voice rants into actionable mental clarity.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">Blank journal pages waste time. Speak for 3 minutes. Our voice engine asks the right questions underneath your rant, extracts key tasks, and organizes your memory vault every night.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Web and iOS</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Voice capture</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Nightly memory pass</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Web and iOS</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Voice capture</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Nightly memory pass</span>
             </div>
-            <a data-line href="https://freedoms.ai/join" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Freedoms <span style="font-size: 14px;">&#8599;</span></a>
+            <a data-line href="https://freedoms.ai/join" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Freedoms <span style="font-size: 14px;">&#8599;</span></a>
           </article>
 
           <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">05</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Client work, live</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">05</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Client work, live</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">BUKL</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">A belt with moving parts is a belt that will eventually fail.</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Storefront and launch for Traverse, an ultralight friction-lock belt with three micro-adjustment channels and zero mechanisms. Built to sell a product whose whole pitch is what it leaves out.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px; color: #ffffff;">BUKL</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">A friction-lock belt with zero moving parts that will never fail.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">Traditional belt buckles break because pins and ratchets wear down. We engineered a single-piece friction-lock belt for Traverse with zero mechanisms, paired with a high-converting DTC storefront.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Direct to consumer</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Kickstarter launch</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Direct to consumer</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Kickstarter launch</span>
             </div>
-            <a data-line href="https://bukl.co/" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open BUKL <span style="font-size: 14px;">&#8599;</span></a>
+            <a data-line href="https://bukl.co/" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open BUKL <span style="font-size: 14px;">&#8599;</span></a>
           </article>
 
           <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">06</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Client work, live</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">06</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Client work, live</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 94px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Xalt Watches</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">Selling a Swiss-made watch online means selling the detail you cannot hold.</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">A storefront built around motion and macro detail: guilloche dials, special editions, straps, bilingual English and Arabic, regional checkout across the Gulf.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 94px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px; color: #ffffff;">Xalt Watches</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">Selling Swiss luxury timepieces online across the Middle East.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">Built an interactive luxury storefront showcasing guilloche dial craftsmanship with macro zoom, bilingual English and Arabic UI, localized Gulf checkout, and WhatsApp order tracking.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">English and Arabic</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Gulf checkout</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">English and Arabic</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Gulf checkout</span>
             </div>
-            <a data-line href="https://xaltwatches.com/" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Xalt <span style="font-size: 14px;">&#8599;</span></a>
+            <a data-line href="https://xaltwatches.com/" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Xalt <span style="font-size: 14px;">&#8599;</span></a>
           </article>
 
           <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">07</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Client work, live</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">07</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Client work, live</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Manifest</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 24ch;">A finished product with no machine to sell it.</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">We built the whole funnel: offer structure, page sequencing, objection handling, checkout. The part nobody counts as a skill is getting a stranger to keep reading.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px; color: #ffffff;">Manifest</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">High-converting sales engine built to turn strangers into buyers.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">Great products fail without high-converting sales funnels. We engineered the entire direct-response funnel: offer stacking, page sequencing, objection handling, and instant checkout.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">&#8377;197 offer, &#8377;999 anchor</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Page and checkout</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">&#8377;197 offer, &#8377;999 anchor</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Page and checkout</span>
             </div>
-            <a data-line href="https://manifest.leblessed.com/lp01" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Manifest <span style="font-size: 14px;">&#8599;</span></a>
+            <a data-line href="https://manifest.leblessed.com/lp01" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Manifest <span style="font-size: 14px;">&#8599;</span></a>
           </article>
 
           <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">08</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Internal system, in production</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">08</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Internal system, in production</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(32px, 5vw, 78px); line-height: 0.92; letter-spacing: -0.04em; margin: 0 0 18px;">WhatsApp Autopilot</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 25ch;">People paid for the webinar and then never showed up.</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Payment fires an instant confirmation, abandoned checkouts get chased, and a five stage reminder sequence runs at 2 days, 1 day, 2 hours, 30 minutes and 5 minutes out. A support bot trained on the docs answers around the clock and escalates when it is unsure.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(32px, 5vw, 78px); line-height: 0.92; letter-spacing: -0.04em; margin: 0 0 18px; color: #ffffff;">WhatsApp Autopilot</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">Automated 5-stage webinar reminder engine that doubles show-up rates.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">People buy tickets and forget to show up. Our automated engine fires instant confirmations, chases abandoned checkouts, and sends timed WhatsApp reminders at 2 days, 2 hours, and 5 minutes out, backed by a 24/7 AI support bot.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Five stage sequence</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Runs our own business</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Five stage sequence</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Runs our own business</span>
             </div>
-            <a data-line href="https://whisper-buddy-21.mindmaxing.workers.dev" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open the panel <span style="font-size: 14px;">&#8599;</span></a>
+            <a data-line href="https://whisper-buddy-21.mindmaxing.workers.dev" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open the panel <span style="font-size: 14px;">&#8599;</span></a>
           </article>
 
           <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">09</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, live</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">09</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Own product, live</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Glaze</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">Do you want to know what your friends really think about you?</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Enter a name, get a link, share it anywhere, read what comes back. A weekend build that proves how little a product needs when the loop is right.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px; color: #ffffff;">Glaze</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">Collect unfiltered anonymous feedback in seconds.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">An anonymous feedback platform designed for candid reviews. Enter your name, generate a personal link, share it anywhere, and read honest feedback without social friction.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Anonymous responses</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Built in a weekend</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Anonymous responses</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Built in a weekend</span>
             </div>
-            <a data-line href="https://getglaze.in" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Glaze <span style="font-size: 14px;">&#8599;</span></a>
+            <a data-line href="https://getglaze.in" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Glaze <span style="font-size: 14px;">&#8599;</span></a>
           </article>
 
           <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">10</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, Android</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">10</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Own product, Android</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Pause</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">Every blocker we tried lasted about four days.</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">So we built our own. An Android blocker designed around the moment of reaching for the phone rather than the app you land in. Built first for ourselves and used every day since.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px; color: #ffffff;">Pause</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">Stop phone addiction right at the physical impulse.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">App blockers fail because you can bypass them in 5 seconds. Pause intercepts the physical impulse of reaching for your phone before screen time eats your afternoon.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Android</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Private release</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Android</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Private release</span>
             </div>
-            <a data-line href="mailto:mindmaxxxing@gmail.com?subject=Pause%20access" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.28); color: #f4f1ec; transition: background .3s, border-color .3s, transform .35s cubic-bezier(.16,1,.3,1);">Ask for access <span style="font-size: 14px;">&#8594;</span></a>
+            <a data-line href="mailto:mindmaxxxing@gmail.com?subject=Pause%20access" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.3); color: #ffffff; font-weight: 600; transition: background .3s, border-color .3s, transform .35s cubic-bezier(.16,1,.3,1);">Ask for access <span style="font-size: 14px;">&#8594;</span></a>
           </article>
 
           <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
             <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">11</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, in build</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f; font-weight: bold;">11</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #cbd5e1; font-weight: 500;">Own product, in build</span>
             </div>
-            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Janus</h2>
-            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 25ch;">Running content for several businesses out of one room.</p>
-            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">A command centre for the whole pipeline: multi-business content, Instagram DM automation, analytics and intelligence tooling. Behind a login while we run it on ourselves first.</p>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px; color: #ffffff;">Janus</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.25; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 25ch;">Run multi-business social content out of one automated dashboard.</p>
+            <p data-line style="font-size: clamp(16px, 1.15vw, 18.5px); line-height: 1.65; color: #e2e8f0; font-weight: 450; max-width: 54ch; margin: 0 0 24px;">An internal command center built for our studio: multi-account scheduling, automated Instagram DM replies, performance analytics, and lead routing out of one unified panel.</p>
             <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Multi-business pipeline</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Login required</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Multi-business pipeline</span>
+              <span class="tag-pill" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; padding: 8px 16px; border-radius: 999px; background: rgba(255, 90, 31, 0.15); border: 1px solid rgba(255, 90, 31, 0.4); color: #ffffff; font-weight: 600;">Login required</span>
             </div>
-            <a data-line href="https://janus-engine.vercel.app" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.28); color: #f4f1ec; transition: background .3s, border-color .3s, transform .35s cubic-bezier(.16,1,.3,1);">Open Janus <span style="font-size: 14px;">&#8599;</span></a>
+            <a data-line href="https://janus-engine.vercel.app" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.3); color: #ffffff; font-weight: 600; transition: background .3s, border-color .3s, transform .35s cubic-bezier(.16,1,.3,1);">Open Janus <span style="font-size: 14px;">&#8599;</span></a>
           </article>
 
         </div>
@@ -376,37 +386,37 @@
   <section id="process" style="position: relative; z-index: 2; padding: clamp(90px, 16vh, 190px) clamp(16px, 3.5vw, 40px); max-width: 1560px; margin: 0 auto;">
     <h2 data-rise style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(34px, 5.4vw, 86px); line-height: 0.94; letter-spacing: -0.04em; margin: 0 0 clamp(44px, 8vh, 92px); max-width: 17ch;">How a thing gets made here.</h2>
     <div style="display: flex; flex-direction: column; gap: clamp(28px, 5vh, 64px);">
-      <div data-rise style="display: grid; gap: 14px; max-width: 620px; border-top: 1px solid rgba(244,241,236,0.14); padding-top: 26px;">
-        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.18em; color: #ff5a1f;">01</span>
-        <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.03em; margin: 0;">Find where the paperwork is the problem</h3>
-        <p style="font-size: 16px; line-height: 1.62; color: rgba(244,241,236,0.86); margin: 0; max-width: 52ch;">Most things people cannot fix are not blocked by law or by money. They are blocked by documents nobody has time to read.</p>
+      <div data-rise style="display: grid; gap: 14px; max-width: 620px; border-top: 1px solid rgba(255,255,255,0.18); padding-top: 26px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.18em; color: #ff5a1f; font-weight: bold;">01</span>
+        <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.03em; margin: 0; color: #ffffff;">Find where paperwork is the bottleneck</h3>
+        <p style="font-size: 16.5px; line-height: 1.65; color: #e2e8f0; font-weight: 450; margin: 0; max-width: 52ch;">Most things people cannot fix are not blocked by law or by money. They are blocked by software nobody built yet.</p>
       </div>
-      <div data-rise style="display: grid; gap: 14px; max-width: 620px; border-top: 1px solid rgba(244,241,236,0.14); padding-top: 26px; margin-left: auto; margin-right: clamp(0px, 8vw, 180px);">
-        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.18em; color: #ff5a1f;">02</span>
-        <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.03em; margin: 0;">Ship the smallest version that is genuinely useful</h3>
-        <p style="font-size: 16px; line-height: 1.62; color: rgba(244,241,236,0.86); margin: 0; max-width: 52ch;">Live in weeks, not quarters. The first version does one job completely rather than five jobs partly.</p>
+      <div data-rise style="display: grid; gap: 14px; max-width: 620px; border-top: 1px solid rgba(255,255,255,0.18); padding-top: 26px; margin-left: auto; margin-right: clamp(0px, 8vw, 180px);">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.18em; color: #ff5a1f; font-weight: bold;">02</span>
+        <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.03em; margin: 0; color: #ffffff;">Ship the smallest version that is genuinely useful</h3>
+        <p style="font-size: 16.5px; line-height: 1.65; color: #e2e8f0; font-weight: 450; margin: 0; max-width: 52ch;">Live in weeks, not quarters. The first version does one job completely rather than five jobs partly.</p>
       </div>
-      <div data-rise style="display: grid; gap: 14px; max-width: 620px; border-top: 1px solid rgba(244,241,236,0.14); padding-top: 26px; margin-left: clamp(0px, 14vw, 300px);">
-        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.18em; color: #ff5a1f;">03</span>
-        <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.03em; margin: 0;">Run it on ourselves before we sell it to you</h3>
-        <p style="font-size: 16px; line-height: 1.62; color: rgba(244,241,236,0.86); margin: 0; max-width: 52ch;">The automation on this list handles our own webinars. The blocker sits on our own phones. We find the broken parts first.</p>
+      <div data-rise style="display: grid; gap: 14px; max-width: 620px; border-top: 1px solid rgba(255,255,255,0.18); padding-top: 26px; margin-left: clamp(0px, 14vw, 300px);">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.18em; color: #ff5a1f; font-weight: bold;">03</span>
+        <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.03em; margin: 0; color: #ffffff;">Run it on ourselves before we sell it to you</h3>
+        <p style="font-size: 16.5px; line-height: 1.65; color: #e2e8f0; font-weight: 450; margin: 0; max-width: 52ch;">We run every system on our own businesses first. We catch the bugs so you never have to.</p>
       </div>
     </div>
   </section>
 
-  <section id="founder" style="position: relative; z-index: 2; padding: clamp(60px, 12vh, 140px) clamp(16px, 3.5vw, 40px); max-width: 1560px; margin: 0 auto; border-top: 1px solid rgba(244,241,236,0.1);">
+  <section id="founder" style="position: relative; z-index: 2; padding: clamp(60px, 12vh, 140px) clamp(16px, 3.5vw, 40px); max-width: 1560px; margin: 0 auto; border-top: 1px solid rgba(255,255,255,0.12);">
     <p data-rise style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #ff5a1f; margin: 0 0 28px;">Who's Building This</p>
     
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: clamp(32px, 5vw, 72px); align-items: center;">
       <!-- Founder Photo Card -->
       <div data-rise style="position: relative; max-width: 440px; justify-self: center; width: 100%;">
-        <div style="position: absolute; inset: -2px; border-radius: 28px; background: linear-gradient(135deg, #ff5a1f 0%, rgba(255,90,31,0.05) 50%, rgba(244,241,236,0.1) 100%); z-index: 0; opacity: 0.6;"></div>
+        <div style="position: absolute; inset: -2px; border-radius: 28px; background: linear-gradient(135deg, #ff5a1f 0%, rgba(255,90,31,0.05) 50%, rgba(255,255,255,0.1) 100%); z-index: 0; opacity: 0.6;"></div>
         <div style="position: relative; z-index: 1; background: #0d0e11; border-radius: 26px; padding: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255,90,31,0.15); overflow: hidden;">
           <img src="./aryan.jpg" alt="Aryan — Founder of MindMaxing" style="width: 100%; height: auto; aspect-ratio: 4/5; object-fit: cover; border-radius: 20px; display: block;" />
           <div style="padding: 16px 8px 8px; display: flex; align-items: center; justify-content: space-between;">
             <div>
-              <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 20px; color: #f4f1ec; display: block;">Aryan</span>
-              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: rgba(244,241,236,0.6); text-transform: uppercase;">Founder & Product Lead</span>
+              <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 20px; color: #ffffff; display: block;">Aryan</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #cbd5e1; text-transform: uppercase;">Founder & Product Lead</span>
             </div>
             <span style="width: 10px; height: 10px; border-radius: 999px; background: #ff5a1f; box-shadow: 0 0 16px #ff5a1f;"></span>
           </div>
@@ -416,38 +426,38 @@
       <!-- Founder Bio & Brag Highlights -->
       <div data-rise style="display: flex; flex-direction: column; gap: 24px;">
         <div>
-          <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 72px); line-height: 0.96; letter-spacing: -0.04em; margin: 0 0 16px; color: #f4f1ec;">
+          <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 72px); line-height: 0.96; letter-spacing: -0.04em; margin: 0 0 16px; color: #ffffff;">
             Meet <span style="color: #ff5a1f;">Aryan</span>
           </h2>
-          <p style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 500; font-size: clamp(18px, 2vw, 24px); line-height: 1.35; letter-spacing: -0.02em; color: rgba(244,241,236,0.95); margin: 0 0 16px; max-width: 32ch;">
-            Founder of MindMaxing. Not a course guru. A builder who ships real AI products every week.
+          <p style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(18px, 2vw, 24px); line-height: 1.35; letter-spacing: -0.02em; color: #ffffff; margin: 0 0 16px; max-width: 32ch;">
+            Founder of MindMaxing. Not a course guru. A builder who ships real software every week.
           </p>
-          <p style="font-size: 15.5px; line-height: 1.65; color: rgba(244,241,236,0.76); margin: 0; max-width: 50ch;">
+          <p style="font-size: 16px; line-height: 1.65; color: #e2e8f0; font-weight: 450; margin: 0; max-width: 50ch;">
             Engineered and scaled 11 active products across AI safety, legal recovery, automated sales pipelines, and high-frequency content infrastructure — training 1,000+ Indian professionals into AI-first careers along the way.
           </p>
         </div>
 
         <!-- Brag List -->
-        <div style="display: grid; gap: 14px; border-top: 1px solid rgba(244,241,236,0.12); padding-top: 24px;">
+        <div style="display: grid; gap: 14px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 24px;">
           <div style="display: flex; align-items: flex-start; gap: 14px;">
             <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid #ff5a1f; color: #ff5a1f; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px;">✓</span>
-            <span style="font-size: 15px; line-height: 1.45; color: rgba(244,241,236,0.9); font-weight: 500;">Built and scaled 4 AI products to profitability</span>
+            <span style="font-size: 15.5px; line-height: 1.45; color: #f8fafc; font-weight: 500;">Built and scaled 4 AI products to profitability</span>
           </div>
           <div style="display: flex; align-items: flex-start; gap: 14px;">
             <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid #ff5a1f; color: #ff5a1f; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px;">✓</span>
-            <span style="font-size: 15px; line-height: 1.45; color: rgba(244,241,236,0.9); font-weight: 500;">Trained teams at Fortune 500s on AI adoption & workflow engineering</span>
+            <span style="font-size: 15.5px; line-height: 1.45; color: #f8fafc; font-weight: 500;">Trained teams at Fortune 500s on AI adoption & workflow engineering</span>
           </div>
           <div style="display: flex; align-items: flex-start; gap: 14px;">
             <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid #ff5a1f; color: #ff5a1f; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px;">✓</span>
-            <span style="font-size: 15px; line-height: 1.45; color: rgba(244,241,236,0.9); font-weight: 500;">Featured keynote speaker across top national tech conferences</span>
+            <span style="font-size: 15.5px; line-height: 1.45; color: #f8fafc; font-weight: 500;">Featured keynote speaker across top national tech conferences</span>
           </div>
           <div style="display: flex; align-items: flex-start; gap: 14px;">
             <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid #ff5a1f; color: #ff5a1f; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px;">✓</span>
-            <span style="font-size: 15px; line-height: 1.45; color: rgba(244,241,236,0.9); font-weight: 500;">Alumni have earned ₹20 Cr+ combined in 2025</span>
+            <span style="font-size: 15.5px; line-height: 1.45; color: #f8fafc; font-weight: 500;">Alumni have earned ₹20 Cr+ combined in 2025</span>
           </div>
           <div style="display: flex; align-items: flex-start; gap: 14px;">
             <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid #ff5a1f; color: #ff5a1f; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px;">✓</span>
-            <span style="font-size: 15px; line-height: 1.45; color: rgba(244,241,236,0.9); font-weight: 500;">1:1 consulting slots booked by top CEOs & C-suite Executives</span>
+            <span style="font-size: 15.5px; line-height: 1.45; color: #f8fafc; font-weight: 500;">1:1 consulting slots booked by top CEOs & C-suite Executives</span>
           </div>
         </div>
 
@@ -466,9 +476,13 @@
     </div>
   </section>
 
-  <footer style="position: relative; z-index: 2; padding: 24px clamp(16px, 3.5vw, 40px) 32px; max-width: 1560px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; border-top: 1px solid rgba(244,241,236,0.1);">
-    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: rgba(244,241,236,0.6);">Mindmaxing Creatives</span>
-    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: rgba(244,241,236,0.6);">Eleven products, all of them still online</span>
+  <footer style="position: relative; z-index: 2; padding: 28px clamp(16px, 3.5vw, 40px) 36px; max-width: 1560px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1);">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.1em; color: #cbd5e1;">&copy; 2026 Mindmaxing Creatives — 11 Products Shipped</span>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+      <a href="./about.html" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #cbd5e1; text-transform: uppercase;">About</a>
+      <a href="./privacy.html" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #cbd5e1; text-transform: uppercase;">Privacy Policy</a>
+      <a href="./terms.html" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #cbd5e1; text-transform: uppercase;">Terms of Service</a>
+    </div>
   </footer>
 
 </div>
