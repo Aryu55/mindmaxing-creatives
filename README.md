@@ -22,7 +22,7 @@
 - **Resend-Powered Serverless Lead Engine**: Integrated glassmorphism contact modal that POSTs lead inquiries directly to Cloudflare Pages Serverless Function (`/functions/api/contact.js`) which proxies secure emails to `mindmaxxxing@gmail.com` via Resend API.
 - **Meet the Founder Showcase**: Dedicated section spotlighting founder **Aryan**, highlighting key achievements (4 profitable AI products, Fortune 500 training, ₹20 Cr+ alumni earnings in 2025, 1:1 C-suite consulting).
 - **100% Mobile Optimized**: Responsive fluid typography (`clamp()`), automatic rail index collapsing on mobile viewports, touch-friendly bottom-sheet lead modal with iOS 16px auto-zoom prevention.
-- **12 Active Showcase Products**:
+- **14 Active Showcase Products**:
   1. **SafeSpot** (`trysafespot.com`): Pre-date verification & background safety checking engine.
   2. **Hisaab** (`hisaab-lilac-rho.vercel.app`): Employment FnF legal notice & Labour Commissioner pack builder.
   3. **Before Token** (`before-token.vercel.app`): Real estate brochure vs MahaRERA registry risk screener.
@@ -31,10 +31,12 @@
   6. **BUKL** (`bukl.co`): Ultralight friction-lock belt direct-to-consumer storefront.
   7. **Xalt Watches** (`xaltwatches.com`): Swiss luxury timepiece storefront with bilingual Gulf checkout.
   8. **Manifest** (`manifest.leblessed.com/lp01`): Direct response book funnel & conversion engine.
-  9. **WhatsApp Autopilot** (`whisper-buddy-21.mindmaxing.workers.dev`): 5-stage automated webinar attendance & support bot.
-  10. **Glaze** (`getglaze.in`): Anonymous peer feedback loop app.
-  11. **Pause**: Native Android distraction blocker built for habit change.
-  12. **Janus** (`janus-engine.vercel.app`): Multi-business content command centre and DM pipeline.
+  9. **WESHUB** (`weshub.lovable.app`): Multi-brand collective (Societe events, IHC master franchise expansion into India, Regenerate AI).
+  10. **Saffron Origins** (`saffronorigins.com`): Direct-to-consumer luxury storefront for pure Kashmiri saffron.
+  11. **WhatsApp Autopilot** (`whisper-buddy-21.mindmaxing.workers.dev`): 5-stage automated webinar attendance & support bot.
+  12. **Glaze** (`getglaze.in`): Anonymous peer feedback loop app.
+  13. **Pause**: Native Android distraction blocker built for habit change.
+  14. **Janus** (`janus-engine.vercel.app`): Multi-business content command centre and DM pipeline.
 - **Dedicated Navigation & Pages**:
   - `About Us` (`/about.html`)
   - `Case Studies` (`/case-studies.html`)
@@ -54,6 +56,11 @@
 ---
 
 ## 📜 Full Changelog & Evolution History
+
+### v1.6.0 (2026-08-01)
+- Added **WESHUB** (`https://weshub.lovable.app/`) and **Saffron Origins** (`https://www.saffronorigins.com/`) as 13th and 14th showcase products.
+- Integrated deep-dive case studies for both products into `/case-studies.html` detailing bottleneck, engineering solution, and key outcomes.
+- Expanded scroll sentinel system to 14 steps (`1400vh` scroll track) and updated Three.js background shader palette transitions.
 
 ### v1.5.0 (2026-08-01)
 - Added **Bhoomiputra Foundation** (`https://bhoomi-roots-foundation.lovable.app/`) as project #04 across portfolio and case study grid.
