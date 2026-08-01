@@ -1,0 +1,27 @@
+{
+  "name": "mindmaxing-creatives-portfolio",
+  "version": "1.0.0",
+  "description": "Mindmaxing Creatives Product Studio Portfolio — Live on Cloudflare Pages",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve -l 3000 .",
+    "build": "echo 'Build step complete. Serving static assets.'",
+    "deploy": "wrangler pages deploy . --project-name mindmaxing-creatives --commit-dirty=true"
+  },
+  "keywords": [
+    "mindmaxing",
+    "portfolio",
+    "product-studio",
+    "cloudflare-pages",
+    "webgl",
+    "threejs",
+    "gsap"
+  ],
+  "author": "Mindmaxing Creatives <mindmaxxxing@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.4",
+    "wrangler": "^3.90.0"
+  }
+}

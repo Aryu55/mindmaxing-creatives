@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mindmaxing Creatives — Product Studio | We notice problems and build the thing</title>
+<meta name="description" content="Mindmaxing Creatives is a premier product studio building software for real problems: SafeSpot, Hisaab, Before Token, Freedoms AI, BUKL, Xalt Watches, Manifest, WhatsApp Autopilot, Glaze, Pause, and Janus.">
+<meta name="keywords" content="Mindmaxing Creatives, Product Studio, Software Development, SafeSpot, Hisaab, Before Token, Freedoms AI, BUKL, Xalt Watches, Manifest, WhatsApp Autopilot, Glaze, Pause, Janus">
+<meta name="author" content="Mindmaxing Creatives">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://mindmaxing.one/">
+<meta property="og:title" content="Mindmaxing Creatives — Product Studio">
+<meta property="og:description" content="We notice problems and then go build the thing. Eleven products shipped across safety, legal recovery, property risk, commerce, and automation.">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://mindmaxing.one/">
+<meta property="twitter:title" content="Mindmaxing Creatives — Product Studio">
+<meta property="twitter:description" content="We notice problems and then go build the thing. Eleven products shipped.">
+
+<link rel="icon" type="image/x-icon" href="./favicon.ico?v=3">
+<link rel="icon" type="image/png" href="./favicon.png?v=3">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png?v=3">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<style>
+  :root { --mm-accent: #ff5a1f; --mm-ink: #f4f1ec; --mm-dim: rgba(244,241,236,0.56); }
+  html { background: #08090a; scroll-behavior: smooth; }
+  body { margin: 0; background: #08090a; color: #f4f1ec; font-family: "Instrument Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  ::selection { background: #ff5a1f; color: #08090a; }
+  a { color: #f4f1ec; text-decoration: none; }
+  a:hover { color: #ff5a1f; }
+  :focus-visible { outline: 2px solid #ff5a1f; outline-offset: 3px; border-radius: 3px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; } }
+
+  /* Mobile Responsive Optimizations */
+  @media (max-width: 768px) {
+    /* Header & Hero Alignment */
+    #top {
+      min-height: auto !important;
+      padding-top: clamp(84px, 14vh, 108px) !important;
+      padding-bottom: 40px !important;
+      justify-content: flex-start !important;
+    }
+    #top p[data-rise] {
+      margin-bottom: 14px !important;
+      font-size: 11px !important;
+      letter-spacing: 0.16em !important;
+    }
+    #top h1 {
+      font-size: clamp(36px, 9.5vw, 56px) !important;
+      line-height: 0.95 !important;
+      letter-spacing: -0.04em !important;
+    }
+    #top h1 span {
+      display: block !important;
+    }
+    #top div[data-rise] {
+      margin-top: 24px !important;
+      gap: 16px !important;
+    }
+
+    /* Navbar Mobile */
+    nav {
+      height: 60px !important;
+      padding: 0 16px !important;
+    }
+    nav a[href="#work"], nav a[href="#process"] {
+      display: none !important;
+    }
+    .btn-start-project {
+      padding: 8px 15px !important;
+      font-size: 11px !important;
+    }
+
+    /* Work Section & Showcase Panels */
+    #work > div > div {
+      padding-top: 76px !important;
+      padding-bottom: 32px !important;
+      grid-template-columns: 1fr !important;
+      gap: 0 !important;
+    }
+    /* Hide Side Rail on Mobile for Full-Width Showcase */
+    div[ref="railRef"] {
+      display: none !important;
+    }
+    article[data-panel] {
+      max-width: 100% !important;
+    }
+    article[data-panel] h2 {
+      font-size: clamp(34px, 9vw, 52px) !important;
+      margin-bottom: 12px !important;
+    }
+    article[data-panel] p {
+      font-size: 14.5px !important;
+      line-height: 1.55 !important;
+      margin-bottom: 16px !important;
+    }
+
+    /* Process Section */
+    #process {
+      padding: 60px 16px !important;
+    }
+    #process h2 {
+      font-size: clamp(32px, 8.5vw, 54px) !important;
+      margin-bottom: 32px !important;
+    }
+
+    /* Contact Section */
+    #contact {
+      padding: 60px 16px 48px !important;
+    }
+    #contact h2 {
+      font-size: clamp(36px, 10vw, 64px) !important;
+      margin-bottom: 28px !important;
+    }
+
+    /* Contact Lead Modal on Mobile */
+    #contact-modal {
+      padding: 12px !important;
+      align-items: flex-end !important;
+    }
+    #contact-modal .modal-card {
+      max-height: 85vh !important;
+      overflow-y: auto !important;
+      padding: 24px 18px !important;
+      border-radius: 20px 20px 14px 14px !important;
+    }
+    #contact-modal input,
+    #contact-modal select,
+    #contact-modal textarea {
+      font-size: 16px !important; /* Prevents auto-zoom on iOS */
+      padding: 12px 14px !important;
+    }
+  }
+</style>
+</helmet>
+
+<div ref="{{ rootRef }}" style="position: relative; background: #08090a; color: #f4f1ec; font-family: 'Instrument Sans', system-ui, sans-serif;">
+
+  <canvas ref="{{ canvasRef }}" style="position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block;"></canvas>
+  <div style="position: fixed; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(to right, rgba(8,9,10,0.9) 0%, rgba(8,9,10,0.78) 42%, rgba(8,9,10,0.34) 72%, rgba(8,9,10,0.5) 100%);"></div>
+
+  <nav style="position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 clamp(16px, 3.5vw, 40px); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); background: linear-gradient(to bottom, rgba(8,9,10,0.86), rgba(8,9,10,0.24)); border-bottom: 1px solid rgba(244,241,236,0.07);">
+    <a href="#top" style="display: flex; align-items: center; gap: 11px; white-space: nowrap;">
+      <span style="width: 11px; height: 11px; border-radius: 999px; background: #ff5a1f; box-shadow: 0 0 20px #ff5a1f; display: block;"></span>
+      <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 15px; letter-spacing: -0.02em;">Mindmaxing Creatives</span>
+    </a>
+    <div style="display: flex; align-items: center; gap: clamp(14px, 2vw, 26px);">
+      <a href="#work" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(244,241,236,0.8);">Work</a>
+      <a href="#process" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(244,241,236,0.8);">Process</a>
+      <button type="button" class="btn-start-project" onclick="window.openContactModal && window.openContactModal(event)" style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 18px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; white-space: nowrap; border: none; cursor: pointer; transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s;">Start a project</button>
+    </div>
+  </nav>
+
+  <header id="top" style="position: relative; z-index: 2; min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; padding: 108px clamp(16px, 3.5vw, 40px) 44px; max-width: 1560px; margin: 0 auto;">
+    <p data-rise style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #ff5a1f; margin: 0 0 clamp(20px, 3vh, 34px);">Product studio, India</p>
+    <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 8vw, 128px); line-height: 0.92; letter-spacing: -0.045em; margin: 0; max-width: 15ch;">
+      <span data-rise style="display: block;">We notice problems</span>
+      <span data-rise style="display: block;">and then go build</span>
+      <span data-rise style="display: block; color: #ff5a1f;">the thing.</span>
+    </h1>
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 30px; margin-top: clamp(28px, 5vh, 56px);">
+      <p data-rise style="font-size: clamp(15px, 1.15vw, 18px); line-height: 1.55; color: rgba(244,241,236,0.86); max-width: 46ch; margin: 0;">Eleven products shipped. Safety, legal recovery, property risk, commerce, and the systems that sell them.</p>
+      <a data-rise href="#work" style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 15px 28px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.22); color: #f4f1ec; white-space: nowrap; transition: background .3s, border-color .3s;">See the work</a>
+    </div>
+  </header>
+
+  <section id="work" ref="{{ workRef }}" style="position: relative; z-index: 2; height: 1100vh;">
+    <div ref="{{ sentinelsRef }}" style="position: absolute; inset: 0; display: flex; flex-direction: column; pointer-events: none;">
+      <div data-step style="flex: 1;"></div><div data-step style="flex: 1;"></div><div data-step style="flex: 1;"></div>
+      <div data-step style="flex: 1;"></div><div data-step style="flex: 1;"></div><div data-step style="flex: 1;"></div>
+      <div data-step style="flex: 1;"></div><div data-step style="flex: 1;"></div><div data-step style="flex: 1;"></div>
+      <div data-step style="flex: 1;"></div><div data-step style="flex: 1;"></div>
+    </div>
+
+    <div style="position: sticky; top: 0; height: 100dvh; overflow: hidden; display: flex; align-items: center;">
+      <div style="position: relative; width: 100%; max-width: 1560px; margin: 0 auto; padding: 92px clamp(16px, 3.5vw, 40px) 52px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: clamp(16px, 3vw, 64px); align-items: center;">
+
+        <div ref="{{ panelsRef }}" style="position: relative; min-height: min(76vh, 640px);">
+
+          <article data-panel style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">01</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, live</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">SafeSpot</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">The person she is meeting tonight might not exist.</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Pre-date verification that cross-references public records, court filings and social profiles across phone, photo, email and location, then separates verified signals from uncertain ones.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Subject never notified</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Deleted after processing</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Report stays on device</span>
+            </div>
+            <a data-line href="https://trysafespot.com" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open SafeSpot <span style="font-size: 14px;">&#8599;</span></a>
+          </article>
+
+          <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">02</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, live</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Hisaab</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">Your last employer still has not cleared your full and final.</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Ten questions in, a five document recovery pack out: escalating demand emails, a formatted legal notice, a Labour Commissioner complaint draft, gratuity forms and dispatch instructions.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">&#8377;1.84 cr computed</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">&#8377;87,400 average claim</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Four day turnaround</span>
+            </div>
+            <a data-line href="https://hisaab-lilac-rho.vercel.app" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Hisaab <span style="font-size: 14px;">&#8599;</span></a>
+          </article>
+
+          <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">03</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, live</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 94px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Before Token</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">You are about to pay token money on a flat nobody has checked.</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">It reads the marketing brochure against the MahaRERA registry to catch contradictions, searches NCLT for builder insolvency, and flags missing occupancy certificates.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Brochure vs registry</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">NCLT insolvency search</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Maharashtra</span>
+            </div>
+            <a data-line href="https://before-token.vercel.app" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Before Token <span style="font-size: 14px;">&#8599;</span></a>
+          </article>
+
+          <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">04</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Client work, live</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 94px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Freedoms AI</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">A blank journal page has never helped anyone think.</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Speak or write a thought, and the AI asks the question underneath it, reads across every note you have ever written, and turns the pattern into tasks you can actually finish.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Web and iOS</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Voice capture</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Nightly memory pass</span>
+            </div>
+            <a data-line href="https://freedoms.ai/join" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Freedoms <span style="font-size: 14px;">&#8599;</span></a>
+          </article>
+
+          <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">05</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Client work, live</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">BUKL</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">A belt with moving parts is a belt that will eventually fail.</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Storefront and launch for Traverse, an ultralight friction-lock belt with three micro-adjustment channels and zero mechanisms. Built to sell a product whose whole pitch is what it leaves out.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Direct to consumer</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Kickstarter launch</span>
+            </div>
+            <a data-line href="https://bukl.co/" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open BUKL <span style="font-size: 14px;">&#8599;</span></a>
+          </article>
+
+          <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">06</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Client work, live</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 94px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Xalt Watches</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">Selling a Swiss-made watch online means selling the detail you cannot hold.</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">A storefront built around motion and macro detail: guilloche dials, special editions, straps, bilingual English and Arabic, regional checkout across the Gulf.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">English and Arabic</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Gulf checkout</span>
+            </div>
+            <a data-line href="https://xaltwatches.com/" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Xalt <span style="font-size: 14px;">&#8599;</span></a>
+          </article>
+
+          <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">07</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Client work, live</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Manifest</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 24ch;">A finished product with no machine to sell it.</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">We built the whole funnel: offer structure, page sequencing, objection handling, checkout. The part nobody counts as a skill is getting a stranger to keep reading.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">&#8377;197 offer, &#8377;999 anchor</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Page and checkout</span>
+            </div>
+            <a data-line href="https://manifest.leblessed.com/lp01" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Manifest <span style="font-size: 14px;">&#8599;</span></a>
+          </article>
+
+          <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">08</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Internal system, in production</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(32px, 5vw, 78px); line-height: 0.92; letter-spacing: -0.04em; margin: 0 0 18px;">WhatsApp Autopilot</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 25ch;">People paid for the webinar and then never showed up.</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Payment fires an instant confirmation, abandoned checkouts get chased, and a five stage reminder sequence runs at 2 days, 1 day, 2 hours, 30 minutes and 5 minutes out. A support bot trained on the docs answers around the clock and escalates when it is unsure.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Five stage sequence</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Runs our own business</span>
+            </div>
+            <a data-line href="https://whisper-buddy-21.mindmaxing.workers.dev" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open the panel <span style="font-size: 14px;">&#8599;</span></a>
+          </article>
+
+          <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">09</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, live</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Glaze</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">Do you want to know what your friends really think about you?</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">Enter a name, get a link, share it anywhere, read what comes back. A weekend build that proves how little a product needs when the loop is right.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Anonymous responses</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Built in a weekend</span>
+            </div>
+            <a data-line href="https://getglaze.in" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 500; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Open Glaze <span style="font-size: 14px;">&#8599;</span></a>
+          </article>
+
+          <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">10</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, Android</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Pause</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 23ch;">Every blocker we tried lasted about four days.</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">So we built our own. An Android blocker designed around the moment of reaching for the phone rather than the app you land in. Built first for ourselves and used every day since.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Android</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Private release</span>
+            </div>
+            <a data-line href="mailto:mindmaxxxing@gmail.com?subject=Pause%20access" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.28); color: #f4f1ec; transition: background .3s, border-color .3s, transform .35s cubic-bezier(.16,1,.3,1);">Ask for access <span style="font-size: 14px;">&#8594;</span></a>
+          </article>
+
+          <article data-panel style="position: absolute; inset: 0; opacity: 0; visibility: hidden; display: flex; flex-direction: column; justify-content: center; max-width: 730px;">
+            <div data-line style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.16em; color: #ff5a1f;">11</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(244,241,236,0.74);">Own product, in build</span>
+            </div>
+            <h2 data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(42px, 6.8vw, 104px); line-height: 0.9; letter-spacing: -0.045em; margin: 0 0 18px;">Janus</h2>
+            <p data-line style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 400; font-size: clamp(19px, 2vw, 29px); line-height: 1.22; letter-spacing: -0.02em; margin: 0 0 16px; max-width: 25ch;">Running content for several businesses out of one room.</p>
+            <p data-line style="font-size: clamp(14.5px, 1.05vw, 16.5px); line-height: 1.62; color: rgba(244,241,236,0.86); max-width: 54ch; margin: 0 0 24px;">A command centre for the whole pipeline: multi-business content, Instagram DM automation, analytics and intelligence tooling. Behind a login while we run it on ourselves first.</p>
+            <div data-line style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Multi-business pipeline</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.3); color: rgba(244,241,236,0.92);">Login required</span>
+            </div>
+            <a data-line href="https://janus-engine.vercel.app" target="_blank" rel="noopener" style="display: inline-flex; align-self: flex-start; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 30px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.28); color: #f4f1ec; transition: background .3s, border-color .3s, transform .35s cubic-bezier(.16,1,.3,1);">Open Janus <span style="font-size: 14px;">&#8599;</span></a>
+          </article>
+
+        </div>
+
+        <div ref="{{ railRef }}" style="display: flex; flex-direction: column; align-self: center;">
+          <sc-for list="{{ railItems }}" as="item" hint-placeholder-count="11">
+            <button data-rail type="button" style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; background: none; border: 0; padding: 7px 0; cursor: pointer; color: #f4f1ec; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; text-align: right;">
+              <span data-rail-label style="opacity: .55; transition: opacity .45s; white-space: nowrap;">{{ item.name }}</span>
+              <span style="position: relative; display: block; width: 40px; height: 1px; background: rgba(244,241,236,0.18); flex: none;"><span data-rail-fill style="position: absolute; inset: 0; transform: scaleX(0); transform-origin: left; background: #ff5a1f; transition: transform .55s cubic-bezier(.16,1,.3,1);"></span></span>
+            </button>
+          </sc-for>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section id="process" style="position: relative; z-index: 2; padding: clamp(90px, 16vh, 190px) clamp(16px, 3.5vw, 40px); max-width: 1560px; margin: 0 auto;">
+    <h2 data-rise style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(34px, 5.4vw, 86px); line-height: 0.94; letter-spacing: -0.04em; margin: 0 0 clamp(44px, 8vh, 92px); max-width: 17ch;">How a thing gets made here.</h2>
+    <div style="display: flex; flex-direction: column; gap: clamp(28px, 5vh, 64px);">
+      <div data-rise style="display: grid; gap: 14px; max-width: 620px; border-top: 1px solid rgba(244,241,236,0.14); padding-top: 26px;">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.18em; color: #ff5a1f;">01</span>
+        <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.03em; margin: 0;">Find where the paperwork is the problem</h3>
+        <p style="font-size: 16px; line-height: 1.62; color: rgba(244,241,236,0.86); margin: 0; max-width: 52ch;">Most things people cannot fix are not blocked by law or by money. They are blocked by documents nobody has time to read.</p>
+      </div>
+      <div data-rise style="display: grid; gap: 14px; max-width: 620px; border-top: 1px solid rgba(244,241,236,0.14); padding-top: 26px; margin-left: auto; margin-right: clamp(0px, 8vw, 180px);">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.18em; color: #ff5a1f;">02</span>
+        <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.03em; margin: 0;">Ship the smallest version that is genuinely useful</h3>
+        <p style="font-size: 16px; line-height: 1.62; color: rgba(244,241,236,0.86); margin: 0; max-width: 52ch;">Live in weeks, not quarters. The first version does one job completely rather than five jobs partly.</p>
+      </div>
+      <div data-rise style="display: grid; gap: 14px; max-width: 620px; border-top: 1px solid rgba(244,241,236,0.14); padding-top: 26px; margin-left: clamp(0px, 14vw, 300px);">
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.18em; color: #ff5a1f;">03</span>
+        <h3 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.03em; margin: 0;">Run it on ourselves before we sell it to you</h3>
+        <p style="font-size: 16px; line-height: 1.62; color: rgba(244,241,236,0.86); margin: 0; max-width: 52ch;">The automation on this list handles our own webinars. The blocker sits on our own phones. We find the broken parts first.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="founder" style="position: relative; z-index: 2; padding: clamp(60px, 12vh, 140px) clamp(16px, 3.5vw, 40px); max-width: 1560px; margin: 0 auto; border-top: 1px solid rgba(244,241,236,0.1);">
+    <p data-rise style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #ff5a1f; margin: 0 0 28px;">Who's Building This</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: clamp(32px, 5vw, 72px); align-items: center;">
+      <!-- Founder Photo Card -->
+      <div data-rise style="position: relative; max-width: 440px; justify-self: center; width: 100%;">
+        <div style="position: absolute; inset: -2px; border-radius: 28px; background: linear-gradient(135deg, #ff5a1f 0%, rgba(255,90,31,0.05) 50%, rgba(244,241,236,0.1) 100%); z-index: 0; opacity: 0.6;"></div>
+        <div style="position: relative; z-index: 1; background: #0d0e11; border-radius: 26px; padding: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255,90,31,0.15); overflow: hidden;">
+          <img src="./aryan.jpg" alt="Aryan — Founder of MindMaxing" style="width: 100%; height: auto; aspect-ratio: 4/5; object-fit: cover; border-radius: 20px; display: block;" />
+          <div style="padding: 16px 8px 8px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 20px; color: #f4f1ec; display: block;">Aryan</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: rgba(244,241,236,0.6); text-transform: uppercase;">Founder & Product Lead</span>
+            </div>
+            <span style="width: 10px; height: 10px; border-radius: 999px; background: #ff5a1f; box-shadow: 0 0 16px #ff5a1f;"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Founder Bio & Brag Highlights -->
+      <div data-rise style="display: flex; flex-direction: column; gap: 24px;">
+        <div>
+          <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 72px); line-height: 0.96; letter-spacing: -0.04em; margin: 0 0 16px; color: #f4f1ec;">
+            Meet <span style="color: #ff5a1f;">Aryan</span>
+          </h2>
+          <p style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 500; font-size: clamp(18px, 2vw, 24px); line-height: 1.35; letter-spacing: -0.02em; color: rgba(244,241,236,0.95); margin: 0 0 16px; max-width: 32ch;">
+            Founder of MindMaxing. Not a course guru. A builder who ships real AI products every week.
+          </p>
+          <p style="font-size: 15.5px; line-height: 1.65; color: rgba(244,241,236,0.76); margin: 0; max-width: 50ch;">
+            Engineered and scaled 11 active products across AI safety, legal recovery, automated sales pipelines, and high-frequency content infrastructure — training 1,000+ Indian professionals into AI-first careers along the way.
+          </p>
+        </div>
+
+        <!-- Brag List -->
+        <div style="display: grid; gap: 14px; border-top: 1px solid rgba(244,241,236,0.12); padding-top: 24px;">
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid #ff5a1f; color: #ff5a1f; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px;">✓</span>
+            <span style="font-size: 15px; line-height: 1.45; color: rgba(244,241,236,0.9); font-weight: 500;">Built and scaled 4 AI products to profitability</span>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid #ff5a1f; color: #ff5a1f; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px;">✓</span>
+            <span style="font-size: 15px; line-height: 1.45; color: rgba(244,241,236,0.9); font-weight: 500;">Trained teams at Fortune 500s on AI adoption & workflow engineering</span>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid #ff5a1f; color: #ff5a1f; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px;">✓</span>
+            <span style="font-size: 15px; line-height: 1.45; color: rgba(244,241,236,0.9); font-weight: 500;">Featured keynote speaker across top national tech conferences</span>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid #ff5a1f; color: #ff5a1f; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px;">✓</span>
+            <span style="font-size: 15px; line-height: 1.45; color: rgba(244,241,236,0.9); font-weight: 500;">Alumni have earned ₹20 Cr+ combined in 2025</span>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid #ff5a1f; color: #ff5a1f; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px;">✓</span>
+            <span style="font-size: 15px; line-height: 1.45; color: rgba(244,241,236,0.9); font-weight: 500;">1:1 consulting slots booked by top CEOs & C-suite Executives</span>
+          </div>
+        </div>
+
+        <div style="padding-top: 8px;">
+          <button type="button" class="btn-start-project" onclick="window.openContactModal && window.openContactModal(event)" style="display: inline-flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 32px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; border: none; cursor: pointer; transition: transform .35s cubic-bezier(.16,1,.3,1);">Book a call with Aryan <span style="font-size: 14px;">&#8594;</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" style="position: relative; z-index: 2; padding: clamp(80px, 14vh, 170px) clamp(16px, 3.5vw, 40px) clamp(56px, 10vh, 116px); max-width: 1560px; margin: 0 auto;">
+    <p data-rise style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #ff5a1f; margin: 0 0 26px;">Taking work for the next quarter</p>
+    <h2 data-rise style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(44px, 9vw, 148px); line-height: 0.88; letter-spacing: -0.05em; margin: 0 0 clamp(36px, 6vh, 64px); max-width: 12ch;">Tell us the problem.</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: clamp(20px, 4vw, 64px); align-items: center; justify-content: space-between;">
+      <button data-rise type="button" class="btn-start-project" onclick="window.openContactModal && window.openContactModal(event)" style="display: inline-flex; align-items: center; gap: 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; padding: 20px 40px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; white-space: nowrap; border: none; cursor: pointer; transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s;">Start a project <span style="font-size: 16px;">&#8594;</span></button>
+    </div>
+  </section>
+
+  <footer style="position: relative; z-index: 2; padding: 24px clamp(16px, 3.5vw, 40px) 32px; max-width: 1560px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; border-top: 1px solid rgba(244,241,236,0.1);">
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: rgba(244,241,236,0.6);">Mindmaxing Creatives</span>
+    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: rgba(244,241,236,0.6);">Eleven products, all of them still online</span>
+  </footer>
+
+</div>
+
+</x-dc>
+
+<!-- Start Project Modal Dialog -->
+<div id="contact-modal" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(8,9,10,0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: opacity 0.3s ease;">
+  <div class="modal-card" style="position: relative; width: 100%; max-width: 560px; background: #0f1013; border: 1px solid rgba(244,241,236,0.14); border-radius: 24px; padding: clamp(24px, 5vw, 40px); box-shadow: 0 30px 80px rgba(0,0,0,0.85); transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    <button type="button" id="close-modal-btn" style="position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: 999px; border: 1px solid rgba(244,241,236,0.15); background: rgba(244,241,236,0.05); color: #f4f1ec; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; line-height: 1;">&times;</button>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+      <span style="width: 8px; height: 8px; border-radius: 999px; background: #ff5a1f; box-shadow: 0 0 12px #ff5a1f;"></span>
+      <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #ff5a1f;">Start a Project</span>
+    </div>
+    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(26px, 4vw, 36px); letter-spacing: -0.03em; margin: 0 0 8px; color: #f4f1ec;">Tell us the problem.</h2>
+    <p style="font-size: 14.5px; line-height: 1.5; color: rgba(244,241,236,0.7); margin: 0 0 24px;">Send us your details and problem statement. We'll get back to you within 24 hours.</p>
+
+    <form id="contact-form" style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+        <div>
+          <label style="display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,241,236,0.6); margin-bottom: 6px;">Your Name *</label>
+          <input type="text" id="form-name" required placeholder="John Doe" style="width: 100%; box-sizing: border-box; background: rgba(244,241,236,0.04); border: 1px solid rgba(244,241,236,0.15); border-radius: 12px; padding: 13px 16px; color: #f4f1ec; font-family: inherit; font-size: 14px; outline: none;" />
+        </div>
+        <div>
+          <label style="display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,241,236,0.6); margin-bottom: 6px;">Your Email *</label>
+          <input type="email" id="form-email" required placeholder="john@example.com" style="width: 100%; box-sizing: border-box; background: rgba(244,241,236,0.04); border: 1px solid rgba(244,241,236,0.15); border-radius: 12px; padding: 13px 16px; color: #f4f1ec; font-family: inherit; font-size: 14px; outline: none;" />
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+        <div>
+          <label style="display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,241,236,0.6); margin-bottom: 6px;">Phone / WhatsApp</label>
+          <input type="tel" id="form-phone" placeholder="+91 98765 43210" style="width: 100%; box-sizing: border-box; background: rgba(244,241,236,0.04); border: 1px solid rgba(244,241,236,0.15); border-radius: 12px; padding: 13px 16px; color: #f4f1ec; font-family: inherit; font-size: 14px; outline: none;" />
+        </div>
+        <div>
+          <label style="display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,241,236,0.6); margin-bottom: 6px;">Budget Range *</label>
+          <select id="form-budget" required style="width: 100%; box-sizing: border-box; background: #141518; border: 1px solid rgba(244,241,236,0.15); border-radius: 12px; padding: 13px 16px; color: #f4f1ec; font-family: inherit; font-size: 14px; outline: none; appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=\"%23ff5a1f\" height=\"18\" viewBox=\"0 0 24 24\" width=\"18\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>'); background-repeat: no-repeat; background-position: right 14px center; cursor: pointer;">
+            <option value="" disabled selected style="background: #141518; color: rgba(244,241,236,0.5);">Select budget range...</option>
+            <option value="$1,000 - $3,000" style="background: #141518; color: #f4f1ec;">$1,000 - $3,000</option>
+            <option value="$3,000 - $5,000" style="background: #141518; color: #f4f1ec;">$3,000 - $5,000</option>
+            <option value="$5,000 - $10,000" style="background: #141518; color: #f4f1ec;">$5,000 - $10,000</option>
+            <option value="$10,000 - $20,000" style="background: #141518; color: #f4f1ec;">$10,000 - $20,000</option>
+            <option value="$20,000+" style="background: #141518; color: #ff5a1f; font-weight: bold;">$20,000+</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style="display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,241,236,0.6); margin-bottom: 6px;">Project Details / Problem *</label>
+        <textarea id="form-details" required rows="4" placeholder="Tell us what you want to build or the problem you need solved..." style="width: 100%; box-sizing: border-box; background: rgba(244,241,236,0.04); border: 1px solid rgba(244,241,236,0.15); border-radius: 12px; padding: 14px 16px; color: #f4f1ec; font-family: inherit; font-size: 14px; resize: vertical; outline: none;"></textarea>
+      </div>
+
+      <div id="form-status" style="display: none; padding: 12px 16px; border-radius: 10px; font-size: 13.5px; line-height: 1.4;"></div>
+
+      <button type="submit" id="form-submit-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 16px 28px; border-radius: 999px; background: #ff5a1f; color: #08090a; font-weight: 600; border: none; cursor: pointer; margin-top: 4px;">
+        <span>Send Enquiry</span>
+        <span style="font-size: 14px;">&rarr;</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function() {
+  console.log('[Mindmaxing] Contact Modal Script Initialized');
+
+  function getModalElements() {
+    return {
+      modal: document.getElementById('contact-modal'),
+      closeBtn: document.getElementById('close-modal-btn'),
+      form: document.getElementById('contact-form'),
+      statusDiv: document.getElementById('form-status'),
+      submitBtn: document.getElementById('form-submit-btn')
+    };
+  }
+
+  window.openContactModal = function(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    console.log('[Mindmaxing] openContactModal called! Triggered by:', e ? e.target : 'direct call');
+    
+    const { modal } = getModalElements();
+    if (!modal) {
+      console.error('[Mindmaxing] ERROR: #contact-modal element not found in DOM!');
+      return;
+    }
+    
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => {
+      modal.style.opacity = '1';
+      const card = modal.querySelector('.modal-card');
+      if (card) card.style.transform = 'translateY(0)';
+    });
+    console.log('[Mindmaxing] Modal successfully set to visible (display: flex, opacity: 1)');
+  };
+
+  window.closeContactModal = function() {
+    console.log('[Mindmaxing] closeContactModal called!');
+    const { modal, statusDiv } = getModalElements();
+    if (!modal) return;
+    
+    modal.style.opacity = '0';
+    const card = modal.querySelector('.modal-card');
+    if (card) card.style.transform = 'translateY(20px)';
+    setTimeout(() => {
+      modal.style.display = 'none';
+      if (statusDiv) statusDiv.style.display = 'none';
+    }, 300);
+  };
+
+  // Global Event Delegation for any button/link with .btn-start-project
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-start-project');
+    if (btn) {
+      console.log('[Mindmaxing] Click event captured on .btn-start-project element:', btn);
+      window.openContactModal(e);
+      return;
+    }
+    
+    // Close button
+    if (e.target.closest('#close-modal-btn')) {
+      window.closeContactModal();
+      return;
+    }
+    
+    // Backdrop click
+    const modal = document.getElementById('contact-modal');
+    if (modal && e.target === modal) {
+      window.closeContactModal();
+    }
+  });
+
+  // Escape key handler
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('contact-modal');
+      if (modal && (modal.style.display === 'flex' || modal.style.opacity === '1')) {
+        console.log('[Mindmaxing] Escape key pressed, closing modal');
+        window.closeContactModal();
+      }
+    }
+  });
+
+  // Form Submission Handler via Delegation
+  document.addEventListener('submit', async function(e) {
+    if (e.target && e.target.id === 'contact-form') {
+      e.preventDefault();
+      console.log('[Mindmaxing] Contact form submission intercepted!');
+      
+      const { statusDiv, submitBtn } = getModalElements();
+      
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.style.background = 'rgba(255, 90, 31, 0.12)';
+        statusDiv.style.border = '1px solid rgba(255, 90, 31, 0.3)';
+        statusDiv.style.color = '#ff5a1f';
+        statusDiv.textContent = 'Sending enquiry via Resend...';
+      }
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        const payload = {
+          name: document.getElementById('form-name')?.value || '',
+          email: document.getElementById('form-email')?.value || '',
+          phone: document.getElementById('form-phone')?.value || '',
+          budget: document.getElementById('form-budget')?.value || '',
+          details: document.getElementById('form-details')?.value || ''
+        };
+        
+        console.log('[Mindmaxing] Sending POST request to /api/contact with payload:', payload);
+
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        console.log('[Mindmaxing] /api/contact response status:', res.status, 'Data:', data);
+
+        if (res.ok && data.success) {
+          if (statusDiv) {
+            statusDiv.style.background = 'rgba(46, 204, 113, 0.15)';
+            statusDiv.style.border = '1px solid rgba(46, 204, 113, 0.35)';
+            statusDiv.style.color = '#2ecc71';
+            statusDiv.textContent = '✨ Enquiry sent! We have received your details and will get back to you within 24 hours.';
+          }
+          e.target.reset();
+          setTimeout(() => window.closeContactModal(), 4000);
+        } else {
+          throw new Error(data.error || 'Failed to send enquiry. Please try again.');
+        }
+      } catch (err) {
+        console.error('[Mindmaxing] Submission error:', err);
+        if (statusDiv) {
+          statusDiv.style.background = 'rgba(231, 76, 60, 0.15)';
+          statusDiv.style.border = '1px solid rgba(231, 76, 60, 0.35)';
+          statusDiv.style.color = '#e74c3c';
+          statusDiv.textContent = err.message || 'An error occurred. Please try again.';
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    }
+  });
+})();
+</script>
+
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.rootRef = React.createRef();
+    this.canvasRef = React.createRef();
+    this.workRef = React.createRef();
+    this.panelsRef = React.createRef();
+    this.railRef = React.createRef();
+    this.sentinelsRef = React.createRef();
+    this.active = 0;
+    this.items = [
+      { name: "SafeSpot", a: "#0d0a12", b: "#3a1046" },
+      { name: "Hisaab", a: "#0a0908", b: "#3c1a05" },
+      { name: "Before Token", a: "#07090b", b: "#0f2d36" },
+      { name: "Freedoms", a: "#080b0a", b: "#123a34" },
+      { name: "BUKL", a: "#0a0a09", b: "#2c2a1c" },
+      { name: "Xalt", a: "#070a0e", b: "#152a42" },
+      { name: "Manifest", a: "#0b0809", b: "#42200a" },
+      { name: "Autopilot", a: "#080b09", b: "#153a1c" },
+      { name: "Glaze", a: "#0b0810", b: "#2f1148" },
+      { name: "Pause", a: "#090909", b: "#232326" },
+      { name: "Janus", a: "#0a0809", b: "#3d1220" }
+    ];
+  }
+
+  renderVals() {
+    return {
+      rootRef: this.rootRef, canvasRef: this.canvasRef, workRef: this.workRef,
+      panelsRef: this.panelsRef, railRef: this.railRef, sentinelsRef: this.sentinelsRef,
+      railItems: this.items
+    };
+  }
+
+  componentDidMount() {
+    this.reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.body.style.background = "#08090a";
+    this.setupReveals();
+    this.setupSteps();
+    this.setupRail();
+    let n = 0;
+    this._poll = setInterval(() => {
+      if (window.THREE && window.gsap) { clearInterval(this._poll); this.initGL(); }
+      else if (++n > 120) clearInterval(this._poll);
+    }, 60);
+  }
+
+  componentWillUnmount() {
+    cancelAnimationFrame(this._raf);
+    clearInterval(this._poll);
+    if (this._stepIO) this._stepIO.disconnect();
+    if (this._riseIO) this._riseIO.disconnect();
+    window.removeEventListener("resize", this._onResize);
+    window.removeEventListener("pointermove", this._onPointer);
+    if (this._renderer) this._renderer.dispose();
+  }
+
+  setupReveals() {
+    const nodes = this.rootRef.current.querySelectorAll("[data-rise]");
+    nodes.forEach((el, i) => {
+      el.style.opacity = "0";
+      el.style.transform = "translateY(26px)";
+      el.style.transition = "opacity .85s cubic-bezier(.16,1,.3,1), transform .85s cubic-bezier(.16,1,.3,1)";
+      el.style.transitionDelay = (i % 6) * 60 + "ms";
+    });
+    this._riseIO = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.style.opacity = "1";
+          e.target.style.transform = "translateY(0)";
+          this._riseIO.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+    nodes.forEach((el) => this._riseIO.observe(el));
+  }
+
+  setupSteps() {
+    const steps = Array.from(this.sentinelsRef.current.querySelectorAll("[data-step]"));
+    this.panels = Array.from(this.panelsRef.current.querySelectorAll("[data-panel]"));
+    this._stepIO = new IntersectionObserver((entries) => {
+      let best = null;
+      entries.forEach((e) => { if (e.isIntersecting && (!best || e.intersectionRatio > best.intersectionRatio)) best = e; });
+      if (!best) return;
+      const idx = steps.indexOf(best.target);
+      if (idx >= 0) this.goTo(idx);
+    }, { rootMargin: "-45% 0px -45% 0px", threshold: 0 });
+    steps.forEach((s) => this._stepIO.observe(s));
+    this.steps = steps;
+  }
+
+  setupRail() {
+    const buttons = Array.from(this.railRef.current.querySelectorAll("[data-rail]"));
+    this.railButtons = buttons;
+    buttons.forEach((b, i) => {
+      b.addEventListener("click", () => {
+        const t = this.steps[i];
+        if (!t) return;
+        const y = t.getBoundingClientRect().top + window.scrollY + t.offsetHeight * 0.5 - window.innerHeight * 0.5;
+        window.scrollTo({ top: y, behavior: this.reduce ? "auto" : "smooth" });
+      });
+    });
+    this.paintRail(0);
+  }
+
+  paintRail(idx) {
+    if (!this.railButtons) return;
+    this.railButtons.forEach((b, i) => {
+      const fill = b.querySelector("[data-rail-fill]");
+      const label = b.querySelector("[data-rail-label]");
+      if (fill) fill.style.transform = i === idx ? "scaleX(1)" : "scaleX(0)";
+      if (label) label.style.opacity = i === idx ? "1" : "0.55";
+    });
+  }
+
+  goTo(idx) {
+    if (idx === this.active || !this.panels || !this.panels[idx]) return;
+    const prev = this.panels[this.active];
+    const next = this.panels[idx];
+    this.active = idx;
+    this.paintRail(idx);
+    this.tintTo(idx);
+
+    const g = window.gsap;
+    if (!g || this.reduce) {
+      this.panels.forEach((p, i) => {
+        p.style.opacity = i === idx ? "1" : "0";
+        p.style.visibility = i === idx ? "visible" : "hidden";
+      });
+      return;
+    }
+
+    g.killTweensOf(prev.querySelectorAll("[data-line]"));
+    g.killTweensOf(next.querySelectorAll("[data-line]"));
+    g.to(prev.querySelectorAll("[data-line]"), {
+      y: -22, opacity: 0, duration: 0.36, stagger: 0.025, ease: "power2.in",
+      onComplete: () => { prev.style.visibility = "hidden"; prev.style.opacity = "0"; }
+    });
+    next.style.visibility = "visible";
+    next.style.opacity = "1";
+    g.fromTo(next.querySelectorAll("[data-line]"),
+      { y: 34, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8, stagger: 0.055, delay: 0.16, ease: "power3.out" });
+  }
+
+  hexToRGB(hex) {
+    const h = hex.replace("#", "");
+    return [parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255];
+  }
+
+  tintTo(idx) {
+    if (!this._u) return;
+    const it = this.items[idx];
+    const a = this.hexToRGB(it.a);
+    const b = this.hexToRGB(it.b);
+    const g = window.gsap;
+    if (!g) { this._u.uColA.value.set(a[0], a[1], a[2]); this._u.uColB.value.set(b[0], b[1], b[2]); return; }
+    g.to(this._u.uColA.value, { x: a[0], y: a[1], z: a[2], duration: 1.1, ease: "power2.out" });
+    g.to(this._u.uColB.value, { x: b[0], y: b[1], z: b[2], duration: 1.1, ease: "power2.out" });
+  }
+
+  initGL() {
+    const canvas = this.canvasRef.current;
+    if (!canvas) return;
+    const THREE = window.THREE;
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: "high-performance" });
+    } catch (err) { return; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    renderer.autoClear = false;
+    this._renderer = renderer;
+
+    const bgScene = new THREE.Scene();
+    const bgCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const a0 = this.hexToRGB("#08090a");
+    const b0 = this.hexToRGB("#1d1524");
+    const acc = this.hexToRGB("#ff5a1f");
+
+    const u = {
+      uTime: { value: 0 },
+      uRes: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+      uMouse: { value: new THREE.Vector2(0, 0) },
+      uColA: { value: new THREE.Vector3(a0[0], a0[1], a0[2]) },
+      uColB: { value: new THREE.Vector3(b0[0], b0[1], b0[2]) }
+    };
+    this._u = u;
+
+    const bgMat = new THREE.ShaderMaterial({
+      uniforms: u,
+      vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }",
+      fragmentShader: [
+        "precision highp float;",
+        "varying vec2 vUv;",
+        "uniform float uTime; uniform vec2 uRes; uniform vec2 uMouse;",
+        "uniform vec3 uColA; uniform vec3 uColB;",
+        "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453123); }",
+        "float noise(vec2 p){ vec2 i=floor(p); vec2 f=fract(p); f=f*f*(3.0-2.0*f);",
+        " return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x), mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x), f.y); }",
+        "float fbm(vec2 p){ float v=0.0; float a=0.5; for(int i=0;i<5;i++){ v+=a*noise(p); p=p*2.03+vec2(3.1,1.7); a*=0.5; } return v; }",
+        "void main(){",
+        " vec2 uv = vUv;",
+        " vec2 p = (uv-0.5)*vec2(uRes.x/uRes.y, 1.0)*1.7;",
+        " float t = uTime*0.05;",
+        " vec2 q = vec2(fbm(p*1.5 + t), fbm(p*1.5 + vec2(5.2,1.3) - t));",
+        " vec2 r = vec2(fbm(p*2.0 + 2.4*q + vec2(1.7,9.2) + t*1.3 + uMouse*0.3), fbm(p*2.0 + 2.4*q + vec2(8.3,2.8) - t*1.1));",
+        " float f = fbm(p*1.3 + 2.1*r);",
+        " vec3 col = mix(uColA, uColB, clamp(f*1.4, 0.0, 1.0));",
+        " col = mix(col, uColB*1.45, clamp(length(r)*0.5, 0.0, 1.0));",
+        " col += pow(clamp(f, 0.0, 1.0), 6.0)*0.14;",
+        " float vig = smoothstep(1.55, 0.2, length(uv-0.5)*1.7);",
+        " col *= 0.26 + 0.5*vig;",
+        " col += (hash(uv*uRes + fract(uTime))-0.5)*0.04;",
+        " gl_FragColor = vec4(max(col, 0.0), 1.0);",
+        "}"
+      ].join("\n")
+    });
+    bgScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bgMat));
+
+    const orbScene = new THREE.Scene();
+    const orbCam = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+    orbCam.position.z = 4.2;
+    const ou = {
+      uTime: { value: 0 },
+      uAccent: { value: new THREE.Vector3(acc[0], acc[1], acc[2]) },
+      uOpacity: { value: 0 }
+    };
+    const orbMat = new THREE.ShaderMaterial({
+      uniforms: ou, transparent: true, depthWrite: false,
+      vertexShader: [
+        "uniform float uTime;",
+        "varying vec3 vN; varying vec3 vP; varying float vD;",
+        "void main(){",
+        " float t = uTime*0.4;",
+        " float d = sin(position.x*2.1+t)*sin(position.y*2.5+t*1.15)*sin(position.z*1.9+t*0.8);",
+        " float d2 = sin(position.y*4.4 - t*1.6)*0.4 + sin(position.x*3.3 + t*0.9)*0.3;",
+        " vD = d;",
+        " vec3 pos = position + normal*(d*0.3 + d2*0.1);",
+        " vN = normalize(normalMatrix * normal);",
+        " vec4 mv = modelViewMatrix * vec4(pos, 1.0);",
+        " vP = mv.xyz;",
+        " gl_Position = projectionMatrix * mv;",
+        "}"
+      ].join("\n"),
+      fragmentShader: [
+        "precision highp float;",
+        "uniform vec3 uAccent; uniform float uOpacity;",
+        "varying vec3 vN; varying vec3 vP; varying float vD;",
+        "void main(){",
+        " vec3 n = normalize(vN); vec3 v = normalize(-vP);",
+        " float fres = pow(1.0 - clamp(dot(n, v), 0.0, 1.0), 2.3);",
+        " float lam = clamp(dot(n, normalize(vec3(0.55, 0.85, 0.6))), 0.0, 1.0);",
+        " vec3 base = mix(vec3(0.03,0.032,0.038), vec3(0.10,0.10,0.115), lam);",
+        " vec3 col = base + uAccent*fres*1.2 + uAccent*pow(lam, 22.0)*0.5;",
+        " col += vec3(0.055)*smoothstep(0.4, 1.0, vD);",
+        " gl_FragColor = vec4(col, uOpacity);",
+        "}"
+      ].join("\n")
+    });
+    const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(1.3, 40), orbMat);
+    orbScene.add(orb);
+
+    this._onResize = () => {
+      const w = window.innerWidth, h = window.innerHeight;
+      renderer.setSize(w, h, false);
+      u.uRes.value.set(w, h);
+      orbCam.aspect = w / h;
+      orbCam.updateProjectionMatrix();
+      orb.position.x = w < 900 ? 0 : 1.4;
+      orb.position.y = w < 900 ? -0.2 : 0.05;
+      orb.scale.setScalar(w < 900 ? 0.62 : 1);
+    };
+    window.addEventListener("resize", this._onResize);
+    this._onResize();
+
+    this._pt = { x: 0, y: 0, tx: 0, ty: 0 };
+    this._onPointer = (e) => {
+      this._pt.tx = (e.clientX / window.innerWidth - 0.5) * 2;
+      this._pt.ty = (e.clientY / window.innerHeight - 0.5) * 2;
+    };
+    window.addEventListener("pointermove", this._onPointer, { passive: true });
+
+    if (window.gsap) window.gsap.to(ou.uOpacity, { value: 0.95, duration: 1.5, delay: 0.3, ease: "power2.out" });
+    else ou.uOpacity.value = 0.95;
+
+    const clock = new THREE.Clock();
+    const loop = () => {
+      this._raf = requestAnimationFrame(loop);
+      const t = clock.getElapsedTime();
+      if (!this.reduce) { u.uTime.value = t; ou.uTime.value = t; }
+      this._pt.x += (this._pt.tx - this._pt.x) * 0.045;
+      this._pt.y += (this._pt.ty - this._pt.y) * 0.045;
+      u.uMouse.value.set(this._pt.x, this._pt.y);
+      const sc = window.scrollY || 0;
+      orb.rotation.y = sc * 0.0009 + t * 0.06;
+      orb.rotation.x = this._pt.y * 0.28;
+      orb.position.y = (window.innerWidth < 900 ? -0.2 : 0.05) + this._pt.y * -0.16;
+      renderer.clear();
+      renderer.render(bgScene, bgCam);
+      renderer.clearDepth();
+      renderer.render(orbScene, orbCam);
+    };
+    loop();
+    this.tintTo(this.active);
+  }
+}
+</script>
+</body>
+</html>
