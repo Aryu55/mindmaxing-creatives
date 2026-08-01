@@ -54,43 +54,44 @@
   @media (max-width: 768px) {
     /* Header & Hero Alignment */
     #top {
-      min-height: calc(100dvh - 60px) !important;
+      min-height: auto !important;
       margin-top: 60px !important;
-      padding-top: 40px !important;
-      padding-bottom: 48px !important;
+      padding-top: 36px !important;
+      padding-bottom: 56px !important;
       display: flex !important;
       flex-direction: column !important;
       justify-content: flex-start !important;
       box-sizing: border-box !important;
     }
     #top p[data-rise] {
-      margin-bottom: 12px !important;
+      margin-bottom: 14px !important;
       font-size: 11px !important;
       letter-spacing: 0.16em !important;
     }
     #top h1 {
-      font-size: clamp(30px, 8.5vw, 50px) !important;
+      font-size: clamp(32px, 9vw, 52px) !important;
       line-height: 1.05 !important;
       letter-spacing: -0.035em !important;
-      margin-bottom: 28px !important;
+      margin-bottom: 0 !important;
     }
     #top h1 span {
       display: block !important;
     }
-    #top div[data-rise] {
-      margin-top: 36px !important;
-      gap: 24px !important;
+    #top > div {
+      margin-top: 24px !important;
+      gap: 20px !important;
       flex-direction: column !important;
       align-items: flex-start !important;
     }
-    #top div[data-rise] p {
-      font-size: 15px !important;
+    #top > div > p {
+      font-size: 15.5px !important;
       line-height: 1.6 !important;
-      color: #cbd5e1 !important;
+      color: #e2e8f0 !important;
+      font-weight: 500 !important;
     }
-    #top div[data-rise] a {
+    #top > div > a {
       align-self: flex-start !important;
-      padding: 13px 24px !important;
+      padding: 14px 28px !important;
       font-size: 11.5px !important;
     }
 
