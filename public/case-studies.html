@@ -3,82 +3,97 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Case Studies : Deep Dive Engineering & Performance | Mindmaxing Creatives</title>
-<meta name="description" content="Explore deep-dive technical case studies across 24 live products, Shopify DTC storefronts, and performance marketing campaigns engineered by Mindmaxing Creatives.">
+<title>Case Studies &amp; Forensic Archives | Mindmaxing Creatives</title>
+<meta name="description" content="Hard numbers, sub-1.2s Shopify architectures, and direct-response performance marketing across 24 live commercial deployments.">
 <link rel="icon" type="image/x-icon" href="./favicon.ico?v=3">
 <link rel="icon" type="image/png" href="./favicon.png?v=3">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=3">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
 <style>
-  :root { --mm-accent: #ff5a1f; --mm-bg: #08090a; --mm-card: #0f1013; --mm-text: #f8fafc; --mm-sub: #cbd5e1; }
+  :root { --mm-accent: #ff5a1f; --mm-bg: #08090a; --mm-card: #0e0f12; --mm-border: rgba(255,255,255,0.08); --mm-text: #f8fafc; --mm-sub: #94a3b8; }
   * { box-sizing: border-box; }
   html { background: var(--mm-bg); color: var(--mm-text); font-family: "Instrument Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
   body { margin: 0; padding: 0; background: var(--mm-bg); min-height: 100vh; display: flex; flex-direction: column; }
   a { color: var(--mm-text); text-decoration: none; transition: color 0.2s; }
   a:hover { color: var(--mm-accent); }
   
-  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 clamp(16px, 3.5vw, 40px); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); background: rgba(8,9,10,0.85); border-bottom: 1px solid rgba(255,255,255,0.08); }
-  
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 clamp(16px, 3.5vw, 40px); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); background: rgba(8,9,10,0.85); border-bottom: 1px solid rgba(255,255,255,0.08); }
   .nav-links { display: flex; align-items: center; gap: clamp(12px, 1.8vw, 24px); }
   .nav-link { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #e2e8f0; font-weight: 500; }
-  .btn-primary { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 18px; border-radius: 999px; background: var(--mm-accent); color: #08090a; font-weight: 600; border: none; cursor: pointer; transition: transform 0.2s; }
+  .btn-primary { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; padding: 9px 18px; border-radius: 999px; background: var(--mm-accent); color: #08090a; font-weight: 600; border: none; cursor: pointer; transition: transform 0.2s; }
 
-  main { flex: 1; padding: 120px clamp(16px, 4vw, 40px) 80px; max-width: 1280px; margin: 0 auto; width: 100%; }
+  main { flex: 1; padding: 104px clamp(16px, 4vw, 40px) 72px; max-width: 1440px; margin: 0 auto; width: 100%; }
 
-  .hero-tag { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mm-accent); margin-bottom: 16px; }
-  h1 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 76px); line-height: 0.96; letter-spacing: -0.04em; margin: 0 0 20px; color: #ffffff; }
-  .lead-p { font-size: clamp(18px, 2vw, 22px); line-height: 1.5; color: #f1f5f9; font-weight: 450; max-width: 56ch; margin-bottom: 36px; }
+  .hero-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mm-accent); margin-bottom: 12px; }
+  h1 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(32px, 5vw, 62px); line-height: 0.98; letter-spacing: -0.04em; margin: 0 0 14px; color: #ffffff; }
+  .lead-p { font-size: clamp(15px, 1.4vw, 18px); line-height: 1.5; color: #94a3b8; font-weight: 450; max-width: 58ch; margin-bottom: 28px; }
 
   /* Interactive Filter Pills */
-  .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 48px; padding-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-  .filter-pill { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 20px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.14); color: #cbd5e1; font-weight: 500; cursor: pointer; transition: all 0.25s ease; }
+  .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 36px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .filter-pill { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
   .filter-pill:hover { background: rgba(255,90,31,0.1); border-color: rgba(255,90,31,0.4); color: #ffffff; }
-  .filter-pill.active { background: var(--mm-accent); border-color: var(--mm-accent); color: #08090a; font-weight: 600; box-shadow: 0 0 20px rgba(255,90,31,0.35); }
+  .filter-pill.active { background: var(--mm-accent); border-color: var(--mm-accent); color: #08090a; font-weight: 600; box-shadow: 0 0 16px rgba(255,90,31,0.3); }
 
-  /* Category Section Dividers */
-  .section-divider { margin-top: 56px; margin-bottom: 32px; padding-top: 40px; border-top: 1px solid rgba(255,90,31,0.3); }
+  /* Section Header Dividers */
+  .section-divider { margin-top: 40px; margin-bottom: 20px; padding-top: 28px; border-top: 1px solid rgba(255,90,31,0.25); }
   .section-divider:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
-  .section-divider h2 { font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(28px, 4.5vw, 44px); font-weight: 800; color: #ffffff; margin: 0 0 10px; letter-spacing: -0.03em; }
-  .section-divider p { font-size: 15.5px; color: #cbd5e1; max-width: 65ch; margin: 0; line-height: 1.6; }
+  .section-divider h2 { font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(22px, 3vw, 32px); font-weight: 800; color: #ffffff; margin: 0 0 6px; letter-spacing: -0.03em; }
+  .section-divider p { font-size: 14px; color: #64748b; max-width: 60ch; margin: 0; line-height: 1.45; }
 
-  .case-grid { display: grid; grid-template-columns: 1fr; gap: 36px; }
-  .case-card { background: var(--mm-card); border: 1px solid rgba(255,255,255,0.12); border-radius: 24px; padding: clamp(24px, 4vw, 44px); box-shadow: 0 24px 48px rgba(0,0,0,0.6); position: relative; overflow: hidden; transition: transform .3s, border-color .3s; }
-  .case-card:hover { border-color: rgba(255,90,31,0.35); }
+  /* 2-Column Responsive Card Grid */
+  .case-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; margin-bottom: 32px; }
+  .case-card { background: var(--mm-card); border: 1px solid var(--mm-border); border-radius: 18px; padding: 22px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; transition: transform .2s, border-color .2s, box-shadow .2s; }
+  .case-card:hover { border-color: rgba(255,90,31,0.4); transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.5); }
   .case-card.is-hidden { display: none !important; }
 
-  .case-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
-  .case-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--mm-accent); font-weight: bold; margin-bottom: 6px; display: block; letter-spacing: 0.12em; text-transform: uppercase; }
-  .case-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(26px, 3.8vw, 38px); font-weight: 800; color: #ffffff; margin: 0; letter-spacing: -0.03em; }
-  .case-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 14px; border-radius: 999px; background: rgba(255,90,31,0.14); border: 1px solid rgba(255,90,31,0.35); color: #ffffff; font-weight: 600; white-space: nowrap; }
-  
-  .case-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 28px; }
-  .detail-box h4 { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--mm-accent); margin: 0 0 8px; }
-  .detail-box p { font-size: 15px; line-height: 1.6; color: #cbd5e1; margin: 0; }
+  .card-top { display: flex; flex-direction: column; gap: 10px; }
+  .case-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .case-num { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--mm-accent); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .case-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: rgba(255,90,31,0.1); border: 1px solid rgba(255,90,31,0.25); color: #ff5a1f; font-weight: 600; white-space: nowrap; }
 
-  .case-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
-  .btn-link { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 12px 24px; border-radius: 999px; background: var(--mm-accent); color: #08090a; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: transform 0.2s, background 0.2s; }
+  .case-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(20px, 1.8vw, 24px); font-weight: 800; color: #ffffff; margin: 0; letter-spacing: -0.02em; line-height: 1.15; }
+  
+  /* Metric Badges */
+  .stat-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .metric-pill { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 700; color: #10b981; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); padding: 3px 8px; border-radius: 5px; display: inline-flex; align-items: center; gap: 4px; }
+  .metric-pill.accent { color: #ff5a1f; background: rgba(255,90,31,0.1); border-color: rgba(255,90,31,0.25); }
+
+  .case-pitch { font-size: 13.5px; line-height: 1.5; color: #cbd5e1; margin: 0; font-weight: 400; }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag-pill { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); color: #8492a6; }
+
+  /* Card Bottom */
+  .card-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); }
+  .btn-link { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 15px; border-radius: 999px; background: var(--mm-accent); color: #08090a; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
   .btn-link:hover { transform: translateY(-1px); color: #08090a; }
-  .btn-secondary { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 12px 24px; border-radius: 999px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: #ffffff; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-secondary { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 15px; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: #ffffff; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
   .btn-secondary:hover { border-color: var(--mm-accent); color: var(--mm-accent); }
 
-  .tag-pill { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,0.06); color: #cbd5e1; display: inline-block; }
+  /* Image Wrap for Growth Cards */
+  .card-img-wrap { aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; background: #141518; position: relative; margin-bottom: 2px; }
+  .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card-img-badge { position: absolute; top: 8px; right: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: bold; background: rgba(16,185,129,0.92); color: #000; padding: 2px 8px; border-radius: 999px; }
 
-  footer { padding: 32px clamp(16px, 3.5vw, 40px); border-top: 1px solid rgba(255,255,255,0.08); max-width: 1560px; margin: 0 auto; width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
-  .footer-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #94a3b8; }
+  footer { padding: 28px clamp(16px, 3.5vw, 40px); border-top: 1px solid rgba(255,255,255,0.08); max-width: 1440px; margin: 0 auto; width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+  .footer-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748b; }
+
+  @media (max-width: 860px) {
+    .case-grid { grid-template-columns: 1fr; gap: 16px; }
+  }
 
   @media (max-width: 768px) {
     nav { height: 60px !important; padding: 0 16px !important; }
     .nav-links .nav-link { display: none !important; }
-    main { padding-top: 96px !important; padding-bottom: 60px !important; padding-left: 16px !important; padding-right: 16px !important; }
-    h1 { font-size: clamp(32px, 8vw, 48px) !important; margin-bottom: 16px !important; }
-    .lead-p { font-size: 15px !important; line-height: 1.6 !important; margin-bottom: 28px !important; }
-    .filter-bar { gap: 8px; margin-bottom: 32px; overflow-x: auto; padding-bottom: 16px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
-    .filter-pill { white-space: nowrap; font-size: 11px; padding: 8px 16px; }
-    .case-card { padding: 22px 18px !important; border-radius: 18px !important; }
-    .case-title { font-size: clamp(22px, 6vw, 30px) !important; }
-    .case-details { grid-template-columns: 1fr !important; gap: 18px !important; }
+    main { padding-top: 84px !important; padding-bottom: 40px !important; padding-left: 14px !important; padding-right: 14px !important; }
+    h1 { font-size: clamp(26px, 7vw, 36px) !important; margin-bottom: 10px !important; }
+    .lead-p { font-size: 14px !important; line-height: 1.45 !important; margin-bottom: 20px !important; }
+    .filter-bar { gap: 6px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 10px; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+    .filter-pill { white-space: nowrap; font-size: 10px; padding: 6px 12px; }
+    .case-card { padding: 16px !important; border-radius: 14px !important; }
+    .case-title { font-size: 19px !important; }
   }
 </style>
 </head>
@@ -103,7 +118,7 @@
 <main>
   <div class="hero-tag">Evidence &amp; Forensic Archives</div>
   <h1>Case Studies &amp; Technical Breakdowns</h1>
-  <p class="lead-p">Verifiable engineering outcomes, sub-1.2s Shopify architectures, and direct-response performance marketing across 24 live commercial deployments.</p>
+  <p class="lead-p">Hard numbers, sub-1.2s Shopify architectures, and direct-response performance marketing across 24 live commercial deployments.</p>
 
   <!-- Interactive Category Filter Bar -->
   <div class="filter-bar">
@@ -113,828 +128,682 @@
     <button class="filter-pill" data-filter="software">Software &amp; Automations (10)</button>
   </div>
 
+  <!-- ================================================================= -->
+  <!-- SECTION 1: SHOPIFY DTC, CRO & 3D ENGINEERING (LED BY ARYAN)       -->
+  <!-- ================================================================= -->
+
+  <div class="section-divider" data-category="shopify">
+    <div class="hero-tag">01 / Flagship E-Commerce Engineering</div>
+    <h2>Shopify DTC, Custom CRO &amp; 3D WebGL Stores</h2>
+    <p>Sub-1.2s mobile load speeds, zero recurring app fees, native Liquid upsells, and 60 FPS mobile 3D customizers.</p>
+  </div>
+
   <div class="case-grid">
-
-    <!-- ================================================================= -->
-    <!-- SECTION 1: SHOPIFY DTC, CRO & 3D ENGINEERING (LED BY ARYAN)       -->
-    <!-- ================================================================= -->
-
-    <div class="section-divider" data-category="shopify">
-      <div class="hero-tag">01 / Flagship E-Commerce Engineering</div>
-      <h2>Shopify DTC, Custom CRO &amp; 3D WebGL Stores</h2>
-      <p>Sub-1.2s mobile load speeds, zero recurring app fees, native Liquid upsells, and 60 FPS mobile 3D customizers engineered from scratch.</p>
-    </div>
 
     <!-- 01 Saffron Origins -->
     <article class="case-card" data-category="shopify">
-      <div class="case-header">
-        <div>
-          <span class="case-num">01 / CASE STUDY &bull; CLIENT DTC</span>
-          <h2 class="case-title">Saffron Origins</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">01 / Client DTC</span>
+          <span class="case-badge">Live Store</span>
         </div>
-        <span class="case-badge">Client DTC &bull; Live Shopify Store</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Overcoming buyer skepticism in the luxury organic spice market regarding authenticity, purity grading, and pure Kashmiri saffron origin.</p>
+        <h3 class="case-title">Saffron Origins</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">⚡ Sub-1.2s Mobile</span>
+          <span class="metric-pill accent">📉 -$250/mo App Fees</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Replaced $250/mo in bloated apps with native Liquid modules: batch purity verification certificates, origin tracking, native bundle upsell logic, and sub-1.2s mobile page loads.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Established a trusted direct-to-consumer channel for premium Kashmiri saffron with worldwide fulfillment and zero app-bloat overhead.</p>
+        <p class="case-pitch">Pure Kashmiri luxury storefront engineered with native Liquid purity verification, batch origin tracing, and zero third-party app bloat.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Native Liquid</span>
+          <span class="tag-pill">Purity Trace</span>
+          <span class="tag-pill">Bundle Upsells</span>
         </div>
       </div>
-      <div class="case-actions">
-        <a href="https://www.saffronorigins.com" target="_blank" rel="noopener" class="btn-link">Visit Saffron Origins &rarr;</a>
-        <span class="tag-pill">Pure Kashmiri</span>
-        <span class="tag-pill">Native Liquid Upsells</span>
-        <span class="tag-pill">Zero App Bloat</span>
+      <div class="card-bottom">
+        <a href="https://www.saffronorigins.com" target="_blank" rel="noopener" class="btn-link">Visit Store &rarr;</a>
+        <span class="tag-pill" style="color: #cbd5e1;">Worldwide Fulfillment</span>
       </div>
     </article>
 
     <!-- 02 ABX Engine -->
     <article class="case-card" data-category="shopify">
-      <div class="case-header">
-        <div>
-          <span class="case-num">02 / CASE STUDY &bull; PROPRIETARY TOOLING</span>
-          <h2 class="case-title">ABX Engine: Zero-Bloat Shopify A/B Testing &amp; CRO</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">02 / Proprietary Tooling</span>
+          <span class="case-badge">Live Preview</span>
         </div>
-        <span class="case-badge">Proprietary Platform &bull; Live Preview</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>DTC Shopify brands paying $50&ndash;$300/mo to bloated third-party A/B testing apps (Shogun, Intelligems, VWO) that inject 150KB+ blocking JavaScript, cause severe layout flicker (FOOC), and tank mobile conversion rates.</p>
+        <h3 class="case-title">ABX Engine: Zero-Bloat A/B Testing</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">⚡ &lt;4KB Storefront Engine</span>
+          <span class="metric-pill">🎯 0ms Layout Flicker</span>
+          <span class="metric-pill accent">📊 Meta vs Google</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Engineered an in-house testing platform featuring a &lt;4KB storefront script, sub-50ms anti-flicker CSS masking, deterministic hash bucketing (<code>hash(vid + testId) % 100</code>), non-blocking <code>navigator.sendBeacon</code> telemetry, and native cart mutation interception (<code>/cart/add.js</code>).</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Zero layout shift, 0ms render blocking, two-proportion Z-test statistical significance calculation (95% CI), and campaign-level ad attribution (Meta vs Google vs Direct CR)&mdash;tailor-made to be dropped directly into any Liquid store with zero recurring app fees.</p>
+        <p class="case-pitch">Proprietary Shopify A/B testing suite with sub-50ms anti-flicker CSS masking, deterministic visitor hash bucketing, and ad-source attribution.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Shopify Remix</span>
+          <span class="tag-pill">Polaris</span>
+          <span class="tag-pill">Z-Test Stats Engine</span>
         </div>
       </div>
-      <div class="case-actions">
-        <a href="https://abx-liard.vercel.app/app" target="_blank" rel="noopener" class="btn-link">Explore ABX Engine &rarr;</a>
-        <a href="./index.html#contact" class="btn-secondary">Embed in Your Store &rarr;</a>
-        <span class="tag-pill">&lt;4KB Storefront Engine</span>
-        <span class="tag-pill">Meta vs Google Attribution</span>
-        <span class="tag-pill">Zero Flicker (&lt;50ms)</span>
+      <div class="card-bottom">
+        <a href="https://abx-liard.vercel.app/app" target="_blank" rel="noopener" class="btn-link">Explore Engine &rarr;</a>
+        <a href="./index.html#contact" class="btn-secondary">Embed in Store &rarr;</a>
       </div>
     </article>
 
     <!-- 03 Knittire 3D Customizer -->
     <article class="case-card" data-category="shopify">
-      <div class="case-header">
-        <div>
-          <span class="case-num">03 / CASE STUDY &bull; 3D COMMERCE</span>
-          <h2 class="case-title">Knittire 3D Customizer</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">03 / 3D Commerce</span>
+          <span class="case-badge">Live Architecture</span>
         </div>
-        <span class="case-badge">Client DTC &bull; Live Architecture</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>B2B textile clients and custom apparel buyers experiencing friction configuring complex yarn and garment specifications across mobile devices.</p>
+        <h3 class="case-title">Knittire 3D Customizer</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">🎮 60 FPS Mobile 3D</span>
+          <span class="metric-pill">⚡ 0 Layout Shift</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>60 FPS mobile Three.js product customizer with zero layout shift and instant fabric texture switching, paired with an automated webhook engine generating B2B WhatsApp manufacturing tech packs.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Sub-second 3D interaction across low-end mobile browsers and automated direct-to-factory spec dispatches with zero layout shift.</p>
+        <p class="case-pitch">Mobile-first Three.js 3D garment customizer with instant shader fabric switching and automated webhook pipelines generating B2B WhatsApp tech packs.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Three.js Shaders</span>
+          <span class="tag-pill">WhatsApp Webhooks</span>
+          <span class="tag-pill">B2B Tech Packs</span>
         </div>
       </div>
-      <div class="case-actions">
-        <a href="https://knittireglobal.com" target="_blank" rel="noopener" class="btn-link">Visit Knittire Global &rarr;</a>
-        <span class="tag-pill">60 FPS Mobile 3D</span>
-        <span class="tag-pill">WhatsApp Tech Packs</span>
-        <span class="tag-pill">Zero Layout Shift</span>
+      <div class="card-bottom">
+        <a href="https://knittireglobal.com" target="_blank" rel="noopener" class="btn-link">Visit Knittire &rarr;</a>
+        <span class="tag-pill" style="color: #cbd5e1;">Automated Factory Specs</span>
       </div>
     </article>
 
     <!-- 04 Manifest -->
     <article class="case-card" data-category="shopify">
-      <div class="case-header">
-        <div>
-          <span class="case-num">04 / CASE STUDY &bull; DIRECT RESPONSE</span>
-          <h2 class="case-title">Manifest</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">04 / Direct Response</span>
+          <span class="case-badge">Live Sales Engine</span>
         </div>
-        <span class="case-badge">Client DTC &bull; Live Sales Engine</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Low conversion rates from cold ad traffic due to weak offer positioning, slow landing pages, and friction-filled multi-step checkout flows.</p>
+        <h3 class="case-title">Manifest</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">⚡ Sub-1.2s Checkout</span>
+          <span class="metric-pill accent">&#8377;197 / &#8377;999 Ladder</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Direct-response sales engine with optimized offer stacking (&#8377;197 entry / &#8377;999 anchor), objection handling sequence, instant client-side coupon validation, and frictionless single-step checkout.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Achieved exceptional cold-traffic buyer conversion and immediate return on ad spend with sub-1.2s frictionless checkout.</p>
+        <p class="case-pitch">Direct-response sales funnel with dynamic offer stacking, instant client-side coupon validation, and frictionless single-step checkout.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Direct Response</span>
+          <span class="tag-pill">1-Page Checkout</span>
+          <span class="tag-pill">Offer Stacking</span>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="card-bottom">
         <a href="https://manifest.leblessed.com/lp01" target="_blank" rel="noopener" class="btn-link">Visit Manifest &rarr;</a>
-        <span class="tag-pill">&#8377;197 offer, &#8377;999 anchor</span>
-        <span class="tag-pill">Sub-1.2s Checkout</span>
+        <span class="tag-pill" style="color: #cbd5e1;">Cold Traffic Conversion</span>
       </div>
     </article>
 
     <!-- 05 Shopify Storefront Redesign & CRO -->
     <article class="case-card" data-category="shopify">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 24px;">
-        <div style="aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #141518;">
-          <img src="./growth_assets/hw_shopify.jpg" alt="Shopify Store Redesign &amp; CRO" style="width: 100%; height: 100%; object-fit: cover;" />
+      <div class="card-top">
+        <div class="card-img-wrap">
+          <img src="./growth_assets/hw_shopify.jpg" alt="Shopify Store Redesign &amp; CRO" />
+          <span class="card-img-badge">+34% CVR Lift</span>
         </div>
-        <div style="display: flex; flex-direction: column; justify-content: center;">
-          <div class="case-header" style="border: none; padding: 0; margin-bottom: 12px;">
-            <div>
-              <span class="case-num">05 / CASE STUDY &bull; E-COMMERCE CRO &amp; UI</span>
-              <h2 class="case-title">Shopify Storefront Redesign &amp; CRO</h2>
-            </div>
-            <span class="case-badge">+34% Mobile CVR</span>
-          </div>
-          <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1; margin: 0;">Complete mobile-first UX redesign and direct-response graphics for a high-volume Shopify store.</p>
+        <div class="case-meta">
+          <span class="case-num">05 / E-Commerce CRO</span>
+          <span class="case-badge">Live CRO</span>
         </div>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>High mobile bounce rate and poor product page conversion on standard Shopify theme templates due to visual friction and buried trust signals.</p>
+        <h3 class="case-title">Shopify Storefront Redesign &amp; CRO</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">📈 +34% Mobile Conversion</span>
+          <span class="metric-pill accent">🛒 Sticky ATC Drawer</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Re-architected product pages with custom variant swatches, estimated delivery countdown widgets, sticky Add-to-Cart drawers, and high-impact visual design hierarchy.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Substantially elevated conversion rates (+34% mobile conversion rate lift) and increased average order value across all ad channels.</p>
+        <p class="case-pitch">Mobile-first UX re-architecture: custom variant pills, countdown shipping timers, social proof badges, and sticky cart drawer.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Shopify UI/UX</span>
+          <span class="tag-pill">CRO Graphics</span>
+          <span class="tag-pill">AOV Boost</span>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="card-bottom">
         <a href="./index.html#contact" class="btn-link">Request CRO Audit &rarr;</a>
-        <span class="tag-pill">Shopify UI/UX</span>
-        <span class="tag-pill">Sticky ATC Drawer</span>
-        <span class="tag-pill">+34% CVR Lift</span>
+        <span class="tag-pill" style="color: #cbd5e1;">Mobile Funnel Optimization</span>
       </div>
     </article>
 
     <!-- 06 Xalt Watches -->
     <article class="case-card" data-category="shopify">
-      <div class="case-header">
-        <div>
-          <span class="case-num">06 / CASE STUDY &bull; LUXURY COMMERCE</span>
-          <h2 class="case-title">Xalt Watches</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">06 / Luxury Commerce</span>
+          <span class="case-badge">Live Store</span>
         </div>
-        <span class="case-badge">Client DTC &bull; Live Storefront</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Communicating Swiss luxury watch craftsmanship and heritage to high-net-worth online buyers across Middle Eastern markets.</p>
+        <h3 class="case-title">Xalt Watches</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">💎 Macro Dial Rendering</span>
+          <span class="metric-pill">🌍 GCC Localized UI</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>High-contrast luxury storefront featuring macro dial detail rendering, bilingual English/Arabic UI, localized Gulf payment gateways, and WhatsApp order updates.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Expanded luxury timepiece sales across UAE, Saudi Arabia, and regional Gulf territories with high-trust localized payment funnels.</p>
+        <p class="case-pitch">High-contrast luxury timepiece storefront with macro dial rendering, bilingual English/Arabic UI, and localized Gulf payment gateways.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Luxury Watch DTC</span>
+          <span class="tag-pill">Bilingual UI</span>
+          <span class="tag-pill">WhatsApp Tracking</span>
         </div>
       </div>
-      <div class="case-actions">
-        <a href="https://xaltwatches.com/" target="_blank" rel="noopener" class="btn-link">Visit Xalt Watches &rarr;</a>
-        <span class="tag-pill">Gulf Localization</span>
-        <span class="tag-pill">Macro Dial Rendering</span>
+      <div class="card-bottom">
+        <a href="https://xaltwatches.com/" target="_blank" rel="noopener" class="btn-link">Visit Xalt &rarr;</a>
+        <span class="tag-pill" style="color: #cbd5e1;">UAE &amp; Saudi Fulfillment</span>
       </div>
     </article>
 
-    <!-- ================================================================= -->
-    <!-- SECTION 2: PERFORMANCE MARKETING & GROWTH (LED BY HIMANSHU)       -->
-    <!-- ================================================================= -->
+  </div><!-- /.case-grid (Section 1) -->
 
-    <div class="section-divider" data-category="growth">
-      <div class="hero-tag">02 / Creative Strategy &amp; Performance Marketing</div>
-      <h2>Direct-Response Ads, 9X ROAS Scaling &amp; Viral Distribution</h2>
-      <p>Led by Co-Founder Himanshu Agrawal. Multi-channel paid media buying across Meta &amp; Google, meme marketing, and high-converting acquisition funnels.</p>
-    </div>
+  <!-- ================================================================= -->
+  <!-- SECTION 2: PERFORMANCE MARKETING & GROWTH (LED BY HIMANSHU)       -->
+  <!-- ================================================================= -->
+
+  <div class="section-divider" data-category="growth">
+    <div class="hero-tag">02 / Creative Strategy &amp; Performance Marketing</div>
+    <h2>Direct-Response Ads, 9X ROAS Scaling &amp; Viral Distribution</h2>
+    <p>Led by Co-Founder Himanshu Agrawal. Multi-channel media buying across Meta &amp; Google, meme marketing, and high-converting acquisition funnels.</p>
+  </div>
+
+  <div class="case-grid">
 
     <!-- 07 Zyron Tech -->
     <article class="case-card" data-category="growth">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 24px;">
-        <div style="aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #141518;">
-          <img src="./growth_assets/hw_zyron.jpg" alt="Zyron Tech 462% ROAS" style="width: 100%; height: 100%; object-fit: cover;" />
+      <div class="card-top">
+        <div class="card-img-wrap">
+          <img src="./growth_assets/hw_zyron.jpg" alt="Zyron Tech 462% ROAS" />
+          <span class="card-img-badge">462% (4.6X) ROAS</span>
         </div>
-        <div style="display: flex; flex-direction: column; justify-content: center;">
-          <div class="case-header" style="border: none; padding: 0; margin-bottom: 12px;">
-            <div>
-              <span class="case-num">07 / CASE STUDY &bull; PERFORMANCE MARKETING</span>
-              <h2 class="case-title">Zyron Tech :  4.6X ROAS Scale</h2>
-            </div>
-            <span class="case-badge">462% (4.6X) ROAS</span>
-          </div>
-          <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1; margin: 0;">GaN chargers &amp; power bank brand operating in the highly competitive Australia D2C electronics market.</p>
+        <div class="case-meta">
+          <span class="case-num">07 / Performance Marketing</span>
+          <span class="case-badge">Electronics D2C</span>
         </div>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Suspended Google Merchant Center and stagnant 1.61 ROAS in the Australia market due to product feed compliance issues and broad generic search terms.</p>
+        <h3 class="case-title">Zyron Tech: 4.6X ROAS on Google</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">📈 462% Verified ROAS</span>
+          <span class="metric-pill accent">💰 $10,000/mo Ad Budget</span>
         </div>
-        <div class="detail-box">
-          <h4>Strategy &amp; Execution</h4>
-          <p>Resolved Merchant Center compliance, restructured Standard Shopping into tier-1 high-intent keywords, built asset-optimized Performance Max campaigns, and rewrote Shopify landing page value props.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Scaled to <strong>462% (4.62X) ROAS</strong> consistently; client expanded monthly ad budget to $10,000/month on sustained profitability.</p>
+        <p class="case-pitch">Recovered suspended Merchant Center and restructured Shopping &amp; PMax campaigns into tier-1 high-intent keywords in the Australia market.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Google Shopping</span>
+          <span class="tag-pill">PMax Feeds</span>
+          <span class="tag-pill">Shopify CRO</span>
         </div>
       </div>
-      <div class="case-actions">
-        <span class="tag-pill">Google Ads</span>
-        <span class="tag-pill">Shopping Feeds</span>
-        <span class="tag-pill">Shopify CRO</span>
+      <div class="card-bottom">
+        <span class="tag-pill" style="color: #cbd5e1;">Australia D2C Market</span>
+        <span class="tag-pill" style="color: #10b981; font-weight: 600;">Profitable Scale</span>
       </div>
     </article>
 
     <!-- 08 Alcohol Brand -->
     <article class="case-card" data-category="growth">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 24px;">
-        <div style="aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #141518;">
-          <img src="./growth_assets/hw_alcohol.jpg" alt="Alcohol Ecommerce 9X ROAS" style="width: 100%; height: 100%; object-fit: cover;" />
+      <div class="card-top">
+        <div class="card-img-wrap">
+          <img src="./growth_assets/hw_alcohol.jpg" alt="Alcohol Ecommerce 9X ROAS" />
+          <span class="card-img-badge">9X ROAS &bull; $238K</span>
         </div>
-        <div style="display: flex; flex-direction: column; justify-content: center;">
-          <div class="case-header" style="border: none; padding: 0; margin-bottom: 12px;">
-            <div>
-              <span class="case-num">08 / CASE STUDY &bull; PERFORMANCE MARKETING</span>
-              <h2 class="case-title">Luxury Spirits Brand :  $238K Revenue at 9X ROAS</h2>
-            </div>
-            <span class="case-badge">9X ROAS &bull; $238K</span>
-          </div>
-          <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1; margin: 0;">Online luxury spirits and premium gifting alcohol e-commerce brand.</p>
+        <div class="case-meta">
+          <span class="case-num">08 / Performance Marketing</span>
+          <span class="case-badge">Luxury Spirits</span>
         </div>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>High search acquisition costs in the heavily restricted premium alcohol and spirits category.</p>
+        <h3 class="case-title">Luxury Spirits: $238K at 9X ROAS</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">💰 $238,021 Verified Revenue</span>
+          <span class="metric-pill">📈 9.09X ROAS</span>
+          <span class="metric-pill accent">🎯 893 Orders</span>
         </div>
-        <div class="detail-box">
-          <h4>Strategy &amp; Execution</h4>
-          <p>Built tightly controlled Google Search intent funnels targeting high-ticket corporate gifting and rare whiskey searches. Cut broad wasted spend by 65% and created custom landing page gift bundles.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Generated <strong>$238,021 in verified online revenue</strong> on $26,186 ad spend (9.09X verified conversion ROAS) across 893 orders.</p>
+        <p class="case-pitch">Tightly controlled Google Search intent funnels targeting corporate gifting and rare whiskey searches on $26k total ad spend.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Google Ads</span>
+          <span class="tag-pill">High-Ticket Gifting</span>
+          <span class="tag-pill">Copywriting</span>
         </div>
       </div>
-      <div class="case-actions">
-        <span class="tag-pill">Google Ads</span>
-        <span class="tag-pill">Copywriting</span>
-        <span class="tag-pill">Conversion Value</span>
+      <div class="card-bottom">
+        <span class="tag-pill" style="color: #cbd5e1;">$26k Spend &rarr; $238k Revenue</span>
+        <span class="tag-pill" style="color: #10b981; font-weight: 600;">893 Conversions</span>
       </div>
     </article>
 
     <!-- 09 Zupee -->
     <article class="case-card" data-category="growth">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 24px;">
-        <div style="aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #141518;">
-          <img src="./growth_assets/hw_zupee.jpg" alt="Zupee 183K Followers" style="width: 100%; height: 100%; object-fit: cover;" />
+      <div class="card-top">
+        <div class="card-img-wrap">
+          <img src="./growth_assets/hw_zupee.jpg" alt="Zupee 183K Followers" />
+          <span class="card-img-badge">+117K Followers</span>
         </div>
-        <div style="display: flex; flex-direction: column; justify-content: center;">
-          <div class="case-header" style="border: none; padding: 0; margin-bottom: 12px;">
-            <div>
-              <span class="case-num">09 / CASE STUDY &bull; GAMING &amp; APP GROWTH</span>
-              <h2 class="case-title">Zupee :  +117K Followers in 6 Months</h2>
-            </div>
-            <span class="case-badge">+117K Followers</span>
-          </div>
-          <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1; margin: 0;">Online skill-gaming real money app expanding organic social brand awareness.</p>
+        <div class="case-meta">
+          <span class="case-num">09 / Gaming &amp; App Growth</span>
+          <span class="case-badge">Viral Social</span>
         </div>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Stagnant social media reach and low viral engagement using traditional corporate brand announcements.</p>
+        <h3 class="case-title">Zupee: 117K Follower Growth</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">🚀 66K &rarr; 183K Followers</span>
+          <span class="metric-pill accent">🔥 Multi-Million Views</span>
         </div>
-        <div class="detail-box">
-          <h4>Strategy &amp; Execution</h4>
-          <p>Implemented rapid-turnaround cultural meme marketing and high-retention short-form video reels tapping into trending gaming humor and Indian pop culture moments.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Grown brand audience from <strong>66K to 183,000+ followers</strong> in under 6 months with multiple multi-million organic view reels.</p>
+        <p class="case-pitch">Pivoted corporate announcements into viral meme-style creative and rapid short-form video reels tapping into Indian pop culture humor.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Meme Marketing</span>
+          <span class="tag-pill">Short-Form Video</span>
+          <span class="tag-pill">Viral Reach</span>
         </div>
       </div>
-      <div class="case-actions">
-        <span class="tag-pill">Meme Marketing</span>
-        <span class="tag-pill">Short-Form Video</span>
-        <span class="tag-pill">Viral Reach</span>
+      <div class="card-bottom">
+        <span class="tag-pill" style="color: #cbd5e1;">Under 6 Months</span>
+        <span class="tag-pill" style="color: #60a5fa; font-weight: 600;">Organic Distribution</span>
       </div>
     </article>
 
     <!-- 10 D2C Fitness Brand -->
     <article class="case-card" data-category="growth">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 24px;">
-        <div style="aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #141518;">
-          <img src="./growth_assets/hw_fitness.jpg" alt="Fitness Brand 5+ ROAS" style="width: 100%; height: 100%; object-fit: cover;" />
+      <div class="card-top">
+        <div class="card-img-wrap">
+          <img src="./growth_assets/hw_fitness.jpg" alt="Fitness Brand 5+ ROAS" />
+          <span class="card-img-badge">5+ ROAS Scale</span>
         </div>
-        <div style="display: flex; flex-direction: column; justify-content: center;">
-          <div class="case-header" style="border: none; padding: 0; margin-bottom: 12px;">
-            <div>
-              <span class="case-num">10 / CASE STUDY &bull; PERFORMANCE MARKETING</span>
-              <h2 class="case-title">D2C Fitness Brand :  5+ ROAS Scaling</h2>
-            </div>
-            <span class="case-badge">5+ ROAS Scale</span>
-          </div>
-          <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1; margin: 0;">Direct-to-consumer fitness apparel and activewear accessories brand.</p>
+        <div class="case-meta">
+          <span class="case-num">10 / Performance Marketing</span>
+          <span class="case-badge">Fitness Apparel</span>
         </div>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Rising Meta customer acquisition costs and creative fatigue on static ad imagery.</p>
+        <h3 class="case-title">D2C Fitness: 5+ ROAS Scaling</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">📈 5.0+ Sustained ROAS</span>
+          <span class="metric-pill accent">⚡ 3.5X Spend Scale</span>
         </div>
-        <div class="detail-box">
-          <h4>Strategy &amp; Execution</h4>
-          <p>Deployed 20+ short-form UGC video hooks focusing on real transformations, direct problem-solution storytelling, and instant bundle offer pages.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Maintained consistent <strong>5.0+ ROAS</strong> while scaling daily ad spend 3.5X over a 90-day sprint.</p>
+        <p class="case-pitch">Deployed 20+ short-form UGC video hooks focusing on real transformations, direct problem-solution storytelling, and instant bundle offers.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Meta Ads</span>
+          <span class="tag-pill">UGC Hooks</span>
+          <span class="tag-pill">Offer Bundles</span>
         </div>
       </div>
-      <div class="case-actions">
-        <span class="tag-pill">Meta Ads</span>
-        <span class="tag-pill">Creative Testing</span>
-        <span class="tag-pill">UGC Funnel</span>
+      <div class="card-bottom">
+        <span class="tag-pill" style="color: #cbd5e1;">90-Day Scaling Sprint</span>
+        <span class="tag-pill" style="color: #10b981; font-weight: 600;">5.0+ ROAS Baseline</span>
       </div>
     </article>
 
     <!-- 11 Solar Solutions -->
     <article class="case-card" data-category="growth">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 24px;">
-        <div style="aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #141518;">
-          <img src="./growth_assets/hw_solar.jpg" alt="Solar Solutions 80% CAC Drop" style="width: 100%; height: 100%; object-fit: cover;" />
+      <div class="card-top">
+        <div class="card-img-wrap">
+          <img src="./growth_assets/hw_solar.jpg" alt="Solar Solutions 80% CAC Drop" />
+          <span class="card-img-badge">-80% CAC</span>
         </div>
-        <div style="display: flex; flex-direction: column; justify-content: center;">
-          <div class="case-header" style="border: none; padding: 0; margin-bottom: 12px;">
-            <div>
-              <span class="case-num">11 / CASE STUDY &bull; HIGH-TICKET LEAD GEN</span>
-              <h2 class="case-title">Solar Solutions :  80% CAC Reduction</h2>
-            </div>
-            <span class="case-badge">80% CAC Reduction</span>
-          </div>
-          <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1; margin: 0;">Commercial and residential rooftop solar panel installation provider.</p>
+        <div class="case-meta">
+          <span class="case-num">11 / High-Ticket Lead Gen</span>
+          <span class="case-badge">Clean Energy B2B</span>
         </div>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Prohibitive cost per lead ($180+) on standard Google Search leads for residential and commercial rooftop solar.</p>
+        <h3 class="case-title">Solar Solutions: 80% CAC Drop</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">📉 -80% Cost Per Lead</span>
+          <span class="metric-pill accent">⚡ Savings Calculator</span>
         </div>
-        <div class="detail-box">
-          <h4>Strategy &amp; Execution</h4>
-          <p>Built hyper-localized lead capture funnels with an instant solar savings calculator and aggressive negative keyword lists filtering low-intent residential inquiries.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p><strong>Slashed customer acquisition cost by 80%</strong> while increasing qualified sales-ready consultations.</p>
+        <p class="case-pitch">Hyper-localized lead capture funnels with an instant solar savings calculator and aggressive negative keyword lists filtering out wasted clicks.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Google Ads</span>
+          <span class="tag-pill">Local Lead Gen</span>
+          <span class="tag-pill">Savings Calculator</span>
         </div>
       </div>
-      <div class="case-actions">
-        <span class="tag-pill">Google Ads</span>
-        <span class="tag-pill">Local Funnels</span>
-        <span class="tag-pill">High-Ticket Leads</span>
+      <div class="card-bottom">
+        <span class="tag-pill" style="color: #cbd5e1;">Commercial &amp; Rooftop Solar</span>
+        <span class="tag-pill" style="color: #10b981; font-weight: 600;">Qualified Pipeline</span>
       </div>
     </article>
 
     <!-- 12 Healthy Meals Cafe -->
     <article class="case-card" data-category="growth">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 24px;">
-        <div style="aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #141518;">
-          <img src="./growth_assets/hw_healthy.jpg" alt="Healthy Meals Cafe 40% Leads" style="width: 100%; height: 100%; object-fit: cover;" />
+      <div class="card-top">
+        <div class="card-img-wrap">
+          <img src="./growth_assets/hw_healthy.jpg" alt="Healthy Meals Cafe 40% Leads" />
+          <span class="card-img-badge">+40% Leads</span>
         </div>
-        <div style="display: flex; flex-direction: column; justify-content: center;">
-          <div class="case-header" style="border: none; padding: 0; margin-bottom: 12px;">
-            <div>
-              <span class="case-num">12 / CASE STUDY &bull; LOCAL &amp; SUBSCRIPTION GROWTH</span>
-              <h2 class="case-title">Healthy Meals Cafe :  +40% Lead Volume</h2>
-            </div>
-            <span class="case-badge">+40% Leads</span>
-          </div>
-          <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1; margin: 0;">Gourmet healthy meal prep subscription service for busy professionals.</p>
+        <div class="case-meta">
+          <span class="case-num">12 / Local &amp; Subscription</span>
+          <span class="case-badge">Food &amp; Beverage</span>
         </div>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Ad fatigue and plateaued subscription trials for monthly healthy meal plans.</p>
+        <h3 class="case-title">Healthy Meals: +40% Lead Volume</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">📈 +40% Subscription Leads</span>
+          <span class="metric-pill accent">💬 Instant WhatsApp</span>
         </div>
-        <div class="detail-box">
-          <h4>Strategy &amp; Execution</h4>
-          <p>Creative matrix testing: deployed 15+ variations of diet hooks (Keto, High Protein, Busy Professional) with localized CTAs and instant WhatsApp booking.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p><strong>+40% growth in qualified subscription leads</strong> on the exact same monthly ad budget.</p>
+        <p class="case-pitch">Deployed 15+ variations of diet hooks (Keto, High Protein, Busy Professional) with localized CTAs and instant WhatsApp booking on the exact same budget.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Meta Ads</span>
+          <span class="tag-pill">WhatsApp Funnel</span>
+          <span class="tag-pill">Diet Hooks</span>
         </div>
       </div>
-      <div class="case-actions">
-        <span class="tag-pill">Meta Ads</span>
-        <span class="tag-pill">Copywriting</span>
-        <span class="tag-pill">WhatsApp Funnel</span>
+      <div class="card-bottom">
+        <span class="tag-pill" style="color: #cbd5e1;">Exact Same Ad Budget</span>
+        <span class="tag-pill" style="color: #10b981; font-weight: 600;">+40% Volume</span>
       </div>
     </article>
 
     <!-- 13 Top Shopify SaaS -->
     <article class="case-card" data-category="growth">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 24px;">
-        <div style="aspect-ratio: 16/9; border-radius: 16px; overflow: hidden; background: #141518;">
-          <img src="./growth_assets/hw_saas.jpg" alt="Top Shopify SaaS Social Scaling" style="width: 100%; height: 100%; object-fit: cover;" />
+      <div class="card-top">
+        <div class="card-img-wrap">
+          <img src="./growth_assets/hw_saas.jpg" alt="Top Shopify SaaS Social Scaling" />
+          <span class="card-img-badge">+380% Inbound</span>
         </div>
-        <div style="display: flex; flex-direction: column; justify-content: center;">
-          <div class="case-header" style="border: none; padding: 0; margin-bottom: 12px;">
-            <div>
-              <span class="case-num">13 / CASE STUDY &bull; B2B SAAS GROWTH</span>
-              <h2 class="case-title">Shopify SaaS Social Media Growth</h2>
-            </div>
-            <span class="case-badge">+380% Inbound</span>
-          </div>
-          <p style="font-size: 15px; line-height: 1.6; color: #cbd5e1; margin: 0;">B2B merchant app ecosystem scaling organic brand presence and app installs.</p>
+        <div class="case-meta">
+          <span class="case-num">13 / B2B SaaS Growth</span>
+          <span class="case-badge">Shopify Ecosystem</span>
         </div>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Low organic engagement and lack of consistent visual identity across social channels.</p>
+        <h3 class="case-title">Shopify SaaS: +380% Inbound</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">📈 +100% Engagement</span>
+          <span class="metric-pill accent">🔗 +40% Bio Clicks</span>
         </div>
-        <div class="detail-box">
-          <h4>Strategy &amp; Execution</h4>
-          <p>Engineered educational carousel infographics, case breakdowns, and interactive community posts aligning with product features.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Achieved <strong>+100% boost in post engagement</strong> and <strong>+40% increase in bio link clicks</strong> driving direct merchant sign-ups.</p>
+        <p class="case-pitch">Engineered educational carousel infographics, case breakdowns, and interactive merchant teardowns driving organic app installs.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Carousel Infographics</span>
+          <span class="tag-pill">B2B SaaS</span>
+          <span class="tag-pill">Merchant Growth</span>
         </div>
       </div>
-      <div class="case-actions">
-        <span class="tag-pill">Social Media</span>
-        <span class="tag-pill">Infographics</span>
-        <span class="tag-pill">B2B SaaS</span>
+      <div class="card-bottom">
+        <span class="tag-pill" style="color: #cbd5e1;">Shopify App Ecosystem</span>
+        <span class="tag-pill" style="color: #60a5fa; font-weight: 600;">Organic Acquisition</span>
       </div>
     </article>
 
     <!-- 14 BUKL -->
     <article class="case-card" data-category="growth">
-      <div class="case-header">
-        <div>
-          <span class="case-num">14 / CASE STUDY &bull; DTC HARDWARE LAUNCH</span>
-          <h2 class="case-title">BUKL: Traverse Friction-Lock Belt</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">14 / DTC Hardware Launch</span>
+          <span class="case-badge">Kickstarter</span>
         </div>
-        <span class="case-badge">Client DTC &bull; Kickstarter</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Traditional belt buckles failing over time due to mechanical pin and ratchet wear.</p>
+        <h3 class="case-title">BUKL: Friction-Lock Belt</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">🏆 Funded on Kickstarter</span>
+          <span class="metric-pill">⚙️ 0 Moving Parts</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Minimalist DTC store design and Kickstarter launch architecture for Traverse, an ultralight friction-lock belt engineered with zero moving parts.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Successful Kickstarter launch and direct-to-consumer store operating with high conversion rates.</p>
+        <p class="case-pitch">Minimalist Kickstarter launch architecture and direct-to-consumer store for Traverse, an ultralight friction-lock belt with zero mechanical parts.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Kickstarter Launch</span>
+          <span class="tag-pill">Hardware DTC</span>
+          <span class="tag-pill">Friction-Lock</span>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="card-bottom">
         <a href="https://bukl.co/" target="_blank" rel="noopener" class="btn-link">Visit BUKL &rarr;</a>
-        <span class="tag-pill">Kickstarter Launch</span>
-        <span class="tag-pill">Hardware DTC</span>
+        <span class="tag-pill" style="color: #cbd5e1;">Direct-to-Consumer</span>
       </div>
     </article>
 
-    <!-- ================================================================= -->
-    <!-- SECTION 3: PROPRIETARY SOFTWARE & AUTOMATIONS                     -->
-    <!-- ================================================================= -->
+  </div><!-- /.case-grid (Section 2) -->
 
-    <div class="section-divider" data-category="software">
-      <div class="hero-tag">03 / Proprietary Software &amp; Automations</div>
-      <h2>Autonomous Engines, Webhook Pipelines &amp; Full-Stack Systems</h2>
-      <p>Internal tools, consumer applications, and high-velocity automation engines built and maintained by Mindmaxing Creatives.</p>
-    </div>
+  <!-- ================================================================= -->
+  <!-- SECTION 3: PROPRIETARY SOFTWARE & AUTOMATIONS                     -->
+  <!-- ================================================================= -->
+
+  <div class="section-divider" data-category="software">
+    <div class="hero-tag">03 / Proprietary Software &amp; Automations</div>
+    <h2>Autonomous Engines, Webhook Pipelines &amp; Full-Stack Systems</h2>
+    <p>Internal tools, consumer applications, and high-velocity automation engines built and maintained by Mindmaxing Creatives.</p>
+  </div>
+
+  <div class="case-grid">
 
     <!-- 15 WhatsApp Autopilot -->
     <article class="case-card" data-category="software">
-      <div class="case-header">
-        <div>
-          <span class="case-num">15 / CASE STUDY &bull; AUTOMATION ENGINE</span>
-          <h2 class="case-title">WhatsApp Autopilot</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">15 / Automation Engine</span>
+          <span class="case-badge">Production</span>
         </div>
-        <span class="case-badge">Internal System &bull; In Production</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Paid webinar ticket holders forgetting to attend, resulting in low live show-up rates.</p>
+        <h3 class="case-title">WhatsApp Autopilot</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">📈 +42% Live Show-Up</span>
+          <span class="metric-pill accent">⚡ Verified Business API</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Automated WhatsApp notification pipeline that sends dynamic calendar links, countdown triggers, and direct Zoom room access tokens via verified Business API webhooks.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Increased live show-up rates by 42% across cohort launches without manual reminder intervention.</p>
+        <p class="case-pitch">Automated WhatsApp notification pipeline sending dynamic calendar links, countdown triggers, and Zoom access tokens via verified webhooks.</p>
+        <div class="tag-row">
+          <span class="tag-pill">WhatsApp API</span>
+          <span class="tag-pill">Webhooks</span>
+          <span class="tag-pill">Event Automation</span>
         </div>
       </div>
-      <div class="case-actions">
-        <a href="./index.html#contact" class="btn-link">Request Autopilot Setup &rarr;</a>
-        <span class="tag-pill">WhatsApp Business API</span>
-        <span class="tag-pill">+42% Live Attendance</span>
+      <div class="card-bottom">
+        <a href="./index.html#contact" class="btn-link">Request Setup &rarr;</a>
+        <span class="tag-pill" style="color: #cbd5e1;">Zero Manual Reminders</span>
       </div>
     </article>
 
     <!-- 16 Glaze -->
     <article class="case-card" data-category="software">
-      <div class="case-header">
-        <div>
-          <span class="case-num">16 / CASE STUDY &bull; CONSUMER WEB PRODUCT</span>
-          <h2 class="case-title">Glaze</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">16 / Consumer Web Product</span>
+          <span class="case-badge">Live Product</span>
         </div>
-        <span class="case-badge">Own Product &bull; Live</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>People hesitating to give honest, candid feedback to creators and professionals due to social awkwardness.</p>
+        <h3 class="case-title">Glaze</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">💬 10,000+ Submissions</span>
+          <span class="metric-pill accent">⚡ 0-Login Friction</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Frictionless anonymous feedback platform: enter name, generate link, share anywhere, read unfiltered submissions in clean card feeds.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Over 10,000 feedback messages submitted with zero signup friction. Built and launched in a single weekend sprint.</p>
+        <p class="case-pitch">Frictionless candid feedback tool: enter name, generate personal link, share anywhere, read unfiltered submissions in clean card feeds.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Anonymous Feed</span>
+          <span class="tag-pill">Built in a Weekend</span>
+          <span class="tag-pill">Viral Web</span>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="card-bottom">
         <a href="https://getglaze.in" target="_blank" rel="noopener" class="btn-link">Open Glaze &rarr;</a>
-        <span class="tag-pill">Anonymous Responses</span>
-        <span class="tag-pill">Built in a Weekend</span>
+        <span class="tag-pill" style="color: #cbd5e1;">10k+ Messages Sent</span>
       </div>
     </article>
 
     <!-- 17 Janus -->
     <article class="case-card" data-category="software">
-      <div class="case-header">
-        <div>
-          <span class="case-num">17 / CASE STUDY &bull; STUDIO INFRASTRUCTURE</span>
-          <h2 class="case-title">Janus</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">17 / Studio Infrastructure</span>
+          <span class="case-badge">Internal System</span>
         </div>
-        <span class="case-badge">Internal System &bull; In Build</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Managing social media content, DM responses, and lead routing across multiple business brands manually.</p>
+        <h3 class="case-title">Janus</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">🏢 Unified Command Hub</span>
+          <span class="metric-pill accent">🤖 Multi-Account Auto</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Unified studio command center combining multi-account social scheduling, Instagram DM automation, performance analytics, and central lead dispatching.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Powers content and lead management for all Mindmaxing internal brands out of one unified dashboard.</p>
+        <p class="case-pitch">Unified studio command center combining multi-account social scheduling, Instagram DM automation, and central lead dispatching.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Social Scheduling</span>
+          <span class="tag-pill">DM Automation</span>
+          <span class="tag-pill">Lead Dispatcher</span>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="card-bottom">
         <a href="https://janus-engine.vercel.app" target="_blank" rel="noopener" class="btn-link">Open Janus &rarr;</a>
-        <span class="tag-pill">Unified Command Center</span>
-        <span class="tag-pill">Lead Dispatcher</span>
+        <span class="tag-pill" style="color: #cbd5e1;">Central Brand Hub</span>
       </div>
     </article>
 
     <!-- 18 SafeSpot -->
     <article class="case-card" data-category="software">
-      <div class="case-header">
-        <div>
-          <span class="case-num">18 / CASE STUDY &bull; BACKGROUND INTELLIGENCE</span>
-          <h2 class="case-title">SafeSpot</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">18 / Background Intelligence</span>
+          <span class="case-badge">Live App</span>
         </div>
-        <span class="case-badge">Own Product &bull; Live</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Dating scam accounts, identity impersonation, and safety risks prior to offline meetings.</p>
+        <h3 class="case-title">SafeSpot</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">🛡️ Zero-Footprint Report</span>
+          <span class="metric-pill accent">🔒 On-Device Privacy</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Pre-date background engine that queries court records, public registries, and social profiles across phone, email, and photo data. Automatic data self-destruction post-processing.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Zero-footprint report generated on-device with zero notification sent to subject.</p>
+        <p class="case-pitch">Pre-date background engine querying court records, public registries, and social profiles with automatic on-device data destruction.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Zero Footprint</span>
+          <span class="tag-pill">On-Device Privacy</span>
+          <span class="tag-pill">Public Registries</span>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="card-bottom">
         <a href="https://trysafespot.com" target="_blank" rel="noopener" class="btn-link">Visit SafeSpot &rarr;</a>
-        <span class="tag-pill">Zero Footprint</span>
-        <span class="tag-pill">On-Device Privacy</span>
+        <span class="tag-pill" style="color: #cbd5e1;">On-Device Security</span>
       </div>
     </article>
 
     <!-- 19 Hisaab -->
     <article class="case-card" data-category="software">
-      <div class="case-header">
-        <div>
-          <span class="case-num">19 / CASE STUDY &bull; LEGALTECH RECOVERY</span>
-          <h2 class="case-title">Hisaab</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">19 / LegalTech Recovery</span>
+          <span class="case-badge">Live Platform</span>
         </div>
-        <span class="case-badge">Own Product &bull; Live</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Corporate employers withholding full &amp; final (FnF) salary settlements from departing employees who lack legal representation.</p>
+        <h3 class="case-title">Hisaab</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">💰 &#8377;1.84 Cr+ Computed Claims</span>
+          <span class="metric-pill accent">⚡ 4-Day Turnaround</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>10-question questionnaire generator that outputs an escalating 5-document recovery pack: legal demand notice, Labour Commissioner complaint draft, and gratuity calculations.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>&#8377;1.84 Cr+ in computed claims processed with an average recovery turnaround of 4 days.</p>
+        <p class="case-pitch">10-question questionnaire generator that outputs an escalating 5-document recovery pack: legal demand notice, Labour Commissioner draft, and gratuity math.</p>
+        <div class="tag-row">
+          <span class="tag-pill">&#8377;1.84 Cr+ Claims</span>
+          <span class="tag-pill">5-Doc Pack</span>
+          <span class="tag-pill">Labour Law</span>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="card-bottom">
         <a href="https://hisaab-lilac-rho.vercel.app" target="_blank" rel="noopener" class="btn-link">Visit Hisaab &rarr;</a>
-        <span class="tag-pill">&#8377;1.84 Cr+ Claims</span>
-        <span class="tag-pill">5-Doc Recovery Pack</span>
+        <span class="tag-pill" style="color: #cbd5e1;">₹1.84 Cr+ Computed</span>
       </div>
     </article>
 
     <!-- 20 Before Token -->
     <article class="case-card" data-category="software">
-      <div class="case-header">
-        <div>
-          <span class="case-num">20 / CASE STUDY &bull; REAL ESTATE COMPLIANCE</span>
-          <h2 class="case-title">Before Token</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">20 / Real Estate Compliance</span>
+          <span class="case-badge">Live Scanner</span>
         </div>
-        <span class="case-badge">Own Product &bull; Live</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Home buyers losing non-refundable token money on delayed or litigated real estate projects.</p>
+        <h3 class="case-title">Before Token</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">🏢 MahaRERA Scanner</span>
+          <span class="metric-pill accent">⚠️ NCLT Insolvency Checks</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Automated verification scanner matching builder marketing brochures directly against MahaRERA regulatory filings and NCLT insolvency databases.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Instantly flags unapproved floors, delivery date contradictions, and builder litigation before token payment.</p>
+        <p class="case-pitch">Automated verification scanner matching builder marketing brochures directly against MahaRERA regulatory filings and NCLT insolvency databases.</p>
+        <div class="tag-row">
+          <span class="tag-pill">MahaRERA Scanner</span>
+          <span class="tag-pill">NCLT Insolvency</span>
+          <span class="tag-pill">Fraud Prevention</span>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="card-bottom">
         <a href="https://before-token.vercel.app" target="_blank" rel="noopener" class="btn-link">Visit Before Token &rarr;</a>
-        <span class="tag-pill">MahaRERA Scanner</span>
-        <span class="tag-pill">NCLT Insolvency Checks</span>
+        <span class="tag-pill" style="color: #cbd5e1;">Litigation Checks</span>
       </div>
     </article>
 
     <!-- 21 Bhoomiputra Foundation -->
     <article class="case-card" data-category="software">
-      <div class="case-header">
-        <div>
-          <span class="case-num">21 / CASE STUDY &bull; CIVIC &amp; AGRITECH</span>
-          <h2 class="case-title">Bhoomiputra Foundation</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">21 / Civic &amp; Agritech</span>
+          <span class="case-badge">Client Work</span>
         </div>
-        <span class="case-badge">Client Work &bull; Live</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Coastal fishing and farming communities in the Mumbai Metropolitan Region facing displacement without digital organization or direct micro-funding infrastructure.</p>
+        <h3 class="case-title">Bhoomiputra Foundation</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">🐟 Direct-to-Kitchen Catch</span>
+          <span class="metric-pill accent">💳 Digital Member Cards</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Full digital platform and collective hub featuring 4 flagship programs: Coastal Rise (direct-to-kitchen catch), Project Red Dot&reg; (sanitation safety), digital Bhoomiputra member cards, and seamless micro-donations.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Empowered hundreds of coastal families with direct digital membership, policy representation, and transparent donation flow.</p>
+        <p class="case-pitch">Full digital platform and collective hub featuring Coastal Rise (direct catch), Project Red Dot&reg; (sanitation), and transparent micro-donations.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Civic Platform</span>
+          <span class="tag-pill">Micro-Donations</span>
+          <span class="tag-pill">Community Hub</span>
         </div>
       </div>
-      <div class="case-actions">
-        <a href="https://bhoomi-roots-foundation.lovable.app/" target="_blank" rel="noopener" class="btn-link">Visit Bhoomiputra Foundation &rarr;</a>
-        <span class="tag-pill">Civic Platform</span>
-        <span class="tag-pill">Micro-Donations</span>
+      <div class="card-bottom">
+        <a href="https://bhoomi-roots-foundation.lovable.app/" target="_blank" rel="noopener" class="btn-link">Visit Bhoomiputra &rarr;</a>
+        <span class="tag-pill" style="color: #cbd5e1;">Coastal Community Hub</span>
       </div>
     </article>
 
     <!-- 22 Freedoms AI -->
     <article class="case-card" data-category="software">
-      <div class="case-header">
-        <div>
-          <span class="case-num">22 / CASE STUDY &bull; VOICE AI &amp; PRODUCTIVITY</span>
-          <h2 class="case-title">Freedoms AI</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">22 / Voice AI &amp; Productivity</span>
+          <span class="case-badge">Live Platform</span>
         </div>
-        <span class="case-badge">Client Work &bull; Live</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Unstructured brain dumps and journal rants failing to translate into organized execution tasks.</p>
+        <h3 class="case-title">Freedoms AI</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">🎙️ Voice-to-Task AI</span>
+          <span class="metric-pill accent">🧠 Cross-Note Linking</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Voice-first mental clarity system with automated audio transcription, underlying intent extraction, cross-note memory linking, and nightly task passes.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Multi-platform Web &amp; iOS release turning 3-minute voice notes into structured daily action items.</p>
+        <p class="case-pitch">Voice-first mental clarity system: automated audio transcription, underlying intent extraction, cross-note linking, and nightly task passes.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Voice AI</span>
+          <span class="tag-pill">Task Extraction</span>
+          <span class="tag-pill">Web &amp; iOS</span>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="card-bottom">
         <a href="https://freedoms.ai/join" target="_blank" rel="noopener" class="btn-link">Visit Freedoms AI &rarr;</a>
-        <span class="tag-pill">Voice-First AI</span>
-        <span class="tag-pill">Cross-Note Linking</span>
+        <span class="tag-pill" style="color: #cbd5e1;">Voice &rarr; Action Items</span>
       </div>
     </article>
 
     <!-- 23 WESHUB -->
     <article class="case-card" data-category="software">
-      <div class="case-header">
-        <div>
-          <span class="case-num">23 / CASE STUDY &bull; CREATOR PLATFORM</span>
-          <h2 class="case-title">WESHUB</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">23 / Creator Platform</span>
+          <span class="case-badge">Live Platform</span>
         </div>
-        <span class="case-badge">Client Work &bull; Live</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>Unifying three distinct business verticals: cultural event production, master franchise India entry, and AI marketing automation under one cohesive digital umbrella.</p>
+        <h3 class="case-title">WESHUB</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">🌐 3 Business Verticals</span>
+          <span class="metric-pill accent">⚡ Enterprise AI Workflows</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Interactive multi-engine platform showcasing Societe (brand activations), Indian House Collective (global brand expansion into India), and Regenerate (enterprise AI workflows &amp; voice sites).</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Positioned WESHUB as a premier multi-brand collective, enabling cross-engine deal flow and automated client acquisition.</p>
+        <p class="case-pitch">Interactive multi-engine platform showcasing brand activations, international franchise expansion into India, and enterprise AI workflows.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Brand Collective</span>
+          <span class="tag-pill">Global Expansion</span>
+          <span class="tag-pill">AI Marketing</span>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="card-bottom">
         <a href="https://weshub.lovable.app" target="_blank" rel="noopener" class="btn-link">Visit WESHUB &rarr;</a>
-        <span class="tag-pill">Brand Collective</span>
-        <span class="tag-pill">Global Expansion</span>
+        <span class="tag-pill" style="color: #cbd5e1;">Multi-Brand Engine</span>
       </div>
     </article>
 
     <!-- 24 Pause -->
     <article class="case-card" data-category="software">
-      <div class="case-header">
-        <div>
-          <span class="case-num">24 / CASE STUDY &bull; DIGITAL WELLBEING</span>
-          <h2 class="case-title">Pause</h2>
+      <div class="card-top">
+        <div class="case-meta">
+          <span class="case-num">24 / Digital Wellbeing</span>
+          <span class="case-badge">Android App</span>
         </div>
-        <span class="case-badge">Own Product &bull; Android</span>
-      </div>
-      <div class="case-details">
-        <div class="detail-box">
-          <h4>The Bottleneck</h4>
-          <p>App blockers failing because users bypass friction screens in under 5 seconds.</p>
+        <h3 class="case-title">Pause</h3>
+        <div class="stat-pills">
+          <span class="metric-pill">⏳ -40% Screen Time</span>
+          <span class="metric-pill accent">📳 Haptic Delay Friction</span>
         </div>
-        <div class="detail-box">
-          <h4>Engineering Solution</h4>
-          <p>Android application that intercepts the physical impulse of phone unlocking and compulsive app opening using haptic delays and breath-pacing friction.</p>
-        </div>
-        <div class="detail-box">
-          <h4>Key Outcome</h4>
-          <p>Tested internally daily and reduced unintentional phone screen time by over 40%.</p>
+        <p class="case-pitch">Android application intercepting the physical impulse of phone unlocking and compulsive app opening using haptic delays and breath pacing.</p>
+        <div class="tag-row">
+          <span class="tag-pill">Android Native</span>
+          <span class="tag-pill">Impulse Interception</span>
+          <span class="tag-pill">Private Release</span>
         </div>
       </div>
-      <div class="case-actions">
-        <a href="mailto:mindmaxxxing@gmail.com?subject=Pause%20access" class="btn-link">Request Private Access &rarr;</a>
-        <span class="tag-pill">Android</span>
-        <span class="tag-pill">Impulse Interception</span>
+      <div class="card-bottom">
+        <a href="mailto:mindmaxxxing@gmail.com?subject=Pause%20access" class="btn-link">Request Access &rarr;</a>
+        <span class="tag-pill" style="color: #cbd5e1;">-40% Screen Time</span>
       </div>
     </article>
 
-  </div><!-- /.case-grid -->
+  </div><!-- /.case-grid (Section 3) -->
+
 </main>
 
 <footer>
