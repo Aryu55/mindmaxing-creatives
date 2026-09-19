@@ -57,6 +57,15 @@
 
 ## 📜 Full Changelog & Evolution History
 
+### v1.7.0 (2026-08-19)
+- **Studio Repositioning (Full-Stack Product & Growth Studio)**: Repositioned Mindmaxing Creatives to feature both **Aryan Panchal** (Software & AI Engineering Founder) and **Himanshu Agrawal** (Creative Strategy & Performance Marketing Partner).
+- **Added 6 Performance Marketing & Growth Case Studies**: Added Zyron Tech (4.6X ROAS on Google Shopping), Alcohol Ecom ($238K revenue at 9X ROAS), Zupee (+117K followers in 6 months), D2C Fitness (5+ ROAS), Solar Solutions (80% CAC drop), and Healthy Meals Cafe (+40% lead growth).
+- **Dedicated Client Pitch Page (`/swim.html`)**: Built custom high-converting partnership pitch for Command Studio (Rajvi Damania) to scale upcoming swimwear brands MACHHLI & MAG.
+- **Created & Deployed 2 Live Concept Storefront Prototypes**:
+  - **MACHHLI Swimwear**: [https://machhli.vercel.app](https://machhli.vercel.app)
+  - **MAG SWIMS**: [https://mag-eta.vercel.app](https://mag-eta.vercel.app)
+- **Updated `about.html` and `case-studies.html`**: Added co-founders profiles, full capability matrix, and metric-backed growth case studies.
+
 ### v1.6.0 (2026-08-01)
 - Added **WESHUB** (`https://weshub.lovable.app/`) and **Saffron Origins** (`https://www.saffronorigins.com/`) as 13th and 14th showcase products.
 - Integrated deep-dive case studies for both products into `/case-studies.html` detailing bottleneck, engineering solution, and key outcomes.
