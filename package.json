@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "npx serve -l 3000 .",
     "build": "echo 'Build step complete. Serving static assets.'",
-    "deploy": "wrangler pages deploy . --project-name mindmaxing-creatives --commit-dirty=true"
+    "deploy": "wrangler pages deploy . --project-name mindmaxing-creatives --commit-dirty=true",
+    "logs": "ssh root@72.62.230.37 'tail -f /root/outbound/data/harvester.log'",
+    "leads": "ssh root@72.62.230.37 'cat /root/outbound/data/leads_250.json'"
   },
   "keywords": [
     "mindmaxing",

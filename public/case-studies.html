@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Case Studies :  Deep Dive Engineering & Products | Mindmaxing Creatives</title>
-<meta name="description" content="Explore deep-dive technical case studies for 12 live products built by Mindmaxing Creatives: SafeSpot, Hisaab, Before Token, Bhoomiputra Foundation, Freedoms AI, BUKL, Xalt Watches, Manifest, WhatsApp Autopilot, Glaze, Pause, and Janus.">
+<meta name="description" content="Explore deep-dive technical case studies for live products and proprietary tooling built by Mindmaxing Creatives: ABX Engine, Saffron Origins, Knittire 3D, Manifest, SafeSpot, Hisaab, Before Token, Bhoomiputra, Freedoms AI, BUKL, Xalt Watches, WhatsApp Autopilot, Glaze, Pause, and Janus.">
 <link rel="icon" type="image/x-icon" href="./favicon.ico?v=3">
 <link rel="icon" type="image/png" href="./favicon.png?v=3">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=3">
@@ -81,7 +81,7 @@
 <main>
   <div class="hero-tag">Engineering Archives</div>
   <h1>Product Deep Dives & Case Studies</h1>
-  <p class="lead-p">Detailed technical breakdowns for all 12 live products engineered and launched by Mindmaxing Creatives.</p>
+  <p class="lead-p">Detailed technical breakdowns for live products, DTC stores, and proprietary tooling engineered and launched by Mindmaxing Creatives.</p>
 
   <div class="case-grid">
 
@@ -390,6 +390,35 @@
       </div>
       <div class="case-actions">
         <a href="https://knittireglobal.com" target="_blank" rel="noopener" class="btn-link">Visit Knittire Global &rarr;</a>
+      </div>
+    </article>
+
+    <!-- ABX Engine -->
+    <article class="case-card">
+      <div class="case-header">
+        <div>
+          <span class="case-num">PROPRIETARY TOOLING / IN-HOUSE SHOPIFY ARCHITECTURE</span>
+          <h2 class="case-title">ABX Engine: Zero-Bloat Shopify A/B Testing &amp; CRO</h2>
+        </div>
+        <span class="case-badge">Proprietary Platform &bull; Live Preview</span>
+      </div>
+      <div class="case-details">
+        <div class="detail-box">
+          <h4>The Bottleneck</h4>
+          <p>DTC Shopify brands paying $50&ndash;$300/mo to bloated third-party A/B testing apps (Shogun, Intelligems, VWO) that inject 150KB+ blocking JavaScript, cause severe layout flicker (FOOC), and tank mobile conversion rates.</p>
+        </div>
+        <div class="detail-box">
+          <h4>Engineering Solution</h4>
+          <p>Engineered an in-house testing platform featuring a &lt;4KB uncompressed storefront script, sub-50ms anti-flicker CSS masking, deterministic hash bucketing (<code>hash(vid + testId) % 100</code>), non-blocking <code>navigator.sendBeacon</code> telemetry, and native cart mutation interception (<code>/cart/add.js</code>).</p>
+        </div>
+        <div class="detail-box">
+          <h4>Key Outcome</h4>
+          <p>Zero layout shift, 0ms render blocking, two-proportion Z-test statistical significance calculation (95% CI), and campaign-level ad attribution (Meta vs Google vs Direct CR)&mdash;tailor-made to be dropped directly into any Liquid store with zero recurring app fees.</p>
+        </div>
+      </div>
+      <div class="case-actions">
+        <a href="https://abx-liard.vercel.app/app" target="_blank" rel="noopener" class="btn-link">Explore ABX Engine &rarr;</a>
+        <a href="./index.html#contact" class="btn-link" style="background: rgba(255,255,255,0.08); color: #fff;">Embed in Your Store &rarr;</a>
       </div>
     </article>
 
