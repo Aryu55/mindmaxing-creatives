@@ -249,7 +249,7 @@ class TestContactGatekeeper(unittest.TestCase):
         self.assertEqual(res["resolution_status"], "FOUNDER_FOUND")
         self.assertEqual(res["resolved_name"], "Jane Doe")
         self.assertEqual(res["resolved_email"], "jane@testbrand.com")
-        self.assertEqual(res["resolved_role"], "Founder")
+        self.assertEqual(res["resolved_role"], "Co-founder")
         self.assertIn("/our-story", res["evidence"]["pages_crawled"])
 
     def test_hunter_found_only_no_inferred_fallback(self):
@@ -470,6 +470,186 @@ class TestContactGatekeeper(unittest.TestCase):
         # Public domain
         self.assertTrue(is_safe_public_url("https://example.com/about"))
 
+    def test_mailbox_verification_honesty_onsite_scraped(self):
+        """On-site scraped emails must set mailbox_verification = 'UNCHECKED', never fake 'VALID'."""
+        hp_html = """
+        <div class="founder-card">
+          <p>John Doe is the Founder & CEO. Contact: <a href="mailto:john@testdomain.com">john@testdomain.com</a></p>
+        </div>
+        """
+        with patch("founder_resolver.fetch_url", return_value=(200, hp_html)), \
+             patch("founder_resolver.check_mx_record", return_value=True):
+            res = resolve_founder_contact("testdomain.com", "TestDomain")
+
+        self.assertEqual(res["resolution_status"], "FOUNDER_FOUND")
+        self.assertEqual(res["mailbox_verification"], "UNCHECKED")
+        self.assertEqual(res["identity_status"], "FOUNDER_CONFIRMED")
+
+    def test_hunter_invalid_rejected_by_gatekeeper(self):
+        """Hunter 'invalid' verification returns INVALID status and is rejected by evaluate_contact."""
+        mock_hunter = MagicMock()
+        mock_hunter.is_enabled = True
+        mock_hunter.find_found_email.return_value = {
+            "outcome": "FOUND",
+            "email": "john@testdomain.com",
+            "score": 10,
+            "verification": {"status": "invalid", "date": "2026-09-21T10:00:00Z"},
+            "sources": [{"url": "https://source.com"}]
+        }
+
+        hp_html = """
+        <div class="founder-card">
+          <p>John Doe is the Founder & CEO.</p>
+        </div>
+        """
+        with patch("founder_resolver.fetch_url", return_value=(200, hp_html)), \
+             patch("founder_resolver.check_mx_record", return_value=True):
+            res = resolve_founder_contact("testdomain.com", "TestDomain", hunter_adapter=mock_hunter)
+
+        self.assertEqual(res["mailbox_verification"], "INVALID")
+        self.assertEqual(res["resolution_status"], "FOUNDER_VERIFICATION_FAILED")
+
+        # Pass into evaluate_contact
+        candidate = {
+            "contact_email": "john@testdomain.com",
+            "contact_name": "John Doe",
+            "contact_role": "Founder",
+            "identity_status": "FOUNDER_CONFIRMED",
+            "email_origin": "PROVIDER_FOUND",
+            "mailbox_verification": "INVALID",
+            "verification_time": "2026-09-21T10:00:00Z",
+            "identity_evidence_time": "2026-09-21T10:00:00Z",
+        }
+        campaign_state = {
+            "status": "HUMAN_APPROVED",
+            "current_sequence_step": 0,
+            "active_recipient": "john@testdomain.com",
+            "is_suppressed": False,
+            "quota_available": True
+        }
+        eligible, decision, reasons = evaluate_contact(candidate, campaign_state, datetime.now(timezone.utc))
+        self.assertFalse(eligible)
+        self.assertEqual(decision, ContactDecision.NEEDS_CONTACT)
+        self.assertIn("MAILBOX_RECIPIENT_INVALID", reasons)
+
+    def test_stale_worker_lease_fencing_rejected(self):
+        """Worker completing a job after its lease expired or ownership changed must be rejected."""
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("""
+        CREATE TABLE contact_jobs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lead_id INTEGER,
+            domain TEXT UNIQUE,
+            priority INTEGER DEFAULT 50,
+            status TEXT DEFAULT 'PENDING',
+            worker_id TEXT,
+            lease_expires_at TEXT,
+            attempt_count INTEGER DEFAULT 0,
+            max_attempts INTEGER DEFAULT 4,
+            next_attempt_at TEXT,
+            last_run_id TEXT,
+            last_error TEXT,
+            last_error_type TEXT,
+            created_at TEXT,
+            updated_at TEXT
+        )""")
+        c.execute("""
+        CREATE TABLE leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            domain TEXT UNIQUE,
+            status TEXT DEFAULT 'CANDIDATE',
+            current_sequence_step INTEGER DEFAULT 0
+        )""")
+        now_iso = datetime.now(timezone.utc).isoformat()
+        past_iso = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
+        c.execute("INSERT INTO leads (id, domain) VALUES (1, 'leasetest.com')")
+        c.execute("""
+            INSERT INTO contact_jobs (id, lead_id, domain, status, worker_id, lease_expires_at, created_at, updated_at)
+            VALUES (1, 1, 'leasetest.com', 'CLAIMED', 'worker_A', ?, ?, ?)
+        """, (past_iso, now_iso, now_iso))
+        conn.commit()
+
+        # Worker B attempts completion
+        ok = complete_job(conn, job_id=1, run_id="r1", outcome="FOUND", candidates=[], lead_summary={}, worker_id="worker_B")
+        self.assertFalse(ok, "Mismatched worker must not complete job")
+
+        # Worker A attempts completion with expired lease
+        ok_expired = complete_job(conn, job_id=1, run_id="r1", outcome="FOUND", candidates=[], lead_summary={}, worker_id="worker_A")
+        self.assertFalse(ok_expired, "Expired lease worker must not complete job")
+        conn.close()
+
+    def test_dispatcher_reaches_send_with_approved_founder(self):
+        """Dispatcher dry-run loads CRM status with valid candidate evidence and builds send queue."""
+        import dispatcher
+        test_db = "/tmp/test_dispatcher_evidence.db"
+        if os.path.exists(test_db):
+            os.remove(test_db)
+        dispatcher.DB_PATH = test_db
+
+        conn = sqlite3.connect(test_db)
+        c = conn.cursor()
+        c.execute("""
+        CREATE TABLE leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            domain TEXT UNIQUE,
+            company_name TEXT,
+            contact_email TEXT,
+            status TEXT,
+            current_sequence_step INTEGER DEFAULT 0,
+            last_contacted_at TEXT,
+            client_won INTEGER DEFAULT 0,
+            source TEXT,
+            subreddit TEXT,
+            post_title TEXT,
+            post_url TEXT,
+            post_author TEXT,
+            contact_type TEXT,
+            contact_name TEXT,
+            resolved_name TEXT,
+            resolved_email TEXT,
+            resolved_role TEXT,
+            resolved_evidence TEXT,
+            resolution_status TEXT,
+            resolved_at TEXT,
+            original_contact_email TEXT
+        )""")
+        c.execute("""
+        CREATE TABLE contact_candidates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lead_id INTEGER,
+            full_name TEXT,
+            role TEXT,
+            email TEXT,
+            email_origin TEXT,
+            mailbox_status TEXT,
+            mailbox_checked_at TEXT,
+            identity_status TEXT,
+            identity_checked_at TEXT,
+            is_selected INTEGER DEFAULT 1
+        )""")
+        now_iso = datetime.now(timezone.utc).isoformat()
+        c.execute("""
+        INSERT INTO leads (id, domain, company_name, contact_email, status, current_sequence_step, resolved_at)
+        VALUES (1, 'approvedbrand.com', 'ApprovedBrand', 'founder@approvedbrand.com', 'HUMAN_APPROVED', 0, ?)
+        """, (now_iso,))
+        c.execute("""
+        INSERT INTO contact_candidates (lead_id, full_name, role, email, email_origin, mailbox_status, mailbox_checked_at, identity_status, identity_checked_at, is_selected)
+        VALUES (1, 'John Founder', 'Founder', 'founder@approvedbrand.com', 'PROVIDER_FOUND', 'VALID', ?, 'FOUNDER_CONFIRMED', ?, 1)
+        """, (now_iso, now_iso))
+        conn.commit()
+        conn.close()
+
+        crm_status = dispatcher.get_crm_status()
+        self.assertIn("approvedbrand.com", crm_status)
+        lead_row = crm_status["approvedbrand.com"]
+        self.assertEqual(lead_row["mailbox_status"], "VALID")
+        self.assertEqual(lead_row["identity_status"], "FOUNDER_CONFIRMED")
+        if os.path.exists(test_db):
+            os.remove(test_db)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+

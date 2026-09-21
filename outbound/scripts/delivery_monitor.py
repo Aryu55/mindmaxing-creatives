@@ -119,25 +119,66 @@ def poll_ionos_mailbox(mailbox_info: dict):
 
     conn = volume_controller.get_db_connection()
     c = conn.cursor()
+    folder_errors = []
 
     try:
         for folder in folders_to_check:
-            res, _ = mail.select(folder, readonly=True)
+            folder_arg = f'"{folder}"' if (' ' in folder or '[' in folder) and not folder.startswith('"') else folder
+            res, _ = mail.select(folder_arg, readonly=True)
             if res != "OK":
+                folder_errors.append(f"Select failed for {folder} ({res})")
                 continue
 
-            # Fetch messages from the last 7 days
-            since_date = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%d-%b-%Y")
-            res, data = mail.search(None, f'(SINCE "{since_date}")')
-            if res != "OK" or not data[0]:
+            # Fetch UIDVALIDITY from untagged response
+            uv_res, uv_data = mail.response('UIDVALIDITY')
+            current_uidvalidity = int(uv_data[0]) if (uv_res == 'OK' and uv_data and uv_data[0]) else 1
+
+            # Check cursor
+            c.execute("SELECT uidvalidity, last_uid FROM imap_cursors WHERE mailbox = ? AND folder = ?", (email_addr, folder))
+            cursor_row = c.fetchone()
+
+            if cursor_row and cursor_row["uidvalidity"] == current_uidvalidity:
+                last_uid = cursor_row["last_uid"]
+                res, data = mail.uid('search', None, f"UID {last_uid + 1}:*")
+                if res != "OK":
+                    folder_errors.append(f"UID search failed for {folder} ({res})")
+                    continue
+                raw_uids = data[0].split() if data and data[0] else []
+                uids = sorted([int(u) for u in raw_uids if int(u) > last_uid])
+            else:
+                last_uid = 0
+                since_date = (datetime.now(timezone.utc) - timedelta(days=7)).strftime("%d-%b-%Y")
+                res, data = mail.uid('search', None, f'(SINCE "{since_date}")')
+                if res != "OK":
+                    folder_errors.append(f"Search failed for {folder} ({res})")
+                    continue
+                raw_uids = data[0].split() if data and data[0] else []
+                uids = sorted([int(u) for u in raw_uids])
+                if not uids:
+                    res, data = mail.uid('search', None, 'ALL')
+                    raw_uids = data[0].split() if (res == "OK" and data and data[0]) else []
+                    uids = sorted([int(u) for u in raw_uids])[-30:]
+
+            if not uids:
+                if not cursor_row:
+                    now_iso = datetime.now(timezone.utc).isoformat()
+                    c.execute("""
+                        INSERT INTO imap_cursors (mailbox, folder, uidvalidity, last_uid, updated_at)
+                        VALUES (?, ?, ?, 0, ?)
+                        ON CONFLICT(mailbox, folder) DO UPDATE SET
+                            uidvalidity = excluded.uidvalidity,
+                            updated_at = excluded.updated_at
+                    """, (email_addr, folder, current_uidvalidity, now_iso))
+                    conn.commit()
                 continue
 
-            msg_ids = data[0].split()
-            scanned_cnt += len(msg_ids)
+            uids_to_process = uids[:50]
+            scanned_cnt += len(uids_to_process)
+            max_uid_processed = last_uid
 
-            for mid in msg_ids[-30:]: # Inspect last 30 messages in folder
-                # Use PEEK so unread status is preserved
-                res, msg_data = mail.fetch(mid, "(BODY.PEEK[])")
+            for uid in uids_to_process:
+                max_uid_processed = max(max_uid_processed, uid)
+                res, msg_data = mail.uid('fetch', str(uid), "(BODY.PEEK[])")
                 if res != "OK" or not msg_data or not msg_data[0]:
                     continue
 
@@ -159,16 +200,22 @@ def poll_ionos_mailbox(mailbox_info: dict):
 
                     # Reject ambiguous or empty matching
                     if dsn.is_ambiguous or not dsn.recipient:
+                        header_snip = f"From: {from_hdr} | Subj: {subj_hdr}"
                         c.execute("""
-                            INSERT INTO unmatched_delivery_events (source_mailbox, folder, raw_headers_snippet, body_snippet, reason, detected_at)
-                            VALUES (?, ?, ?, ?, ?, ?)
-                        """, (
-                            email_addr, folder,
-                            f"From: {from_hdr} | Subj: {subj_hdr}",
-                            str(raw_bytes[:1000], errors="ignore"),
-                            "Ambiguous DSN: missing recipient or unparseable status",
-                            now_iso
-                        ))
+                            SELECT id FROM unmatched_delivery_events 
+                            WHERE source_mailbox = ? AND folder = ? AND raw_headers_snippet = ?
+                        """, (email_addr, folder, header_snip))
+                        if not c.fetchone():
+                            c.execute("""
+                                INSERT INTO unmatched_delivery_events (source_mailbox, folder, raw_headers_snippet, body_snippet, reason, detected_at)
+                                VALUES (?, ?, ?, ?, ?, ?)
+                            """, (
+                                email_addr, folder,
+                                header_snip,
+                                str(raw_bytes[:1000], errors="ignore"),
+                                "Ambiguous DSN: missing recipient or unparseable status",
+                                now_iso
+                            ))
                         continue
 
                     failed_recip = dsn.recipient.lower().strip()
@@ -200,10 +247,16 @@ def poll_ionos_mailbox(mailbox_info: dict):
                                 WHERE message_id = ?
                             """, (now_iso, f"{dsn.status_code} {dsn.diagnostic_code}", matched["message_id"]))
 
+                            # Deduplicate bounce event
                             c.execute("""
-                                INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
-                                VALUES (?, 'bounce_report', ?, ?, ?, ?)
-                            """, (matched["message_id"], now_iso, email_addr, folder, f"Hard bounce ({dsn.status_code}): {dsn.diagnostic_code}"))
+                                SELECT id FROM delivery_events
+                                WHERE message_id = ? AND event_type = 'bounce_report' AND source_mailbox = ?
+                            """, (matched["message_id"], email_addr))
+                            if not c.fetchone():
+                                c.execute("""
+                                    INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
+                                    VALUES (?, 'bounce_report', ?, ?, ?, ?)
+                                """, (matched["message_id"], now_iso, email_addr, folder, f"Hard bounce ({dsn.status_code}): {dsn.diagnostic_code}"))
 
                     elif dsn.category == BounceCategory.POLICY_BLOCKED:
                         if matched:
@@ -262,40 +315,75 @@ def poll_ionos_mailbox(mailbox_info: dict):
                             c.execute("UPDATE leads SET status = 'SUPPRESSED' WHERE contact_email = ? OR contact_email = ?", (target_recip, reply.from_email))
                             c.execute("UPDATE messages SET delivery_state = 'opt_out', last_event_at = ? WHERE message_id = ?", (now_iso, target_mid))
                             c.execute("""
-                                INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
-                                VALUES (?, 'reply_opt_out', ?, ?, ?, ?)
-                            """, (target_mid, now_iso, email_addr, folder, f"Opt-out: {reply.body_excerpt[:100]}"))
+                                SELECT id FROM delivery_events 
+                                WHERE message_id = ? AND event_type = 'reply_opt_out' AND source_mailbox = ?
+                            """, (target_mid, email_addr))
+                            if not c.fetchone():
+                                c.execute("""
+                                    INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
+                                    VALUES (?, 'reply_opt_out', ?, ?, ?, ?)
+                                """, (target_mid, now_iso, email_addr, folder, f"Opt-out: {reply.body_excerpt[:100]}"))
 
                         # Case B: Human Reply (supersedes auto-response!)
                         elif reply.reply_type == ReplyType.HUMAN_REPLY:
                             c.execute("UPDATE leads SET status = 'REPLIED' WHERE contact_email = ? OR contact_email = ?", (target_recip, reply.from_email))
                             c.execute("UPDATE messages SET delivery_state = 'replied', last_event_at = ? WHERE message_id = ?", (now_iso, target_mid))
                             c.execute("""
-                                INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
-                                VALUES (?, 'reply_human', ?, ?, ?, ?)
-                            """, (target_mid, now_iso, email_addr, folder, f"From: {reply.from_email} | Subj: {reply.subject[:100]}"))
+                                SELECT id FROM delivery_events 
+                                WHERE message_id = ? AND event_type = 'reply_human' AND source_mailbox = ?
+                            """, (target_mid, email_addr))
+                            if not c.fetchone():
+                                c.execute("""
+                                    INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
+                                    VALUES (?, 'reply_human', ?, ?, ?, ?)
+                                """, (target_mid, now_iso, email_addr, folder, f"From: {reply.from_email} | Subj: {reply.subject[:100]}"))
 
                         # Case C: Out of Office
                         elif reply.reply_type == ReplyType.OUT_OF_OFFICE:
                             if orig_state not in ("replied", "opt_out"):
                                 c.execute("UPDATE messages SET delivery_state = 'auto_response', last_event_at = ? WHERE message_id = ?", (now_iso, target_mid))
                                 c.execute("""
-                                    INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
-                                    VALUES (?, 'reply_ooo', ?, ?, ?, ?)
-                                """, (target_mid, now_iso, email_addr, folder, f"OOO from {reply.from_email}"))
+                                    SELECT id FROM delivery_events 
+                                    WHERE message_id = ? AND event_type = 'reply_ooo' AND source_mailbox = ?
+                                """, (target_mid, email_addr))
+                                if not c.fetchone():
+                                    c.execute("""
+                                        INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
+                                        VALUES (?, 'reply_ooo', ?, ?, ?, ?)
+                                    """, (target_mid, now_iso, email_addr, folder, f"OOO from {reply.from_email}"))
 
                         # Case D: Bot Auto-Response / Support Ticket Deflection
                         elif reply.reply_type in (ReplyType.AUTO_RESPONSE, ReplyType.TICKET_DEFLECTION):
                             if orig_state not in ("replied", "opt_out"):
                                 c.execute("UPDATE messages SET delivery_state = 'auto_response', last_event_at = ? WHERE message_id = ?", (now_iso, target_mid))
                                 c.execute("""
-                                    INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
-                                    VALUES (?, 'reply_auto_response', ?, ?, ?, ?)
-                                """, (target_mid, now_iso, email_addr, folder, f"Auto-reply from {reply.from_email}"))
+                                    SELECT id FROM delivery_events 
+                                    WHERE message_id = ? AND event_type = 'reply_auto_response' AND source_mailbox = ?
+                                """, (target_mid, email_addr))
+                                if not c.fetchone():
+                                    c.execute("""
+                                        INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
+                                        VALUES (?, 'reply_auto_response', ?, ?, ?, ?)
+                                    """, (target_mid, now_iso, email_addr, folder, f"Auto-reply from {reply.from_email}"))
+
+            # Update IMAP cursor for folder
+            now_iso = datetime.now(timezone.utc).isoformat()
+            c.execute("""
+                INSERT INTO imap_cursors (mailbox, folder, uidvalidity, last_uid, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(mailbox, folder) DO UPDATE SET
+                    uidvalidity = excluded.uidvalidity,
+                    last_uid = excluded.last_uid,
+                    updated_at = excluded.updated_at
+            """, (email_addr, folder, current_uidvalidity, max_uid_processed, now_iso))
+            conn.commit()
 
         mail.close()
         mail.logout()
-        update_collector_health(email_addr, "sender", "healthy", None, scanned_cnt)
+        if folder_errors:
+            update_collector_health(email_addr, "sender", "error", f"Folder errors: {'; '.join(folder_errors)}", scanned_cnt)
+        else:
+            update_collector_health(email_addr, "sender", "healthy", None, scanned_cnt)
 
     except Exception as e:
         update_collector_health(email_addr, "sender", "error", f"Scan error: {str(e)}", scanned_cnt)
@@ -319,25 +407,67 @@ def poll_gmail_test_inbox(gmail_info: dict):
     folders = ["INBOX", "[Gmail]/Spam"]
     conn = volume_controller.get_db_connection()
     c = conn.cursor()
+    folder_errors = []
 
     try:
         for folder in folders:
-            res, _ = mail.select(f'"{folder}"', readonly=True) # Strict read-only mode!
+            folder_arg = f'"{folder}"' if (' ' in folder or '[' in folder) and not folder.startswith('"') else folder
+            res, _ = mail.select(folder_arg, readonly=True) # Strict read-only mode!
             if res != "OK":
+                folder_errors.append(f"Select failed for {folder} ({res})")
                 continue
 
-            # Search messages with Mindmaxing header or diagnostic subject
-            since_date = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%d-%b-%Y")
-            res, data = mail.search(None, f'(SINCE "{since_date}")')
-            if res != "OK" or not data[0]:
+            # Fetch UIDVALIDITY from untagged response
+            uv_res, uv_data = mail.response('UIDVALIDITY')
+            current_uidvalidity = int(uv_data[0]) if (uv_res == 'OK' and uv_data and uv_data[0]) else 1
+
+            # Check cursor
+            c.execute("SELECT uidvalidity, last_uid FROM imap_cursors WHERE mailbox = ? AND folder = ?", (gmail_addr, folder))
+            cursor_row = c.fetchone()
+
+            if cursor_row and cursor_row["uidvalidity"] == current_uidvalidity:
+                last_uid = cursor_row["last_uid"]
+                res, data = mail.uid('search', None, f"UID {last_uid + 1}:*")
+                if res != "OK":
+                    folder_errors.append(f"UID search failed for {folder} ({res})")
+                    continue
+                raw_uids = data[0].split() if data and data[0] else []
+                uids = sorted([int(u) for u in raw_uids if int(u) > last_uid])
+            else:
+                last_uid = 0
+                since_date = (datetime.now(timezone.utc) - timedelta(days=2)).strftime("%d-%b-%Y")
+                res, data = mail.uid('search', None, f'(SINCE "{since_date}")')
+                if res != "OK":
+                    folder_errors.append(f"Search failed for {folder} ({res})")
+                    continue
+                raw_uids = data[0].split() if data and data[0] else []
+                uids = sorted([int(u) for u in raw_uids])
+                if not uids:
+                    res, data = mail.uid('search', None, 'ALL')
+                    raw_uids = data[0].split() if (res == "OK" and data and data[0]) else []
+                    uids = sorted([int(u) for u in raw_uids])[-30:]
+
+            if not uids:
+                if not cursor_row:
+                    now_iso = datetime.now(timezone.utc).isoformat()
+                    c.execute("""
+                        INSERT INTO imap_cursors (mailbox, folder, uidvalidity, last_uid, updated_at)
+                        VALUES (?, ?, ?, 0, ?)
+                        ON CONFLICT(mailbox, folder) DO UPDATE SET
+                            uidvalidity = excluded.uidvalidity,
+                            updated_at = excluded.updated_at
+                    """, (gmail_addr, folder, current_uidvalidity, now_iso))
+                    conn.commit()
                 continue
 
-            msg_ids = data[0].split()
-            scanned_cnt += len(msg_ids)
+            uids_to_process = uids[:50]
+            scanned_cnt += len(uids_to_process)
+            max_uid_processed = last_uid
 
-            for mid in msg_ids[-30:]:
+            for uid in uids_to_process:
+                max_uid_processed = max(max_uid_processed, uid)
                 # PEEK preserves unread status
-                res, msg_data = mail.fetch(mid, "(BODY.PEEK[] X-GM-LABELS)")
+                res, msg_data = mail.uid('fetch', str(uid), "(BODY.PEEK[] X-GM-LABELS)")
                 if res != "OK" or not msg_data or not msg_data[0]:
                     continue
 
@@ -413,9 +543,24 @@ def poll_gmail_test_inbox(gmail_info: dict):
                     if (spf == "fail" or dkim == "fail" or dmarc == "fail") and sender_domain:
                         volume_controller.pause_domain(sender_domain, f"Authentication failure detected at Gmail (SPF={spf}, DKIM={dkim}, DMARC={dmarc}) on {target_msg_id}")
 
+            # Update IMAP cursor for folder
+            now_iso = datetime.now(timezone.utc).isoformat()
+            c.execute("""
+                INSERT INTO imap_cursors (mailbox, folder, uidvalidity, last_uid, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(mailbox, folder) DO UPDATE SET
+                    uidvalidity = excluded.uidvalidity,
+                    last_uid = excluded.last_uid,
+                    updated_at = excluded.updated_at
+            """, (gmail_addr, folder, current_uidvalidity, max_uid_processed, now_iso))
+            conn.commit()
+
         mail.close()
         mail.logout()
-        update_collector_health(gmail_addr, "test_inbox", "healthy", None, scanned_cnt)
+        if folder_errors:
+            update_collector_health(gmail_addr, "test_inbox", "error", f"Folder errors: {'; '.join(folder_errors)}", scanned_cnt)
+        else:
+            update_collector_health(gmail_addr, "test_inbox", "healthy", None, scanned_cnt)
 
     except Exception as e:
         update_collector_health(gmail_addr, "test_inbox", "error", f"Gmail scan error: {str(e)}", scanned_cnt)

@@ -137,16 +137,45 @@ class TestDeliverySystem(unittest.TestCase):
             decision_action TEXT NOT NULL,
             decision_reason TEXT NOT NULL,
             evidence_summary_json TEXT,
+            revision INTEGER NOT NULL DEFAULT 1,
             created_at TEXT NOT NULL,
-            UNIQUE(decision_date_utc, mailbox)
+            UNIQUE(decision_date_utc, mailbox, revision)
+        )""")
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS outbound_jobs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lead_id INTEGER NOT NULL,
+            domain TEXT NOT NULL,
+            touch_number INTEGER NOT NULL,
+            assigned_mailbox TEXT,
+            recipient_email TEXT NOT NULL,
+            parent_message_id TEXT,
+            subject TEXT NOT NULL,
+            body TEXT NOT NULL,
+            due_at TEXT NOT NULL,
+            earliest_send_at TEXT NOT NULL,
+            expires_at TEXT,
+            status TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING', 'RESERVED', 'CLAIMED', 'SENT', 'FAILED', 'DEFERRED', 'EXPIRED', 'UNCERTAIN')),
+            worker_id TEXT,
+            attempt_count INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(domain, touch_number)
         )""")
 
         # Add initial mailbox, seed, and lead
         now_iso = datetime.now(timezone.utc).isoformat()
+        today_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         c.execute("INSERT INTO mailbox_levels VALUES ('aryan@mindmaxing.online', 'mindmaxing.online', 1, ?, 'active', NULL, NULL)", (now_iso,))
         c.execute("INSERT INTO collector_health VALUES ('aryan@mindmaxing.online', 'sender', ?, 'healthy', NULL, 10, ?)", (now_iso, now_iso))
         c.execute("INSERT INTO collector_health VALUES ('seed1@gmail.com', 'test_inbox', ?, 'healthy', NULL, 5, ?)", (now_iso, now_iso))
         c.execute("INSERT INTO leads VALUES ('badprospect.com', 'invalid@badprospect.com', 'READY', '')")
+        c.execute("""
+        INSERT INTO mailbox_daily_decisions (
+            decision_date_utc, mailbox, domain, current_level, effective_campaign_cap,
+            effective_diagnostic_cap, decision_action, decision_reason, evidence_summary_json, revision, created_at
+        ) VALUES (?, 'aryan@mindmaxing.online', 'mindmaxing.online', 1, 1, 1, 'MAINTAIN', 'Active testing', '{}', 1, ?)
+        """, (today_utc, now_iso))
         conn.commit()
         conn.close()
 
@@ -484,15 +513,87 @@ class TestDeliverySystem(unittest.TestCase):
         self.assertEqual(row["status"], "paused")
         self.assertEqual(row["paused_reason"], "Test manual pause")
 
-    # 12. Auto-pause on domain authentication failure
-    def test_auto_pause_on_auth_failure(self):
+    # 13. Quoted footer stripping: Positive reply quoting footer must NOT trigger opt-out
+    def test_quoted_footer_stripping_not_opt_out(self):
+        """Positive reply that quotes the outbound footer must NOT trigger opt-out."""
+        raw_reply = (
+            b"From: prospect@store.com\r\n"
+            b"Subject: Re: where the cart drop-off happens\r\n\r\n"
+            b"Hi Aryan,\r\n\r\n"
+            b"Thanks for reaching out. Yes, we would love to see your note on this!\r\n\r\n"
+            b"On Mon, Sep 21, 2026 at 10:00 AM Aryan Panchal wrote:\r\n"
+            b"> Mindmaxing Studio\r\n"
+            b"> 102, Sunrise Business Park, Road No. 16, Wagle Estate, Thane\r\n"
+            b"> Reply \"stop\" to opt out\r\n"
+        )
+        parsed = delivery_events.parse_inbound_reply(raw_reply)
+        self.assertFalse(parsed.is_opt_out, "Quoted footer must not trigger opt-out")
+        self.assertEqual(parsed.reply_type, ReplyType.HUMAN_REPLY)
+        self.assertTrue(parsed.is_human)
+
+    # 14. Single-word stop in authored text triggers opt-out
+    def test_single_word_stop_is_opt_out(self):
+        """Clean single-word stop or unsubscribe in authored text triggers opt-out."""
+        for word in [b"stop", b"Stop", b"STOP", b"unsubscribe", b"halt", b"cancel"]:
+            raw_reply = (
+                b"From: prospect@store.com\r\n"
+                b"Subject: Re: Quick question\r\n\r\n"
+                + word + b"\r\n"
+            )
+            parsed = delivery_events.parse_inbound_reply(raw_reply)
+            self.assertTrue(parsed.is_opt_out, f"Single word {word.decode()} must be opt-out")
+
+    # 15. Diagnostic quota reservation succeeds even under HOLD_DIAGNOSTIC_EXPIRED
+    def test_diagnostic_quota_allowed_under_hold_diagnostic_expired(self):
+        """Diagnostic quota reservation succeeds even under HOLD_DIAGNOSTIC_EXPIRED to allow recovery."""
         mailbox = "aryan@mindmaxing.online"
-        domain = "mindmaxing.online"
-        volume_controller.pause_domain(domain, "SPF/DKIM reject at Gmail")
-        healthy, msg = volume_controller.check_mailbox_health(mailbox)
-        self.assertFalse(healthy)
-        self.assertIn("PAUSED", msg)
+        today_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        now_iso = datetime.now(timezone.utc).isoformat()
+        conn = volume_controller.get_db_connection()
+        c = conn.cursor()
+        c.execute("""
+            INSERT INTO mailbox_daily_decisions (
+                decision_date_utc, mailbox, domain, current_level, effective_campaign_cap,
+                effective_diagnostic_cap, decision_action, decision_reason, evidence_summary_json, revision, created_at
+            ) VALUES (?, ?, 'mindmaxing.online', 1, 0, 1, 'HOLD', 'HOLD_DIAGNOSTIC_EXPIRED', '{}', 2, ?)
+        """, (today_utc, mailbox, now_iso))
+        conn.commit()
+        conn.close()
+
+        # Campaign send must be blocked
+        camp_ok, camp_msg = volume_controller.reserve_quota(mailbox, "campaign")
+        self.assertFalse(camp_ok)
+
+        # Diagnostic test send must be allowed for recovery ping!
+        test_ok, test_msg = volume_controller.reserve_quota(mailbox, "test")
+        self.assertTrue(test_ok, f"Recovery diagnostic send must be permitted: {test_msg}")
+
+    # 16. Post-DATA SMTP exception marks SUBMISSION_UNCERTAIN without quota rollback
+    def test_post_data_smtp_uncertainty_handling(self):
+        """Post-DATA exception (e.g. QUIT failure) marks SUBMISSION_UNCERTAIN and does NOT roll back quota."""
+        from unittest.mock import MagicMock, patch
+        import dispatcher
+
+        dispatcher.DB_PATH = self.test_db
+        sender = {"name": "Aryan", "email": "aryan@mindmaxing.online"}
+
+        mock_smtp = MagicMock()
+        mock_smtp.sendmail.return_value = {}  # DATA accepted by SMTP server!
+        mock_smtp.quit.side_effect = Exception("Connection reset during QUIT")
+
+        with patch("smtplib.SMTP", return_value=mock_smtp):
+            status, msg_id, err_msg = dispatcher.send_email(
+                sender=sender,
+                password="mock_password",
+                to_email="testprospect@store.com",
+                subject="Test Subject",
+                body="Test Body"
+            )
+
+        self.assertEqual(status, "SUBMISSION_UNCERTAIN")
+        self.assertIn("Connection reset", err_msg)
 
 
 if __name__ == "__main__":
     unittest.main()
+

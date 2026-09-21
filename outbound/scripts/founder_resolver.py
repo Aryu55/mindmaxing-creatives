@@ -106,17 +106,21 @@ def fetch_url(url: str, timeout: float = 3.5) -> Tuple[int, str]:
         return 0, ""
 
 
-def extract_json_ld_people(html: str) -> List[Dict[str, Any]]:
+def extract_json_ld_people(html: str, target_domain: str = "", target_company: str = "") -> List[Dict[str, Any]]:
     """
     Extracts Schema.org Person objects with explicit founder relationships.
     - Traverses JSON-LD arrays and @graph structures.
     - Resolves @id references between Organization and Person nodes.
+    - Verifies Organization matches target domain / company to prevent 3rd-party misattribution.
     - Strictly requires either Organization.founder link or explicit executive jobTitle.
     - Rejects arbitrary Person nodes with missing roles (employees, authors, customers).
     """
     results: List[Dict[str, Any]] = []
     script_blocks = re.findall(r'<script[^>]*type=[\'"]application/ld\+json[\'"][^>]*>(.*?)</script>', html, re.DOTALL | re.IGNORECASE)
     
+    clean_target_d = clean_domain_string(target_domain).lower() if target_domain else ""
+    clean_target_c = target_company.lower().strip() if target_company else ""
+
     for block in script_blocks:
         block_clean = block.strip()
         if not block_clean:
@@ -157,6 +161,18 @@ def extract_json_ld_people(html: str) -> List[Dict[str, Any]]:
             if isinstance(t, list):
                 t = " ".join(t)
             if "organization" in str(t).lower():
+                # Cross-check organization identity to ensure it is the target store
+                if clean_target_d or clean_target_c:
+                    org_url = str(item.get("url", "")).lower()
+                    org_name = str(item.get("name", "")).lower()
+                    org_id = str(item.get("@id", "")).lower()
+                    matches = (
+                        (clean_target_d and (clean_target_d in org_url or clean_target_d in org_id or clean_target_d in org_name)) or
+                        (clean_target_c and clean_target_c in org_name)
+                    )
+                    if not matches:
+                        continue
+
                 for k in ("founder", "founders"):
                     f_val = item.get(k)
                     if not f_val:
@@ -211,7 +227,7 @@ def extract_json_ld_people(html: str) -> List[Dict[str, Any]]:
 def extract_text_founder_blocks(html: str, target_domain: str) -> List[Dict[str, Any]]:
     """
     Extracts founder candidates from HTML text blocks with DOM-local email scoping.
-    Prevents pooling page emails and falsely attributing unrelated contacts (e.g. PR/Press) to founders.
+    Preserves actual extracted role (CEO, Owner, Co-Founder, Founder) and prevents pooling unrelated emails.
     """
     results: List[Dict[str, Any]] = []
     clean_target = target_domain.replace("www.", "").strip()
@@ -222,15 +238,16 @@ def extract_text_founder_blocks(html: str, target_domain: str) -> List[Dict[str,
     # Split into structural HTML blocks
     blocks = re.split(r'</?(?:div|section|article|li|p|table|tbody|tr)[^>]*>', cleaned_html, flags=re.IGNORECASE)
 
-    patterns = [
-        # "founded by Kyle Hoff" / "co-founded by Bob Chen and..."
-        r"(?:co-founded|founded|started|created)\s+by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})",
+    # Patterns with (regex, default_role, name_group_idx, role_group_idx)
+    pattern_defs = [
+        # "founded by Kyle Hoff" / "co-founded by Bob Chen"
+        (re.compile(r"(?:co-founded|founded|started|created)\s+by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})", re.IGNORECASE), "Founder", 1, None),
         # "our founder, Kyle Hoff" / "meet the founder, Jane Doe"
-        r"(?:our\s+founder|meet\s+the\s+founder|meet\s+our\s+founder),?\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})",
+        (re.compile(r"(?:our\s+founder|meet\s+the\s+founder|meet\s+our\s+founder),?\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})", re.IGNORECASE), "Founder", 1, None),
         # "Kyle Hoff, Founder and CEO" / "Jane Smith, Co-Founder"
-        r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}),?\s+(?:is\s+the\s+)?(?:founder|co-founder|owner|ceo|creator)",
+        (re.compile(r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}),?\s+(?:is\s+the\s+)?(founder|co-founder|owner|ceo|creator)", re.IGNORECASE), None, 1, 2),
         # "Founder: Kyle Hoff" / "CEO: Bob Chen"
-        r"(?:Founder|Co-Founder|Owner|CEO)\s*:\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})"
+        (re.compile(r"(Founder|Co-Founder|Owner|CEO)\s*:\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})", re.IGNORECASE), None, 2, 1)
     ]
 
     for block in blocks:
@@ -240,13 +257,19 @@ def extract_text_founder_blocks(html: str, target_domain: str) -> List[Dict[str,
         block_text = re.sub(r"<[^>]+>", " ", block)
         block_text = re.sub(r"\s+", " ", block_text).strip()
 
-        for pat in patterns:
-            matches = re.finditer(pat, block_text, re.IGNORECASE)
+        for pat, default_role, name_idx, role_idx in pattern_defs:
+            matches = pat.finditer(block_text)
             for m in matches:
-                candidate_name = m.group(1).strip()
+                candidate_name = m.group(name_idx).strip()
                 is_valid, clean_name = is_valid_founder_name(candidate_name)
                 if not is_valid:
                     continue
+
+                if role_idx is not None and m.group(role_idx):
+                    raw_role = m.group(role_idx).strip()
+                    assigned_role = "CEO" if raw_role.upper() == "CEO" else raw_role.capitalize()
+                else:
+                    assigned_role = default_role or "Founder"
 
                 # Search for DOM-LOCAL email within this EXACT same block only
                 block_emails = re.findall(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', block)
@@ -264,7 +287,7 @@ def extract_text_founder_blocks(html: str, target_domain: str) -> List[Dict[str,
 
                 results.append({
                     "name": clean_name,
-                    "role": "Founder",
+                    "role": assigned_role,
                     "email": associated_email,
                     "method": "dom_local_text",
                     "snippet": block_text[max(0, m.start()-40):min(len(block_text), m.end()+40)].strip(),
@@ -380,7 +403,7 @@ def resolve_founder_contact(
     if hp_status == 200 and hp_html:
         pages_crawled.append("/")
         # Extract structured data and DOM blocks from homepage
-        for p in extract_json_ld_people(hp_html):
+        for p in extract_json_ld_people(hp_html, clean_domain, company_name):
             p["url"] = homepage_url
             discovered_people.append(p)
         for p in extract_text_founder_blocks(hp_html, clean_domain):
@@ -410,8 +433,8 @@ def resolve_founder_contact(
         
         if status == 200 and html:
             pages_crawled.append(path)
-            # Step A: Structured JSON-LD with @graph traversal
-            json_people = extract_json_ld_people(html)
+            # Step A: Structured JSON-LD with @graph traversal and target validation
+            json_people = extract_json_ld_people(html, clean_domain, company_name)
             for p in json_people:
                 p["url"] = url
                 discovered_people.append(p)
@@ -486,11 +509,14 @@ def resolve_founder_contact(
         mx_ok = check_mx_record(direct_email.split("@")[1])
         evidence["mx_verified"] = mx_ok
         if mx_ok:
+            now_iso = datetime.now(timezone.utc).isoformat()
             return {
                 "resolution_status": "FOUNDER_FOUND",
                 "identity_status": "FOUNDER_CONFIRMED",
                 "email_origin": "PUBLIC_SITE",
-                "mailbox_verification": "VALID",
+                "mailbox_verification": "UNCHECKED",  # Domain MX verified; mailbox remains UNCHECKED
+                "verification_time": None,
+                "identity_evidence_time": now_iso,
                 "resolved_name": founder_name,
                 "resolved_email": direct_email,
                 "resolved_role": founder_role,
@@ -508,14 +534,30 @@ def resolve_founder_contact(
                 if email_matches_name(h_email, founder_name):
                     mx_ok = check_mx_record(h_email.split("@")[1])
                     evidence["mx_verified"] = mx_ok
-                    evidence["hunter_verification"] = h_res.get("verification")
-                    evidence["hunter_sources"] = h_res.get("sources")
+                    h_verif = h_res.get("verification") or {}
+                    evidence["hunter_verification"] = h_verif
+                    sources = h_res.get("sources") or []
+                    evidence["hunter_sources"] = sources
+                    v_status = (h_verif.get("status") or "").lower()
+
                     if mx_ok:
+                        now_iso = datetime.now(timezone.utc).isoformat()
+                        if v_status == "valid" and len(sources) > 0:
+                            mailbox_verif = "VALID"
+                            res_status = "FOUNDER_FOUND"
+                        elif v_status == "invalid":
+                            mailbox_verif = "INVALID"
+                            res_status = "FOUNDER_VERIFICATION_FAILED"
+                        elif v_status in ("accept_all", "catch_all"):
+                            mailbox_verif = "ACCEPT_ALL"
+                            res_status = "FOUNDER_FOUND"
                         return {
-                            "resolution_status": "FOUNDER_FOUND",
+                            "resolution_status": res_status,
                             "identity_status": "FOUNDER_CONFIRMED",
                             "email_origin": "PROVIDER_FOUND",
-                            "mailbox_verification": "VALID",
+                            "mailbox_verification": mailbox_verif,
+                            "verification_time": h_verif.get("date") or now_iso,
+                            "identity_evidence_time": now_iso,
                             "resolved_name": founder_name,
                             "resolved_email": h_email,
                             "resolved_role": founder_role,
@@ -524,7 +566,6 @@ def resolve_founder_contact(
 
     # ZERO BLIND GUESSING INVARIANT:
     # Founder identified, but NO direct personal email published in DOM or verified provider found-only index.
-    # Never pool page emails or guess!
     return {
         "resolution_status": "NAME_ONLY",
         "identity_status": "FOUNDER_CONFIRMED",
@@ -543,7 +584,7 @@ def audit_and_update_lead(
     dry_run: bool = False,
     hunter_adapter: Optional[Any] = None
 ) -> Dict[str, Any]:
-    """Resolves a lead and transactionally updates CRM while preserving active sequences."""
+    """Resolves a lead, persists candidate evidence and resolution events, preserving active sequences."""
     lead_id = lead_row["id"]
     domain = lead_row["domain"]
     company_name = lead_row["company_name"] or ""
@@ -563,8 +604,13 @@ def audit_and_update_lead(
     if not dry_run:
         c = conn.cursor()
         
+        # Transactional re-check of current sequence step right before write
+        c.execute("SELECT current_sequence_step, contact_email FROM leads WHERE id = ?", (lead_id,))
+        fresh_lead = c.fetchone()
+        fresh_sequence_step = (fresh_lead["current_sequence_step"] or 0) if fresh_lead else sequence_step
+
         # Invariant: If sequence is active (> 0), never overwrite contact_email!
-        if sequence_step > 0:
+        if fresh_sequence_step > 0:
             c.execute("""
                 UPDATE leads
                 SET resolved_name = ?,
@@ -603,6 +649,56 @@ def audit_and_update_lead(
                         resolved_at = ?
                     WHERE id = ?
                 """, (resolved_name, resolved_email, resolved_role, evidence_json, status, now_iso, lead_id))
+
+        # Persist all discovered candidates into contact_candidates table
+        all_candidates = res["evidence"].get("candidates") or []
+        for cand in all_candidates:
+            c_name = cand.get("name") or "Unknown"
+            c_role = cand.get("role") or "Founder"
+            c_email = cand.get("email")
+            is_sel = (c_name == resolved_name and c_email == resolved_email)
+            c.execute("""
+                INSERT INTO contact_candidates (
+                    lead_id, domain, full_name, role, email,
+                    email_origin, mailbox_status, mailbox_checked_at,
+                    identity_status, identity_checked_at, evidence_json,
+                    rejection_reasons, is_selected, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                lead_id, domain, c_name, c_role, c_email,
+                res.get("email_origin", "PUBLIC_SITE") if is_sel else ("PUBLIC_SITE" if c_email else "LEGACY_UNKNOWN"),
+                res.get("mailbox_verification", "UNCHECKED") if is_sel else "UNCHECKED",
+                now_iso if c_email else None,
+                res.get("identity_status", "FOUNDER_CONFIRMED") if is_sel else "UNCONFIRMED",
+                now_iso,
+                json.dumps(cand),
+                json.dumps([]),
+                1 if is_sel else 0,
+                now_iso, now_iso
+            ))
+
+        # Persist audit transition in contact_resolution_events
+        run_id = f"run_{int(time.time())}_{random.randint(1000, 9999)}"
+        c.execute("""
+            INSERT INTO contact_resolution_events (
+                lead_id, domain, run_id, code_version, event_type,
+                inputs_json, outcome, before_state_json, after_state_json, created_at
+            ) VALUES (?, ?, ?, ?, 'LEAD_AUDITED', ?, ?, ?, ?, ?)
+        """, (
+            lead_id, domain, run_id, "2.0.0-phase3",
+            json.dumps({"domain": domain, "company_name": company_name}),
+            status,
+            json.dumps({"current_sequence_step": sequence_step}),
+            json.dumps({"resolution_status": status, "resolved_name": resolved_name, "resolved_email": resolved_email}),
+            now_iso
+        ))
+
+        # Check and complete any linked contact_jobs lease
+        c.execute("SELECT id FROM contact_jobs WHERE lead_id = ? AND status = 'RUNNING'", (lead_id,))
+        running_job = c.fetchone()
+        if running_job:
+            c.execute("UPDATE contact_jobs SET status = 'COMPLETED', lease_expires_at = NULL, updated_at = ? WHERE id = ?", (now_iso, running_job["id"]))
+
         conn.commit()
 
     return res
@@ -613,6 +709,7 @@ if __name__ == "__main__":
     parser.add_argument("--domain", type=str, help="Resolve a single domain directly")
     parser.add_argument("--limit", type=int, default=10, help="Number of database leads to audit")
     parser.add_argument("--dry-run", action="store_true", help="Audit without saving to database")
+    parser.add_argument("--jobs", action="store_true", help="Process queued jobs from contact_jobs table")
     parser.add_argument("--db", type=str, default=DB_PATH, help="Path to mindmaxing_crm.db")
     args = parser.parse_args()
 
@@ -623,13 +720,45 @@ if __name__ == "__main__":
         print(json.dumps(res, indent=2))
         sys.exit(0)
 
+    conn = sqlite3.connect(args.db)
+    conn.row_factory = sqlite3.Row
+
+    if args.jobs:
+        try:
+            import contact_jobs
+        except ImportError:
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            import contact_jobs
+
+        worker_id = f"worker_{os.getpid()}_{int(time.time())}"
+        print(f"[*] Running job worker {worker_id} on: {args.db}")
+        processed = 0
+        while processed < args.limit:
+            job = contact_jobs.claim_next_job(conn, worker_id)
+            if not job:
+                print("[*] No pending jobs in contact_jobs queue.")
+                break
+            lead_id = job["lead_id"]
+            domain = job["domain"]
+            c = conn.cursor()
+            lead = c.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone()
+            if not lead:
+                contact_jobs.fail_job(conn, job["id"], f"run_{int(time.time())}", "Lead not found in CRM", worker_id=worker_id)
+                continue
+            try:
+                r = audit_and_update_lead(lead, conn, dry_run=args.dry_run)
+                processed += 1
+            except Exception as e:
+                contact_jobs.fail_job(conn, job["id"], f"run_{int(time.time())}", str(e), worker_id=worker_id)
+                processed += 1
+        print(f"[*] Processed {processed} jobs from queue.")
+        conn.close()
+        sys.exit(0)
+
     print(f"[*] Running database batch audit on: {args.db}")
     print(f"[*] Limit: {args.limit} | Dry-run: {args.dry_run}\n")
 
-    conn = sqlite3.connect(args.db)
-    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-
     leads = cursor.execute("""
         SELECT * FROM leads 
         WHERE resolution_status IS NULL OR resolution_status = 'UNRESOLVED'

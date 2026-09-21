@@ -78,10 +78,15 @@ def plan_day(conn: sqlite3.Connection, date_utc: Optional[str] = None) -> Dict[s
 
     decisions: List[Dict[str, Any]] = []
 
-    # Check overall seed health
+    # Check overall seed health with freshness requirement (<= 60m)
     c.execute("SELECT mailbox, status, last_scan_at FROM collector_health WHERE mailbox_type = 'test_inbox'")
     seed_health_rows = {row["mailbox"]: dict(row) for row in c.fetchall()}
-    healthy_seeds_count = sum(1 for s in seeds if seed_health_rows.get(s["email"], {}).get("status") == "healthy")
+    healthy_seeds_count = sum(
+        1 for s in seeds 
+        if seed_health_rows.get(s["email"], {}).get("status") == "healthy" 
+        and seed_health_rows.get(s["email"], {}).get("last_scan_at") 
+        and seed_health_rows.get(s["email"], {}).get("last_scan_at") >= one_hour_ago_iso
+    )
 
     # Day offset for rotating seed assignment
     epoch_days = int(now.timestamp() // 86400)
@@ -203,12 +208,14 @@ def plan_day(conn: sqlite3.Connection, date_utc: Optional[str] = None) -> Dict[s
             reason = f"Authentication failure detected on domain {domain} (SPF={auth_fail['auth_spf']}, DKIM={auth_fail['auth_dkim']})"
             evidence_summary["auth_failure"] = dict(auth_fail)
 
-        # Rule 7: Clean Diagnostic Recency (<36 hours)
+        # Rule 7: Clean Diagnostic Recency (<36 hours) with verified auth pass
         c.execute("""
             SELECT m.message_id, m.sent_at, m.delivery_state, m.auth_spf, m.auth_dkim, m.auth_dmarc
             FROM messages m
             WHERE m.sender_email = ? AND m.purpose = 'test'
-              AND m.delivery_state = 'inbox' AND m.sent_at >= ?
+              AND m.delivery_state = 'inbox'
+              AND m.auth_spf = 'pass' AND m.auth_dkim = 'pass'
+              AND m.sent_at >= ?
             ORDER BY m.sent_at DESC LIMIT 1
         """, (email_addr, thirty_six_hours_ago_iso))
         clean_diag = c.fetchone()
@@ -253,12 +260,14 @@ def plan_day(conn: sqlite3.Connection, date_utc: Optional[str] = None) -> Dict[s
             """, (email_addr, forty_eight_hours_ago_iso, level_updated_iso))
             accepted_camp_cnt = c.fetchone()["cnt"]
 
-            # 3 distinct clean diagnostics across >=2 seeds in 7d
+            # 3 distinct clean diagnostics across >=2 seeds in 7d with verified SPF and DKIM pass
             c.execute("""
                 SELECT count(DISTINCT recipient_email) as seed_cnt, count(*) as test_cnt
                 FROM messages
                 WHERE sender_email = ? AND purpose = 'test'
-                  AND delivery_state = 'inbox' AND sent_at >= ?
+                  AND delivery_state = 'inbox'
+                  AND auth_spf = 'pass' AND auth_dkim = 'pass'
+                  AND sent_at >= ?
             """, (email_addr, seven_days_ago_iso))
             diag_stat = c.fetchone()
             seed_count = diag_stat["seed_cnt"]
@@ -281,19 +290,26 @@ def plan_day(conn: sqlite3.Connection, date_utc: Optional[str] = None) -> Dict[s
                     WHERE mailbox = ?
                 """, (new_level, now_iso, email_addr))
 
-        # Persist daily decision
+        # Persist daily decision with append-only revision tracking
         c.execute("""
-            INSERT OR REPLACE INTO mailbox_daily_decisions (
+            SELECT COALESCE(MAX(revision), 0) + 1 AS next_rev 
+            FROM mailbox_daily_decisions 
+            WHERE mailbox = ? AND decision_date_utc = ?
+        """, (email_addr, date_utc))
+        next_rev = c.fetchone()["next_rev"]
+
+        c.execute("""
+            INSERT INTO mailbox_daily_decisions (
                 decision_date_utc, mailbox, domain, current_level,
                 effective_campaign_cap, effective_diagnostic_cap,
-                decision_action, decision_reason, evidence_summary_json, created_at
+                decision_action, decision_reason, evidence_summary_json, revision, created_at
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )
         """, (
             date_utc, email_addr, domain, current_level,
             effective_camp_cap, effective_diag_cap,
-            action, reason, json.dumps(evidence_summary), now_iso
+            action, reason, json.dumps(evidence_summary), next_rev, now_iso
         ))
 
         decisions.append({

@@ -157,6 +157,56 @@ class TestContactSystem(unittest.TestCase):
                 original_contact_email TEXT
             )
         """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS contact_candidates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lead_id INTEGER,
+                full_name TEXT,
+                role TEXT,
+                email TEXT,
+                email_origin TEXT,
+                mailbox_status TEXT,
+                mailbox_checked_at TEXT,
+                identity_status TEXT,
+                identity_checked_at TEXT,
+                is_selected INTEGER DEFAULT 0
+            )
+        """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS contact_resolution_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lead_id INTEGER NOT NULL,
+                domain TEXT NOT NULL,
+                run_id TEXT NOT NULL,
+                code_version TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                inputs_json TEXT,
+                outcome TEXT NOT NULL,
+                before_state_json TEXT,
+                after_state_json TEXT,
+                rejection_reasons TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS contact_jobs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lead_id INTEGER,
+                domain TEXT UNIQUE,
+                priority INTEGER DEFAULT 50,
+                status TEXT DEFAULT 'PENDING',
+                worker_id TEXT,
+                lease_expires_at TEXT,
+                attempt_count INTEGER DEFAULT 0,
+                max_attempts INTEGER DEFAULT 4,
+                next_attempt_at TEXT,
+                last_run_id TEXT,
+                last_error TEXT,
+                last_error_type TEXT,
+                created_at TEXT,
+                updated_at TEXT
+            )
+        """)
         # Insert a lead with active sequence step 1
         c.execute("""
             INSERT INTO leads (id, domain, company_name, contact_email, current_sequence_step, status)

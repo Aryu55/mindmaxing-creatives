@@ -125,21 +125,31 @@ def complete_job(
     run_id: str,
     outcome: str,
     candidates: List[Dict[str, Any]],
-    lead_summary: Dict[str, Any]
+    lead_summary: Dict[str, Any],
+    worker_id: Optional[str] = None
 ) -> bool:
     """
     Marks job completed, stores evaluated candidates, records resolution events,
-    and updates lead summary fields.
+    and updates lead summary fields with strict lease fencing and sequence protection.
     """
     c = conn.cursor()
     now_iso = datetime.now(timezone.utc).isoformat()
 
     c.execute("BEGIN IMMEDIATE;")
     try:
-        job = c.execute("SELECT lead_id, domain FROM contact_jobs WHERE id = :job_id", {"job_id": job_id}).fetchone()
+        job = c.execute("SELECT lead_id, domain, worker_id, lease_expires_at, status FROM contact_jobs WHERE id = :job_id", {"job_id": job_id}).fetchone()
         if not job:
             conn.rollback()
             return False
+
+        # Lease fencing token validation
+        if worker_id is not None:
+            if job["worker_id"] != worker_id or job["status"] != "RUNNING":
+                conn.rollback()
+                return False
+            if job["lease_expires_at"] and job["lease_expires_at"] < now_iso:
+                conn.rollback()
+                return False
 
         lead_id = job["lead_id"]
         domain = job["domain"]
@@ -205,25 +215,52 @@ def complete_job(
             WHERE id = :job_id;
         """, {"job_id": job_id, "now_iso": now_iso})
 
-        # 4. Update leads compatibility summary fields
-        c.execute("""
-            UPDATE leads
-            SET resolved_name = :r_name,
-                resolved_email = :r_email,
-                resolved_role = :r_role,
-                resolved_evidence = :r_evidence,
-                resolution_status = :r_status,
-                resolved_at = :now_iso
-            WHERE id = :lead_id;
-        """, {
-            "r_name": lead_summary.get("resolved_name"),
-            "r_email": lead_summary.get("resolved_email"),
-            "r_role": lead_summary.get("resolved_role"),
-            "r_evidence": json.dumps(lead_summary.get("evidence", {})),
-            "r_status": lead_summary.get("resolution_status", outcome),
-            "now_iso": now_iso,
-            "lead_id": lead_id
-        })
+        # 4. Update leads compatibility summary fields while strictly preserving active sequence recipients
+        l_row = c.execute("SELECT current_sequence_step, contact_email FROM leads WHERE id = :lead_id", {"lead_id": lead_id}).fetchone()
+        seq_active = l_row and (l_row["current_sequence_step"] or 0) > 0
+
+        if not seq_active and lead_summary.get("resolution_status") == "FOUNDER_FOUND" and lead_summary.get("resolved_email"):
+            c.execute("""
+                UPDATE leads
+                SET original_contact_email = COALESCE(original_contact_email, contact_email),
+                    contact_email = :r_email,
+                    contact_name = :r_name,
+                    contact_type = 'FOUNDER_RESOLVED',
+                    resolved_name = :r_name,
+                    resolved_email = :r_email,
+                    resolved_role = :r_role,
+                    resolved_evidence = :r_evidence,
+                    resolution_status = :r_status,
+                    resolved_at = :now_iso
+                WHERE id = :lead_id;
+            """, {
+                "r_name": lead_summary.get("resolved_name"),
+                "r_email": lead_summary.get("resolved_email"),
+                "r_role": lead_summary.get("resolved_role"),
+                "r_evidence": json.dumps(lead_summary.get("evidence", {})),
+                "r_status": lead_summary.get("resolution_status", outcome),
+                "now_iso": now_iso,
+                "lead_id": lead_id
+            })
+        else:
+            c.execute("""
+                UPDATE leads
+                SET resolved_name = :r_name,
+                    resolved_email = :r_email,
+                    resolved_role = :r_role,
+                    resolved_evidence = :r_evidence,
+                    resolution_status = :r_status,
+                    resolved_at = :now_iso
+                WHERE id = :lead_id;
+            """, {
+                "r_name": lead_summary.get("resolved_name"),
+                "r_email": lead_summary.get("resolved_email"),
+                "r_role": lead_summary.get("resolved_role"),
+                "r_evidence": json.dumps(lead_summary.get("evidence", {})),
+                "r_status": lead_summary.get("resolution_status", outcome),
+                "now_iso": now_iso,
+                "lead_id": lead_id
+            })
 
         conn.commit()
         return True
@@ -239,11 +276,12 @@ def fail_job(
     run_id: str,
     error_message: str,
     error_type: str = "ERROR",
-    retry_after_sec: Optional[int] = None
+    retry_after_sec: Optional[int] = None,
+    worker_id: Optional[str] = None
 ) -> bool:
     """
     Records job failure and schedules next attempt with exponential backoff.
-    Transitions to HELD_FOR_REVIEW after 3 retries.
+    Enforces lease fencing and transitions to HELD_FOR_REVIEW after 3 retries.
     """
     c = conn.cursor()
     now_dt = datetime.now(timezone.utc)
@@ -251,10 +289,19 @@ def fail_job(
 
     c.execute("BEGIN IMMEDIATE;")
     try:
-        job = c.execute("SELECT lead_id, domain, attempt_count FROM contact_jobs WHERE id = :job_id", {"job_id": job_id}).fetchone()
+        job = c.execute("SELECT lead_id, domain, attempt_count, worker_id, lease_expires_at, status FROM contact_jobs WHERE id = :job_id", {"job_id": job_id}).fetchone()
         if not job:
             conn.rollback()
             return False
+
+        # Lease fencing token validation
+        if worker_id is not None:
+            if job["worker_id"] != worker_id or job["status"] != "RUNNING":
+                conn.rollback()
+                return False
+            if job["lease_expires_at"] and job["lease_expires_at"] < now_iso:
+                conn.rollback()
+                return False
 
         lead_id = job["lead_id"]
         domain = job["domain"]

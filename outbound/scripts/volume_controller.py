@@ -62,8 +62,11 @@ def suppress_recipient(recipient_email: str, reason: str, source_msg_id: str = N
     """, (reason, recipient_email.lower().strip()))
     conn.close()
 
-def check_mailbox_health(mailbox: str) -> tuple[bool, str]:
-    """Checks if mailbox or its domain is paused, or if monitoring is stale."""
+def check_mailbox_health(mailbox: str, purpose: str = "campaign") -> tuple[bool, str]:
+    """
+    Checks if mailbox or its domain is paused, or if monitoring is stale.
+    Diagnostic test sends ('test') bypass stale monitoring checks to permit telemetry recovery.
+    """
     conn = get_db_connection()
     c = conn.cursor()
     
@@ -87,29 +90,36 @@ def check_mailbox_health(mailbox: str) -> tuple[bool, str]:
         conn.close()
         return False, f"Domain {domain} is PAUSED: {domain_paused['paused_reason']}"
 
-    # 3. Check collector freshness (Missing or Stale > 1 hour pauses sending)
+    # 3. Check collector freshness
     one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     c.execute("SELECT last_scan_at, status, error_message FROM collector_health WHERE mailbox = ?", (mailbox,))
     health = c.fetchone()
-    if not health or not health["last_scan_at"]:
-        conn.close()
-        return False, f"Collector monitoring MISSING on {mailbox}: no successful scan recorded"
-    if health["status"] == "error":
-        conn.close()
-        return False, f"Collector reporting ERROR on {mailbox}: {health['error_message']}"
-    if health["last_scan_at"] < one_hour_ago:
-        conn.close()
-        return False, f"Collector monitoring on {mailbox} is STALE (>1h ago: {health['last_scan_at']})"
 
-    # 3b. Check seed collector freshness
-    c.execute("""
-        SELECT count(*) as cnt FROM collector_health 
-        WHERE mailbox_type = 'test_inbox' AND status = 'healthy' AND last_scan_at >= ?
-    """, (one_hour_ago,))
-    seed_row = c.fetchone()
-    if not seed_row or seed_row["cnt"] == 0:
-        conn.close()
-        return False, "Seed collector monitoring is UNAVAILABLE or STALE across all seeds"
+    if purpose == "campaign":
+        if not health or not health["last_scan_at"]:
+            conn.close()
+            return False, f"Collector monitoring MISSING on {mailbox}: no successful scan recorded"
+        if health["status"] == "error":
+            conn.close()
+            return False, f"Collector reporting ERROR on {mailbox}: {health['error_message']}"
+        if health["last_scan_at"] < one_hour_ago:
+            conn.close()
+            return False, f"Collector monitoring on {mailbox} is STALE (>1h ago: {health['last_scan_at']})"
+
+        # 3b. Check seed collector freshness (required for campaign telemetry)
+        c.execute("""
+            SELECT count(*) as cnt FROM collector_health 
+            WHERE mailbox_type = 'test_inbox' AND status = 'healthy' AND last_scan_at >= ?
+        """, (one_hour_ago,))
+        seed_row = c.fetchone()
+        if not seed_row or seed_row["cnt"] == 0:
+            conn.close()
+            return False, "Seed collector monitoring is UNAVAILABLE or STALE across all seeds"
+    else:
+        # Diagnostic sends: Only block if collector is reporting an explicit transport/auth error
+        if health and health["status"] == "error" and "transport" in str(health.get("error_message", "")).lower():
+            conn.close()
+            return False, f"Collector reporting transport ERROR on {mailbox}: {health['error_message']}"
 
     # 4. Check temporary failure streak on this mailbox (3 consecutive pauses route)
     c.execute("""
@@ -130,9 +140,12 @@ def reserve_quota(mailbox: str, purpose: str = "campaign") -> tuple[bool, str]:
     """
     Transactionally reserves sending quota for the current UTC date.
     Returns (True, 'Reserved') or (False, reason).
-    Enforces caps from mailbox_daily_decisions ledger if generated.
+    Enforces caps from mailbox_daily_decisions ledger:
+    - Campaign sends require an explicit, unheld daily decision for today.
+    - Test sends are permitted under HOLD_DIAGNOSTIC_EXPIRED / HOLD_MONITORING_STALE
+      to allow diagnostic recovery, provided diagnostic cap > 0.
     """
-    healthy, reason = check_mailbox_health(mailbox)
+    healthy, reason = check_mailbox_health(mailbox, purpose=purpose)
     if not healthy:
         return False, reason
 
@@ -149,24 +162,58 @@ def reserve_quota(mailbox: str, purpose: str = "campaign") -> tuple[bool, str]:
         level = lvl_row["level"] if lvl_row else 1
         base_caps = LEVEL_CAPS.get(level, LEVEL_CAPS[1])
 
-        # Check daily decision ledger if available
+        # Check daily decision ledger (most recent decision for today)
         c.execute("""
             SELECT effective_campaign_cap, effective_diagnostic_cap, decision_action, decision_reason
             FROM mailbox_daily_decisions
             WHERE mailbox = ? AND decision_date_utc = ?
+            ORDER BY id DESC LIMIT 1
         """, (mailbox, utc_date))
         d_row = c.fetchone()
 
         if d_row:
-            if d_row["decision_action"].startswith("HOLD_") or d_row["decision_action"] in ("PAUSED", "DOMAIN_PAUSED"):
+            action = d_row["decision_action"]
+            reason_str = d_row["decision_reason"]
+            
+            # Hard blocks prevent both campaign and diagnostic sends
+            if action in ("PAUSED", "DOMAIN_PAUSED", "HOLD_TRANSPORT_ERROR", "HOLD_AUTH_FAILED"):
                 c.execute("COMMIT")
                 conn.close()
-                return False, f"Daily decision engine held {mailbox}: {d_row['decision_reason']}"
-            camp_cap = d_row["effective_campaign_cap"]
-            diag_cap = d_row["effective_diagnostic_cap"]
+                return False, f"Daily decision engine held {mailbox}: {reason_str}"
+            
+            # Diagnostic recovery decoupling
+            if action.startswith("HOLD_"):
+                if purpose == "campaign":
+                    c.execute("COMMIT")
+                    conn.close()
+                    return False, f"Daily decision engine held campaign for {mailbox}: {reason_str}"
+                elif purpose == "test":
+                    camp_cap = 0
+                    diag_cap = d_row["effective_diagnostic_cap"]
+                    if diag_cap <= 0:
+                        c.execute("COMMIT")
+                        conn.close()
+                        return False, f"Daily decision diagnostic cap is 0 for {mailbox}: {reason_str}"
+                else:
+                    c.execute("COMMIT")
+                    conn.close()
+                    return False, f"Invalid message purpose: {purpose}"
+            else:
+                camp_cap = d_row["effective_campaign_cap"]
+                diag_cap = d_row["effective_diagnostic_cap"]
         else:
-            camp_cap = base_caps["campaign"]
-            diag_cap = base_caps["diagnostic"]
+            # Fail closed for campaign sending if no daily decision exists for today
+            if purpose == "campaign":
+                c.execute("COMMIT")
+                conn.close()
+                return False, f"Campaign sending blocked: No daily decision generated for {mailbox} on {utc_date}. Daily planner run required."
+            elif purpose == "test":
+                camp_cap = 0
+                diag_cap = base_caps["diagnostic"]
+            else:
+                c.execute("COMMIT")
+                conn.close()
+                return False, f"Invalid message purpose: {purpose}"
 
         # Get or insert current usage
         c.execute("SELECT campaign_sent, diagnostic_sent FROM mailbox_quotas WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
@@ -205,7 +252,10 @@ def reserve_quota(mailbox: str, purpose: str = "campaign") -> tuple[bool, str]:
         return False, f"Database lock error during quota reservation: {e}"
 
 def rollback_quota(mailbox: str, purpose: str = "campaign"):
-    """Rollback quota if SMTP failed completely before dispatch."""
+    """
+    Rollback quota ONLY if SMTP failed completely before DATA submission.
+    INVARIANT: Never rollback quota for post-DATA exceptions (e.g. QUIT errors or timeouts).
+    """
     utc_date = get_utc_date_str()
     conn = get_db_connection()
     c = conn.cursor()

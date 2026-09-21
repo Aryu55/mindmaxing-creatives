@@ -186,11 +186,42 @@ def parse_dsn_report(raw_bytes: bytes) -> ParsedDSN:
     )
 
 
+def strip_quoted_text(body: str) -> str:
+    """
+    Strips quoted email history and footers to isolate newly authored text.
+    Prevents false-positive opt-out matches on quoted outbound footers.
+    """
+    if not body:
+        return ""
+    lines = body.splitlines()
+    clean_lines = []
+    
+    quote_headers = [
+        re.compile(r"^\s*on\s+.+wrote\s*:\s*$", re.IGNORECASE),
+        re.compile(r"^\s*-----original message-----\s*$", re.IGNORECASE),
+        re.compile(r"^\s*from\s*:\s*.+@.+", re.IGNORECASE),
+        re.compile(r"^\s*sent\s*:\s*.+", re.IGNORECASE),
+        re.compile(r"^\s*--\s*$", re.IGNORECASE),
+        re.compile(r"^\s*mindmaxing studio\s*$", re.IGNORECASE),
+        re.compile(r"^\s*reply\s+[\"']?stop[\"']?\s+to\s+opt\s+out", re.IGNORECASE),
+    ]
+    
+    for line in lines:
+        stripped = line.strip()
+        if line.startswith(">"):
+            continue
+        if any(pat.search(stripped) for pat in quote_headers):
+            break
+        clean_lines.append(line)
+        
+    return "\n".join(clean_lines).strip()
+
+
 def parse_inbound_reply(raw_bytes: bytes) -> ParsedReply:
     """
     Classifies an incoming prospect reply.
     - Accurately distinguishes human replies from automated bot confirmations.
-    - Recognizes opt-outs and out-of-office notices.
+    - Recognizes opt-outs and out-of-office notices on clean, unquoted text only.
     """
     msg = email.message_from_bytes(raw_bytes, policy=email.policy.default)
     from_hdr = str(msg.get("From", "")).lower()
@@ -219,16 +250,24 @@ def parse_inbound_reply(raw_bytes: bytes) -> ParsedReply:
     if not body:
         body = str(raw_bytes[:3000], errors="ignore")
 
-    body_lower = body.lower()
+    # Isolate newly authored text by stripping quotes & footers
+    clean_text = strip_quoted_text(body)
+    clean_lower = clean_text.lower()
     auto_submitted = str(msg.get("Auto-Submitted", "")).lower()
     precedence = str(msg.get("Precedence", "")).lower()
 
-    # 1. Check Explicit Opt-Out phrases
+    # 1. Check Explicit Opt-Out phrases on clean authored text only
+    first_word = clean_lower.split()[0].strip(".,!?:\"'") if clean_lower.split() else ""
     opt_out_triggers = [
         "unsubscribe", "remove me", "stop emailing", "opt out", "opt-out",
-        "do not contact", "please remove", "take me off", "not interested"
+        "do not contact", "please remove", "take me off", "not interested",
+        "stop contacting", "please stop"
     ]
-    is_opt_out = any(phrase in body_lower or phrase in subj_hdr.lower() for phrase in opt_out_triggers)
+    is_opt_out = (
+        first_word in ("stop", "unsubscribe", "halt", "cancel") or
+        any(phrase in clean_lower for phrase in opt_out_triggers) or
+        any(phrase in subj_hdr.lower() for phrase in ["unsubscribe", "opt out", "opt-out"])
+    )
     if is_opt_out:
         return ParsedReply(
             reply_type=ReplyType.OPT_OUT,
@@ -236,7 +275,7 @@ def parse_inbound_reply(raw_bytes: bytes) -> ParsedReply:
             references=references,
             from_email=from_email,
             subject=subj_hdr,
-            body_excerpt=body[:200].strip(),
+            body_excerpt=(clean_text or body)[:200].strip(),
             is_opt_out=True,
             is_human=True
         )
@@ -246,7 +285,7 @@ def parse_inbound_reply(raw_bytes: bytes) -> ParsedReply:
         "out of office", "away from my desk", "on leave", "maternity leave",
         "vacation until", "annual leave", "auto-reply: away", "autoreply: away"
     ]
-    is_ooo = any(phrase in body_lower or phrase in subj_hdr.lower() for phrase in ooo_triggers)
+    is_ooo = any(phrase in clean_lower or phrase in subj_hdr.lower() for phrase in ooo_triggers)
     if is_ooo:
         return ParsedReply(
             reply_type=ReplyType.OUT_OF_OFFICE,
@@ -254,7 +293,7 @@ def parse_inbound_reply(raw_bytes: bytes) -> ParsedReply:
             references=references,
             from_email=from_email,
             subject=subj_hdr,
-            body_excerpt=body[:200].strip(),
+            body_excerpt=(clean_text or body)[:200].strip(),
             is_opt_out=False,
             is_human=False
         )
@@ -267,7 +306,7 @@ def parse_inbound_reply(raw_bytes: bytes) -> ParsedReply:
             references=references,
             from_email=from_email,
             subject=subj_hdr,
-            body_excerpt=body[:200].strip(),
+            body_excerpt=(clean_text or body)[:200].strip(),
             is_opt_out=False,
             is_human=False
         )
@@ -277,16 +316,15 @@ def parse_inbound_reply(raw_bytes: bytes) -> ParsedReply:
         "ticket created", "request received", "support request #",
         "ticket #", "zendesk", "gorgias", "freshdesk", "helpdesk"
     ]
-    if any(phrase in body_lower or phrase in subj_hdr.lower() for phrase in ticket_triggers):
-        # If it looks automated
-        if any(w in body_lower for w in ["automated response", "we have received your request", "a representative will"]):
+    if any(phrase in clean_lower or phrase in subj_hdr.lower() for phrase in ticket_triggers):
+        if any(w in clean_lower for w in ["automated response", "we have received your request", "a representative will"]):
             return ParsedReply(
                 reply_type=ReplyType.TICKET_DEFLECTION,
                 in_reply_to=in_reply_to,
                 references=references,
                 from_email=from_email,
                 subject=subj_hdr,
-                body_excerpt=body[:200].strip(),
+                body_excerpt=(clean_text or body)[:200].strip(),
                 is_opt_out=False,
                 is_human=False
             )
@@ -298,7 +336,7 @@ def parse_inbound_reply(raw_bytes: bytes) -> ParsedReply:
         references=references,
         from_email=from_email,
         subject=subj_hdr,
-        body_excerpt=body[:200].strip(),
+        body_excerpt=(clean_text or body)[:200].strip(),
         is_opt_out=False,
         is_human=True
     )
@@ -307,37 +345,44 @@ def parse_inbound_reply(raw_bytes: bytes) -> ParsedReply:
 def parse_auth_results(msg: Any, trusted_domain: str = "google.com") -> ParsedAuthResults:
     """
     Parses Authentication-Results from trusted receiver header only.
-    Prevents forged internal headers from passing validation.
+    Prevents forged internal headers from passing validation (RFC 8601).
     """
     auth_headers = msg.get_all("Authentication-Results", [])
     trusted_hdr = ""
     for hdr in auth_headers:
-        if str(hdr).strip().startswith(trusted_domain) or f"mx.{trusted_domain}" in str(hdr):
-            trusted_hdr = str(hdr)
+        hdr_str = str(hdr).strip()
+        # Must match receiving authentication boundary, e.g. mx.google.com or google.com
+        if re.match(r"^(?:mx\.)?" + re.escape(trusted_domain) + r"\b", hdr_str, re.IGNORECASE):
+            trusted_hdr = hdr_str
             break
 
-    if not trusted_hdr and auth_headers:
-        trusted_hdr = str(auth_headers[0])
+    if not trusted_hdr:
+        return ParsedAuthResults(
+            trusted_auth=False,
+            spf_result="unknown",
+            dkim_result="unknown",
+            dmarc_result="unknown",
+            raw_header=""
+        )
 
     spf = "unknown"
     dkim = "unknown"
     dmarc = "unknown"
 
-    if trusted_hdr:
-        m_spf = re.search(r"spf=([a-zA-Z0-9_-]+)", trusted_hdr, re.IGNORECASE)
-        if m_spf:
-            spf = m_spf.group(1).lower()
+    m_spf = re.search(r"\bspf=([a-zA-Z0-9_-]+)", trusted_hdr, re.IGNORECASE)
+    if m_spf:
+        spf = m_spf.group(1).lower()
 
-        m_dkim = re.search(r"dkim=([a-zA-Z0-9_-]+)", trusted_hdr, re.IGNORECASE)
-        if m_dkim:
-            dkim = m_dkim.group(1).lower()
+    m_dkim = re.search(r"\bdkim=([a-zA-Z0-9_-]+)", trusted_hdr, re.IGNORECASE)
+    if m_dkim:
+        dkim = m_dkim.group(1).lower()
 
-        m_dmarc = re.search(r"dmarc=([a-zA-Z0-9_-]+)", trusted_hdr, re.IGNORECASE)
-        if m_dmarc:
-            dmarc = m_dmarc.group(1).lower()
+    m_dmarc = re.search(r"\bdmarc=([a-zA-Z0-9_-]+)", trusted_hdr, re.IGNORECASE)
+    if m_dmarc:
+        dmarc = m_dmarc.group(1).lower()
 
     return ParsedAuthResults(
-        trusted_auth=bool(trusted_hdr),
+        trusted_auth=True,
         spf_result=spf,
         dkim_result=dkim,
         dmarc_result=dmarc,

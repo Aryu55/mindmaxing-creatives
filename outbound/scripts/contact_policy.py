@@ -115,8 +115,10 @@ def evaluate_contact(
     elif identity_status != IdentityStatus.FOUNDER_CONFIRMED:
         reasons.append("IDENTITY_NOT_CONFIRMED")
     else:
-        # Check evidence expiration (30 days)
-        if id_evidence_time and (now - id_evidence_time) > MAX_IDENTITY_EVIDENCE_AGE:
+        # Check evidence expiration (30 days) - timestamp required
+        if not id_evidence_time:
+            reasons.append("IDENTITY_EVIDENCE_TIME_MISSING")
+        elif (now - id_evidence_time) > MAX_IDENTITY_EVIDENCE_AGE:
             reasons.append("IDENTITY_EVIDENCE_EXPIRED")
 
     # 3. Email Origin Check (No blind inference permitted for automated dispatch)
@@ -125,9 +127,11 @@ def evaluate_contact(
     elif email_origin not in (EmailOrigin.PUBLIC_SITE, EmailOrigin.PUBLIC_EXTERNAL, EmailOrigin.PROVIDER_FOUND):
         reasons.append(f"UNSUPPORTED_EMAIL_ORIGIN_{email_origin}")
 
-    # 4. Mailbox Verification Check
+    # 4. Mailbox Verification Check - timestamp required
     if mailbox_verif == MailboxVerification.VALID:
-        if verif_time and (now - verif_time) > MAX_VERIFICATION_AGE:
+        if not verif_time:
+            reasons.append("MAILBOX_VERIFICATION_TIME_MISSING")
+        elif (now - verif_time) > MAX_VERIFICATION_AGE:
             reasons.append("MAILBOX_VERIFICATION_EXPIRED")
     elif mailbox_verif == MailboxVerification.ACCEPT_ALL:
         reasons.append("MAILBOX_ACCEPT_ALL_ROUTING")
@@ -156,8 +160,11 @@ def evaluate_contact(
     # 8. Active Sequence Recipient Immutability
     seq_step = campaign_state.get("current_sequence_step", 0)
     active_recipient = (campaign_state.get("active_recipient") or "").strip().lower()
-    if seq_step > 0 and active_recipient and active_recipient != email:
-        reasons.append("ACTIVE_SEQUENCE_RECIPIENT_MISMATCH")
+    if seq_step > 0:
+        if not active_recipient:
+            reasons.append("ACTIVE_SEQUENCE_RECIPIENT_MISSING")
+        elif active_recipient != email:
+            reasons.append("ACTIVE_SEQUENCE_RECIPIENT_MISMATCH")
 
     # 9. Quota Check
     if not campaign_state.get("quota_available", True):

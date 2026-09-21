@@ -84,6 +84,17 @@ def is_safe_public_url(url: str) -> bool:
         return False
 
 
+class SafeRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """
+    Ensures that all redirect targets strictly pass is_safe_public_url.
+    Prevents open redirect SSRF attacks to internal/private IP addresses or loopback.
+    """
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not is_safe_public_url(newurl):
+            raise urllib.error.HTTPError(newurl, 403, f"Blocked unsafe redirect to non-public URL: {newurl}", headers, fp)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 class HunterFoundOnlyAdapter:
     """
     Adapter for Hunter.io's found-only endpoint.
@@ -205,11 +216,26 @@ class HunterFoundOnlyAdapter:
                 }
             elif e.code == 451:
                 # Legal removal request / GDPR / CCPA deletion
+                err_body = ""
+                try:
+                    err_body = e.read().decode("utf-8", errors="ignore")
+                except Exception:
+                    pass
+
+                try:
+                    import volume_controller
+                    if volume_controller:
+                        found_emails = re.findall(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', err_body)
+                        for em in found_emails:
+                            volume_controller.suppress_recipient(em, f"Hunter removal request HTTP 451 for {clean_domain}")
+                except Exception:
+                    pass
+
                 return {
                     "outcome": SourceOutcome.REMOVAL_REQUEST,
                     "email": None,
                     "sources": [],
-                    "error": "Recipient submitted removal request (HTTP 451)",
+                    "error": f"Recipient submitted removal request (HTTP 451): {err_body[:200]}",
                     "credits_used": self.credits_used
                 }
             else:
@@ -304,7 +330,8 @@ class DDGSPublicSearchAdapter:
                 "Accept": "text/html,application/xhtml+xml"
             }
             req = urllib.request.Request(self.base_search_url, data=data, headers=headers)
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+            opener = urllib.request.build_opener(SafeRedirectHandler())
+            with opener.open(req, timeout=self.timeout) as resp:
                 if resp.getcode() != 200:
                     return []
                 html = resp.read().decode("utf-8", errors="ignore")
@@ -333,7 +360,8 @@ class DDGSPublicSearchAdapter:
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
             }
             req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+            opener = urllib.request.build_opener(SafeRedirectHandler())
+            with opener.open(req, timeout=self.timeout) as resp:
                 if resp.getcode() != 200:
                     return []
                 # Max 1MB response size to prevent memory bloat

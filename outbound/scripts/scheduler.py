@@ -59,6 +59,15 @@ except ImportError:
     except ImportError:
         evaluate_contact = None
 
+try:
+    from dispatcher import claim_outbound_job, update_outbound_job_status
+except ImportError:
+    try:
+        from outbound.scripts.dispatcher import claim_outbound_job, update_outbound_job_status
+    except ImportError:
+        claim_outbound_job = None
+        update_outbound_job_status = None
+
 SMTP_HOST = os.environ.get("IONOS_SMTP_HOST", "smtp.ionos.com")
 SMTP_PORT = int(os.environ.get("IONOS_SMTP_PORT", 587))
 REPLY_TO = os.environ.get("REPLY_TO", "aryan@mindmaxing.info")
@@ -141,17 +150,29 @@ def load_leads():
         return json.load(f)
 
 def get_crm_status():
+    """Reads lead sequence states, contact evidence, and verification from SQLite CRM."""
     if not os.path.exists(DB_PATH):
         return {}
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT domain, status, current_sequence_step, last_contacted_at, client_won,
-               source, subreddit, post_title, post_url, post_author, contact_email
-        FROM leads
+        SELECT 
+            l.id, l.domain, l.company_name, l.contact_email, l.status, 
+            l.current_sequence_step, l.last_contacted_at, l.client_won,
+            l.source, l.subreddit, l.post_title, l.post_url, l.post_author,
+            l.contact_type, l.contact_name, l.resolved_name, l.resolved_email,
+            l.resolved_role, l.resolved_evidence, l.resolution_status, l.resolved_at,
+            l.original_contact_email,
+            c.id AS candidate_id, c.full_name AS candidate_name, c.role AS candidate_role,
+            c.email AS candidate_email, c.email_origin, c.mailbox_status,
+            c.mailbox_checked_at, c.identity_status, c.identity_checked_at
+        FROM leads l
+        LEFT JOIN contact_candidates c ON l.id = c.lead_id AND c.is_selected = 1
     """)
-    data = {r["domain"]: dict(r) for r in cursor.fetchall()}
+    data = {}
+    for r in cursor.fetchall():
+        data[r["domain"]] = dict(r)
     conn.close()
     return data
 
@@ -177,7 +198,13 @@ def generate_copy(lead: dict, sender: dict, touch_step: int = 1) -> tuple[str, s
     else:
         return generate_touch_3_copy(lead, sender, "Re: quick question")
 
-def send_email(sender: dict, password: str, to_email: str, subject: str, body: str, in_reply_to: str = None) -> tuple[bool, str]:
+def send_email(sender: dict, password: str, to_email: str, subject: str, body: str, in_reply_to: str = None) -> tuple[str, str, str]:
+    """
+    Returns (status, message_id, error_msg):
+      - 'SUCCESS': Message accepted and QUIT clean.
+      - 'SUBMISSION_UNCERTAIN': DATA accepted by SMTP server, but exception occurred during QUIT or connection close. Quota must NOT be rolled back.
+      - 'FAILED': Pre-submission error (connection, TLS, auth, or recipient rejection before DATA). Quota should be rolled back.
+    """
     msg = MIMEMultipart("alternative")
     msg["From"] = f"{sender['name']} <{sender['email']}>"
     msg["To"] = to_email
@@ -192,15 +219,41 @@ def send_email(sender: dict, password: str, to_email: str, subject: str, body: s
 
     msg.attach(MIMEText(body, "plain", "utf-8"))
 
+    server = None
+    data_accepted = False
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=25) as server:
-            server.starttls()
-            server.login(sender["email"], password)
-            server.sendmail(sender["email"], [to_email], msg.as_string())
-        return True, msg_id
+        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=25)
+        server.starttls()
+        server.login(sender["email"], password)
+        refused = server.sendmail(sender["email"], [to_email], msg.as_string())
+        if refused:
+            try:
+                server.quit()
+            except Exception:
+                pass
+            return "FAILED", msg_id, f"Recipient refused: {refused}"
+
+        data_accepted = True
+        try:
+            server.quit()
+        except Exception as q_err:
+            log(f"Warning: SMTP QUIT error after accepted submission: {q_err}")
+            return "SUBMISSION_UNCERTAIN", msg_id, f"Post-DATA QUIT exception: {q_err}"
+
+        return "SUCCESS", msg_id, "OK"
     except Exception as e:
-        log(f"SMTP Error from {sender['email']} to {to_email}: {e}")
-        return False, ""
+        if data_accepted:
+            log(f"Post-DATA SMTP exception from {sender['email']} to {to_email}: {e}")
+            return "SUBMISSION_UNCERTAIN", msg_id, str(e)
+        else:
+            log(f"Pre-submission SMTP error from {sender['email']} to {to_email}: {e}")
+            return "FAILED", msg_id, str(e)
+    finally:
+        if server:
+            try:
+                server.close()
+            except Exception:
+                pass
 
 def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False):
     mailboxes = load_mailboxes()
@@ -269,16 +322,42 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
             continue
 
         # Enforce Shared Contact Policy Gate
-        if live_mode and evaluate_contact:
+        if live_mode:
+            if not evaluate_contact:
+                raise RuntimeError("FAIL-CLOSED: evaluate_contact missing in live scheduler")
+
+            cand_name = c_info.get("candidate_name") or c_info.get("resolved_name") or l.get("contact_name", "")
+            cand_role = c_info.get("candidate_role") or c_info.get("resolved_role") or "Founder"
+            cand_email = c_info.get("candidate_email") or c_info.get("resolved_email") or email
+
+            cand_origin = c_info.get("email_origin")
+            if not cand_origin:
+                if c_info.get("contact_type") == "FOUNDER_RESOLVED":
+                    cand_origin = "PUBLIC_SITE"
+                else:
+                    cand_origin = "LEGACY_UNKNOWN"
+
+            cand_id_status = c_info.get("identity_status")
+            if not cand_id_status:
+                if c_info.get("resolved_name") and c_info.get("resolved_at"):
+                    cand_id_status = "FOUNDER_CONFIRMED"
+                else:
+                    cand_id_status = "UNCONFIRMED"
+
+            cand_mailbox_status = c_info.get("mailbox_status") or c_info.get("mailbox_verification") or "UNCHECKED"
+            cand_verif_time = c_info.get("mailbox_checked_at") or c_info.get("resolved_at")
+            cand_id_time = c_info.get("identity_checked_at") or c_info.get("resolved_at")
+
             candidate = {
-                "contact_email": email,
-                "contact_name": c_info.get("contact_name") or l.get("contact_name", ""),
-                "contact_role": c_info.get("resolved_role") or "Founder",
-                "identity_status": c_info.get("identity_status") or ("FOUNDER_CONFIRMED" if (c_info.get("resolved_name") or l.get("contact_name")) else "UNCONFIRMED"),
-                "email_origin": c_info.get("email_origin") or ("PUBLIC_SITE" if c_info.get("contact_type") == "FOUNDER_RESOLVED" else "LEGACY_UNKNOWN"),
-                "mailbox_verification": "VALID" if c_info.get("contact_type") == "FOUNDER_RESOLVED" else ("ACCEPT_ALL" if "CATCH_ALL" in str(c_info.get("resolution_status", "")) else "UNCHECKED"),
-                "verification_time": c_info.get("resolved_at"),
-                "identity_evidence_time": c_info.get("resolved_at"),
+                "contact_name": cand_name,
+                "contact_email": cand_email,
+                "domain": l.get("domain"),
+                "contact_role": cand_role,
+                "identity_status": cand_id_status,
+                "email_origin": cand_origin,
+                "mailbox_verification": cand_mailbox_status,
+                "verification_time": cand_verif_time,
+                "identity_evidence_time": cand_id_time,
             }
             campaign_state = {
                 "status": status,
@@ -335,6 +414,8 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
         log("No eligible leads in open sending windows right now. Waiting for next window opening.")
         return
 
+    worker_id = f"scheduler_{os.getpid()}_{int(time.time())}"
+
     # Process eligible leads
     for lead, touch_step, touch_label, lead_status in queue:
         if total_sent_today >= DAILY_SEND_CAP:
@@ -351,20 +432,37 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
                 continue
 
         sender = get_pinned_sender(lead.get("domain"), mailboxes, history, mailbox_usage)
+        subject, body = generate_copy(lead, sender, touch_step)
+        c_code = lead.get("country_code", "US")
 
-        # Volume Controller Reservation (Fail-Closed)
+        job_id = None
+        # Outbound Job Durable Claim and Volume Controller Reservation (Fail-Closed)
         if live_mode:
             if not volume_controller:
                 raise RuntimeError("FAIL-CLOSED: volume_controller missing in live scheduler")
+            if claim_outbound_job:
+                job_id = claim_outbound_job(
+                    lead_id=lead.get("id", 0),
+                    domain=lead.get("domain", ""),
+                    touch_number=touch_step,
+                    mailbox=sender["email"],
+                    recipient=to_email,
+                    subject=subject,
+                    body=body,
+                    worker_id=worker_id
+                )
+                if not job_id:
+                    log(f"  [CONCURRENCY/TOUCH] Skipping {lead.get('domain')} touch {touch_step}: already claimed or sequence mismatch")
+                    continue
+
             reserved, r_reason = volume_controller.reserve_quota(sender["email"], "campaign")
             if not reserved:
                 log(f"  [QUOTA/HEALTH] Mailbox {sender['email']} unavailable: {r_reason}")
+                if job_id and update_outbound_job_status:
+                    update_outbound_job_status(job_id, "DEFERRED")
                 continue
         elif mailbox_usage.get(sender["email"], 0) >= MAX_PER_MAILBOX_DAILY:
             continue
-
-        subject, body = generate_copy(lead, sender, touch_step)
-        c_code = lead.get("country_code", "US")
 
         # Threading: fetch parent message ID for follow-up touches
         parent_msg_id = None
@@ -393,8 +491,10 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
             total_sent_today += 1
         else:
             log(f"[LIVE DISPATCH] [{touch_label}] Sending from {sender['email']} -> {to_email} [{c_code}] (In-Reply-To: {parent_msg_id})...")
-            ok, msg_id = send_email(sender, password, to_email, subject, body, in_reply_to=parent_msg_id)
-            if ok:
+            send_status, msg_id, err_msg = send_email(sender, password, to_email, subject, body, in_reply_to=parent_msg_id)
+            if send_status == "SUCCESS":
+                if job_id and update_outbound_job_status:
+                    update_outbound_job_status(job_id, "SENT")
                 if volume_controller:
                     volume_controller.record_campaign_message(
                         message_id=msg_id,
@@ -431,8 +531,25 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
                 delay = random.uniform(45.0, 85.0)
                 log(f"  Pacing delay: resting {delay:.1f}s before next send...")
                 time.sleep(delay)
+            elif send_status == "SUBMISSION_UNCERTAIN":
+                log(f"  [UNCERTAIN] Post-DATA exception to {to_email}: {err_msg}. Retaining quota reservation and holding touch for review.")
+                if job_id and update_outbound_job_status:
+                    update_outbound_job_status(job_id, "UNCERTAIN")
+                if volume_controller:
+                    volume_controller.record_campaign_message(
+                        message_id=msg_id,
+                        sender_email=sender["email"],
+                        recipient_email=to_email,
+                        prospect_domain=lead.get("domain", ""),
+                        campaign_touch=touch_step,
+                        subject=subject,
+                        smtp_success=False,
+                        error_msg=f"SUBMISSION_UNCERTAIN: {err_msg}"
+                    )
             else:
-                log(f"  ❌ Failed delivery to {to_email}")
+                log(f"  ❌ Failed delivery to {to_email}: {err_msg}")
+                if job_id and update_outbound_job_status:
+                    update_outbound_job_status(job_id, "FAILED")
                 if volume_controller:
                     volume_controller.rollback_quota(sender["email"], "campaign")
                     volume_controller.record_campaign_message(
@@ -443,7 +560,7 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
                         campaign_touch=touch_step,
                         subject=subject,
                         smtp_success=False,
-                        error_msg="SMTP send failure"
+                        error_msg=f"SMTP send failure: {err_msg}"
                     )
 
 def run_daemon(live_mode: bool = False, override_weekend: bool = False):

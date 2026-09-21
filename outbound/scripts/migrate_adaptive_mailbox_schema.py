@@ -32,24 +32,57 @@ def run_migration(db_path: str = DB_PATH) -> bool:
     try:
         c.execute("BEGIN TRANSACTION;")
 
-        # 1. mailbox_daily_decisions
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS mailbox_daily_decisions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                decision_date_utc TEXT NOT NULL,
-                mailbox TEXT NOT NULL,
-                domain TEXT NOT NULL,
-                current_level INTEGER NOT NULL,
-                effective_campaign_cap INTEGER NOT NULL,
-                effective_diagnostic_cap INTEGER NOT NULL,
-                decision_action TEXT NOT NULL,
-                decision_reason TEXT NOT NULL,
-                evidence_summary_json TEXT,
-                created_at TEXT NOT NULL,
-                UNIQUE(decision_date_utc, mailbox)
-            );
-        """)
-        c.execute("CREATE INDEX IF NOT EXISTS idx_decisions_date_mb ON mailbox_daily_decisions (decision_date_utc, mailbox);")
+        # 1. mailbox_daily_decisions (Append-only ledger with revision tracking)
+        c.execute("PRAGMA table_info(mailbox_daily_decisions);")
+        cols = [r[1] for r in c.fetchall()]
+        if cols and "revision" not in cols:
+            c.execute("""
+                CREATE TABLE mailbox_daily_decisions_new (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    decision_date_utc TEXT NOT NULL,
+                    mailbox TEXT NOT NULL,
+                    domain TEXT NOT NULL,
+                    current_level INTEGER NOT NULL,
+                    effective_campaign_cap INTEGER NOT NULL,
+                    effective_diagnostic_cap INTEGER NOT NULL,
+                    decision_action TEXT NOT NULL,
+                    decision_reason TEXT NOT NULL,
+                    evidence_summary_json TEXT,
+                    revision INTEGER NOT NULL DEFAULT 1,
+                    created_at TEXT NOT NULL
+                );
+            """)
+            c.execute("""
+                INSERT INTO mailbox_daily_decisions_new (
+                    id, decision_date_utc, mailbox, domain, current_level,
+                    effective_campaign_cap, effective_diagnostic_cap,
+                    decision_action, decision_reason, evidence_summary_json, revision, created_at
+                ) SELECT id, decision_date_utc, mailbox, domain, current_level,
+                         effective_campaign_cap, effective_diagnostic_cap,
+                         decision_action, decision_reason, evidence_summary_json, 1, created_at
+                FROM mailbox_daily_decisions;
+            """)
+            c.execute("DROP TABLE mailbox_daily_decisions;")
+            c.execute("ALTER TABLE mailbox_daily_decisions_new RENAME TO mailbox_daily_decisions;")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_decisions_date_mb ON mailbox_daily_decisions (decision_date_utc, mailbox, revision);")
+        elif not cols:
+            c.execute("""
+                CREATE TABLE IF NOT EXISTS mailbox_daily_decisions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    decision_date_utc TEXT NOT NULL,
+                    mailbox TEXT NOT NULL,
+                    domain TEXT NOT NULL,
+                    current_level INTEGER NOT NULL,
+                    effective_campaign_cap INTEGER NOT NULL,
+                    effective_diagnostic_cap INTEGER NOT NULL,
+                    decision_action TEXT NOT NULL,
+                    decision_reason TEXT NOT NULL,
+                    evidence_summary_json TEXT,
+                    revision INTEGER NOT NULL DEFAULT 1,
+                    created_at TEXT NOT NULL
+                );
+            """)
+            c.execute("CREATE INDEX IF NOT EXISTS idx_decisions_date_mb ON mailbox_daily_decisions (decision_date_utc, mailbox, revision);")
 
         # 2. outbound_jobs
         c.execute("""
@@ -66,7 +99,7 @@ def run_migration(db_path: str = DB_PATH) -> bool:
                 due_at TEXT NOT NULL,
                 earliest_send_at TEXT NOT NULL,
                 expires_at TEXT,
-                status TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING', 'RESERVED', 'CLAIMED', 'SENT', 'FAILED', 'DEFERRED', 'EXPIRED')),
+                status TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING', 'RESERVED', 'CLAIMED', 'SENT', 'FAILED', 'DEFERRED', 'EXPIRED', 'UNCERTAIN')),
                 worker_id TEXT,
                 attempt_count INTEGER DEFAULT 0,
                 created_at TEXT NOT NULL,
