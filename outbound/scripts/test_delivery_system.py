@@ -125,57 +125,30 @@ class TestDeliverySystem(unittest.TestCase):
             reason TEXT NOT NULL,
             detected_at TEXT NOT NULL
         )""")
-        c.execute("""
-        CREATE TABLE mailbox_daily_decisions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            decision_date_utc TEXT NOT NULL,
-            mailbox TEXT NOT NULL,
-            domain TEXT NOT NULL,
-            current_level INTEGER NOT NULL,
-            effective_campaign_cap INTEGER NOT NULL,
-            effective_diagnostic_cap INTEGER NOT NULL,
-            decision_action TEXT NOT NULL,
-            decision_reason TEXT NOT NULL,
-            evidence_summary_json TEXT,
-            revision INTEGER NOT NULL DEFAULT 1,
-            created_at TEXT NOT NULL,
-            UNIQUE(decision_date_utc, mailbox, revision)
-        )""")
-        c.execute("""
-        CREATE TABLE IF NOT EXISTS outbound_jobs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            lead_id INTEGER NOT NULL,
-            domain TEXT NOT NULL,
-            touch_number INTEGER NOT NULL,
-            assigned_mailbox TEXT,
-            recipient_email TEXT NOT NULL,
-            parent_message_id TEXT,
-            subject TEXT NOT NULL,
-            body TEXT NOT NULL,
-            due_at TEXT NOT NULL,
-            earliest_send_at TEXT NOT NULL,
-            expires_at TEXT,
-            status TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING', 'RESERVED', 'CLAIMED', 'SENT', 'FAILED', 'DEFERRED', 'EXPIRED', 'UNCERTAIN')),
-            worker_id TEXT,
-            attempt_count INTEGER DEFAULT 0,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            UNIQUE(domain, touch_number)
-        )""")
+        conn.commit()
+        conn.close()
+
+        # Run production schema migration on test DB
+        import migrate_adaptive_mailbox_schema
+        migrate_adaptive_mailbox_schema.run_migration(self.test_db)
+
+        conn = sqlite3.connect(self.test_db)
+        c = conn.cursor()
 
         # Add initial mailbox, seed, and lead
         now_iso = datetime.now(timezone.utc).isoformat()
         today_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        period_id = volume_controller.get_current_period_id()
         c.execute("INSERT INTO mailbox_levels VALUES ('aryan@mindmaxing.online', 'mindmaxing.online', 1, ?, 'active', NULL, NULL)", (now_iso,))
         c.execute("INSERT INTO collector_health VALUES ('aryan@mindmaxing.online', 'sender', ?, 'healthy', NULL, 10, ?)", (now_iso, now_iso))
         c.execute("INSERT INTO collector_health VALUES ('seed1@gmail.com', 'test_inbox', ?, 'healthy', NULL, 5, ?)", (now_iso, now_iso))
         c.execute("INSERT INTO leads VALUES ('badprospect.com', 'invalid@badprospect.com', 'READY', '')")
         c.execute("""
         INSERT INTO mailbox_daily_decisions (
-            decision_date_utc, mailbox, domain, current_level, effective_campaign_cap,
+            decision_id, period_id, decision_date_utc, mailbox, domain, current_level, effective_campaign_cap,
             effective_diagnostic_cap, decision_action, decision_reason, evidence_summary_json, revision, created_at
-        ) VALUES (?, 'aryan@mindmaxing.online', 'mindmaxing.online', 1, 1, 1, 'MAINTAIN', 'Active testing', '{}', 1, ?)
-        """, (today_utc, now_iso))
+        ) VALUES (?, ?, ?, 'aryan@mindmaxing.online', 'mindmaxing.online', 1, 1, 1, 'KEEP', 'Active testing', '{}', 1, ?)
+        """, (f"DEC-{period_id}-aryan@mindmaxing.online-r1", period_id, today_utc, now_iso))
         conn.commit()
         conn.close()
 
@@ -236,7 +209,12 @@ class TestDeliverySystem(unittest.TestCase):
 
         # Insert valid message sent to someone else
         c.execute("""
-        INSERT INTO messages VALUES (
+        INSERT INTO messages (
+            message_id, sender_email, sender_domain, recipient_email, recipient_domain,
+            recipient_provider, purpose, campaign_touch, prospect_domain, sent_at,
+            sent_date, smtp_status, smtp_code, smtp_response, delivery_state,
+            auth_spf, auth_dkim, auth_dmarc, last_event_at, notes
+        ) VALUES (
             '<msg-valid-100@mindmaxing.online>', 'aryan@mindmaxing.online', 'mindmaxing.online',
             'realfounder@legitstore.com', 'legitstore.com', 'other', 'campaign', 1,
             'legitstore.com', ?, '2026-09-21', 'accepted', 250, 'OK', 'accepted',
@@ -286,7 +264,12 @@ class TestDeliverySystem(unittest.TestCase):
         # Insert campaign lead & message
         c.execute("INSERT INTO leads VALUES ('storebrand.com', 'owner@storebrand.com', 'HUMAN_APPROVED', '')")
         c.execute("""
-        INSERT INTO messages VALUES (
+        INSERT INTO messages (
+            message_id, sender_email, sender_domain, recipient_email, recipient_domain,
+            recipient_provider, purpose, campaign_touch, prospect_domain, sent_at,
+            sent_date, smtp_status, smtp_code, smtp_response, delivery_state,
+            auth_spf, auth_dkim, auth_dmarc, last_event_at, notes
+        ) VALUES (
             '<msg-camp-200@mindmaxing.online>', 'aryan@mindmaxing.online', 'mindmaxing.online',
             'owner@storebrand.com', 'storebrand.com', 'other', 'campaign', 1,
             'storebrand.com', ?, '2026-09-21', 'accepted', 250, 'OK', 'accepted',
@@ -344,7 +327,12 @@ class TestDeliverySystem(unittest.TestCase):
 
         c.execute("INSERT INTO leads VALUES ('optoutbrand.com', 'founder@optoutbrand.com', 'HUMAN_APPROVED', '')")
         c.execute("""
-        INSERT INTO messages VALUES (
+        INSERT INTO messages (
+            message_id, sender_email, sender_domain, recipient_email, recipient_domain,
+            recipient_provider, purpose, campaign_touch, prospect_domain, sent_at,
+            sent_date, smtp_status, smtp_code, smtp_response, delivery_state,
+            auth_spf, auth_dkim, auth_dmarc, last_event_at, notes
+        ) VALUES (
             '<msg-camp-300@mindmaxing.online>', 'aryan@mindmaxing.online', 'mindmaxing.online',
             'founder@optoutbrand.com', 'optoutbrand.com', 'other', 'campaign', 1,
             'optoutbrand.com', ?, '2026-09-21', 'accepted', 250, 'OK', 'accepted',
@@ -384,7 +372,12 @@ class TestDeliverySystem(unittest.TestCase):
         msg_id = "<diag-dedup-01@mindmaxing.online>"
 
         c.execute("""
-        INSERT INTO messages VALUES (
+        INSERT INTO messages (
+            message_id, sender_email, sender_domain, recipient_email, recipient_domain,
+            recipient_provider, purpose, campaign_touch, prospect_domain, sent_at,
+            sent_date, smtp_status, smtp_code, smtp_response, delivery_state,
+            auth_spf, auth_dkim, auth_dmarc, last_event_at, notes
+        ) VALUES (
             ?, 'aryan@mindmaxing.online', 'mindmaxing.online', 'seed1@gmail.com', 'gmail.com', 'gmail',
             'test', NULL, NULL, ?, '2026-09-21', 'accepted', 250, 'OK', 'inbox',
             'pass', 'pass', 'pass', ?, 'Diagnostic'
@@ -551,12 +544,13 @@ class TestDeliverySystem(unittest.TestCase):
         now_iso = datetime.now(timezone.utc).isoformat()
         conn = volume_controller.get_db_connection()
         c = conn.cursor()
+        period_id = volume_controller.get_current_period_id()
         c.execute("""
             INSERT INTO mailbox_daily_decisions (
-                decision_date_utc, mailbox, domain, current_level, effective_campaign_cap,
+                decision_id, period_id, decision_date_utc, mailbox, domain, current_level, effective_campaign_cap,
                 effective_diagnostic_cap, decision_action, decision_reason, evidence_summary_json, revision, created_at
-            ) VALUES (?, ?, 'mindmaxing.online', 1, 0, 1, 'HOLD', 'HOLD_DIAGNOSTIC_EXPIRED', '{}', 2, ?)
-        """, (today_utc, mailbox, now_iso))
+            ) VALUES (?, ?, ?, ?, 'mindmaxing.online', 1, 0, 1, 'HOLD_DIAGNOSTIC_EXPIRED', 'HOLD_DIAGNOSTIC_EXPIRED', '{}', 2, ?)
+        """, (f"DEC-{period_id}-{mailbox}-r2", period_id, today_utc, mailbox, now_iso))
         conn.commit()
         conn.close()
 

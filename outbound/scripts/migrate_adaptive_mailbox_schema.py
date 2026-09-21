@@ -32,57 +32,52 @@ def run_migration(db_path: str = DB_PATH) -> bool:
     try:
         c.execute("BEGIN TRANSACTION;")
 
-        # 1. mailbox_daily_decisions (Append-only ledger with revision tracking)
+        # 1. mailbox_daily_decisions (Append-only ledger with revision tracking and revised audit metadata)
         c.execute("PRAGMA table_info(mailbox_daily_decisions);")
         cols = [r[1] for r in c.fetchall()]
-        if cols and "revision" not in cols:
-            c.execute("""
-                CREATE TABLE mailbox_daily_decisions_new (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    decision_date_utc TEXT NOT NULL,
-                    mailbox TEXT NOT NULL,
-                    domain TEXT NOT NULL,
-                    current_level INTEGER NOT NULL,
-                    effective_campaign_cap INTEGER NOT NULL,
-                    effective_diagnostic_cap INTEGER NOT NULL,
-                    decision_action TEXT NOT NULL,
-                    decision_reason TEXT NOT NULL,
-                    evidence_summary_json TEXT,
-                    revision INTEGER NOT NULL DEFAULT 1,
-                    created_at TEXT NOT NULL
-                );
-            """)
-            c.execute("""
-                INSERT INTO mailbox_daily_decisions_new (
-                    id, decision_date_utc, mailbox, domain, current_level,
-                    effective_campaign_cap, effective_diagnostic_cap,
-                    decision_action, decision_reason, evidence_summary_json, revision, created_at
-                ) SELECT id, decision_date_utc, mailbox, domain, current_level,
-                         effective_campaign_cap, effective_diagnostic_cap,
-                         decision_action, decision_reason, evidence_summary_json, 1, created_at
-                FROM mailbox_daily_decisions;
-            """)
-            c.execute("DROP TABLE mailbox_daily_decisions;")
-            c.execute("ALTER TABLE mailbox_daily_decisions_new RENAME TO mailbox_daily_decisions;")
-            c.execute("CREATE INDEX IF NOT EXISTS idx_decisions_date_mb ON mailbox_daily_decisions (decision_date_utc, mailbox, revision);")
-        elif not cols:
+        if not cols:
             c.execute("""
                 CREATE TABLE IF NOT EXISTS mailbox_daily_decisions (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    decision_id TEXT UNIQUE,
+                    period_id TEXT NOT NULL,
                     decision_date_utc TEXT NOT NULL,
                     mailbox TEXT NOT NULL,
                     domain TEXT NOT NULL,
+                    policy_version TEXT NOT NULL DEFAULT 'v2.1-revised',
+                    baseline_cap INTEGER NOT NULL DEFAULT 1,
                     current_level INTEGER NOT NULL,
                     effective_campaign_cap INTEGER NOT NULL,
                     effective_diagnostic_cap INTEGER NOT NULL,
                     decision_action TEXT NOT NULL,
                     decision_reason TEXT NOT NULL,
+                    scope TEXT NOT NULL DEFAULT 'mailbox',
+                    recovery_condition TEXT,
                     evidence_summary_json TEXT,
+                    evidence_ids TEXT,
+                    campaign_name TEXT NOT NULL DEFAULT 'all',
                     revision INTEGER NOT NULL DEFAULT 1,
                     created_at TEXT NOT NULL
                 );
             """)
             c.execute("CREATE INDEX IF NOT EXISTS idx_decisions_date_mb ON mailbox_daily_decisions (decision_date_utc, mailbox, revision);")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_decisions_period_mb ON mailbox_daily_decisions (period_id, mailbox, revision);")
+        else:
+            # Table exists, add missing columns safely
+            col_defs = [
+                ("decision_id", "TEXT"),
+                ("period_id", "TEXT"),
+                ("policy_version", "TEXT NOT NULL DEFAULT 'v2.1-revised'"),
+                ("baseline_cap", "INTEGER NOT NULL DEFAULT 1"),
+                ("scope", "TEXT NOT NULL DEFAULT 'mailbox'"),
+                ("recovery_condition", "TEXT"),
+                ("evidence_ids", "TEXT"),
+                ("campaign_name", "TEXT NOT NULL DEFAULT 'all'")
+            ]
+            for col_name, col_type in col_defs:
+                if col_name not in cols:
+                    c.execute(f"ALTER TABLE mailbox_daily_decisions ADD COLUMN {col_name} {col_type};")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_decisions_period_mb ON mailbox_daily_decisions (period_id, mailbox, revision);")
 
         # 2. outbound_jobs
         c.execute("""
@@ -108,10 +103,33 @@ def run_migration(db_path: str = DB_PATH) -> bool:
                 FOREIGN KEY (lead_id) REFERENCES leads (id)
             );
         """)
+        c.execute("PRAGMA table_info(outbound_jobs);")
+        job_cols = [r[1] for r in c.fetchall()]
+        job_col_defs = [
+            ("campaign_name", "TEXT NOT NULL DEFAULT 'dealstrike-distributors'"),
+            ("period_id", "TEXT"),
+            ("decision_id", "TEXT")
+        ]
+        for col_name, col_type in job_col_defs:
+            if col_name not in job_cols:
+                c.execute(f"ALTER TABLE outbound_jobs ADD COLUMN {col_name} {col_type};")
+
         c.execute("CREATE INDEX IF NOT EXISTS idx_outbound_jobs_due ON outbound_jobs (status, due_at);")
         c.execute("CREATE INDEX IF NOT EXISTS idx_outbound_jobs_mb ON outbound_jobs (assigned_mailbox);")
 
-        # 3. imap_cursors
+        # 3. messages (Campaign identity)
+        c.execute("PRAGMA table_info(messages);")
+        msg_cols = [r[1] for r in c.fetchall()]
+        msg_col_defs = [
+            ("campaign_name", "TEXT NOT NULL DEFAULT 'legacy_unattributed'"),
+            ("period_id", "TEXT"),
+            ("decision_id", "TEXT")
+        ]
+        for col_name, col_type in msg_col_defs:
+            if col_name not in msg_cols:
+                c.execute(f"ALTER TABLE messages ADD COLUMN {col_name} {col_type};")
+
+        # 4. imap_cursors
         c.execute("""
             CREATE TABLE IF NOT EXISTS imap_cursors (
                 mailbox TEXT NOT NULL,
@@ -123,7 +141,7 @@ def run_migration(db_path: str = DB_PATH) -> bool:
             );
         """)
 
-        # 4. unmatched_delivery_events
+        # 5. unmatched_delivery_events
         c.execute("""
             CREATE TABLE IF NOT EXISTS unmatched_delivery_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

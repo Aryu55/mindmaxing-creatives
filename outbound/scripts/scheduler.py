@@ -440,27 +440,21 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
         if live_mode:
             if not volume_controller:
                 raise RuntimeError("FAIL-CLOSED: volume_controller missing in live scheduler")
-            if claim_outbound_job:
-                job_id = claim_outbound_job(
-                    lead_id=lead.get("id", 0),
-                    domain=lead.get("domain", ""),
-                    touch_number=touch_step,
-                    mailbox=sender["email"],
-                    recipient=to_email,
-                    subject=subject,
-                    body=body,
-                    worker_id=worker_id
-                )
-                if not job_id:
-                    log(f"  [CONCURRENCY/TOUCH] Skipping {lead.get('domain')} touch {touch_step}: already claimed or sequence mismatch")
-                    continue
-
-            reserved, r_reason = volume_controller.reserve_quota(sender["email"], "campaign")
-            if not reserved:
-                log(f"  [QUOTA/HEALTH] Mailbox {sender['email']} unavailable: {r_reason}")
-                if job_id and update_outbound_job_status:
-                    update_outbound_job_status(job_id, "DEFERRED")
+            claimed, c_reason, claim_meta = volume_controller.reserve_and_claim_job(
+                lead_id=lead.get("id", 0),
+                domain=lead.get("domain", ""),
+                touch_number=touch_step,
+                mailbox=sender["email"],
+                recipient=to_email,
+                subject=subject,
+                body=body,
+                worker_id=worker_id,
+                campaign_name=lead.get("source", "dealstrike-distributors")
+            )
+            if not claimed:
+                log(f"  [TOUCH/QUOTA] Skipping {lead.get('domain')} touch {touch_step}: {c_reason}")
                 continue
+            job_id = claim_meta["job_id"]
         elif mailbox_usage.get(sender["email"], 0) >= MAX_PER_MAILBOX_DAILY:
             continue
 

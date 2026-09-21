@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
 """
-Mindmaxing Outbound Status & Daily Telemetry Summary
-CLI command and daily reporter showing:
-- Campaign sends & diagnostic sends (UTC daily counters)
-- Inbox / Promotions / Spam observations
-- Hard bounces and recipient suppressions
-- Collector health across 25 senders and 8 Gmail test inboxes
-- Current mailbox levels, daily caps, and active holds/pauses
-- Prominently displays Gmail-only diagnostic test coverage.
-Saves daily summary JSON to /root/outbound/data/daily_summary_YYYY-MM-DD.json.
+Mindmaxing Outbound Status & Reporting CLI v2.1 (Revised)
+Strictly Read-Only:
+- Never triggers SMTP
+- Never rescans inboxes
+- Never resets quotas
+- Never promotes or demotes mailboxes
+
+CLI Commands:
+    python3 outbound_status.py report --today [--format text|json]
+    python3 outbound_status.py report --date YYYY-MM-DD [--format text|json]
+    python3 outbound_status.py (legacy summary)
 """
 
-import os
+import argparse
 import json
+import os
 import sqlite3
-from datetime import datetime, timezone
+import sys
+from datetime import datetime, timezone, timedelta
+from typing import Any, Dict, List, Optional
 
-import volume_controller
+import daily_mailbox_planner
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.environ.get("MINDMAXING_BASE_DIR") or (
@@ -24,143 +29,261 @@ BASE_DIR = os.environ.get("MINDMAXING_BASE_DIR") or (
 )
 DATA_DIR = os.path.join(BASE_DIR, "data")
 DB_PATH = os.path.join(DATA_DIR, "mindmaxing_crm.db")
+CONFIG_DIR = os.path.join(BASE_DIR, "config")
+MAILBOXES_FILE = os.path.join(CONFIG_DIR, "mailboxes.json")
 
-def generate_status_report(save_json: bool = True) -> dict:
-    conn = volume_controller.get_db_connection()
+
+def get_ro_connection() -> sqlite3.Connection:
+    """Returns a strictly read-only SQLite connection."""
+    try:
+        conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True, timeout=10.0)
+    except Exception:
+        conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def load_mailboxes_config() -> List[Dict[str, Any]]:
+    if os.path.exists(MAILBOXES_FILE):
+        with open(MAILBOXES_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+
+def generate_period_report(period_id: str) -> Dict[str, Any]:
+    """
+    Builds an explainable status report for the specified IST budget period.
+    Strictly read-only.
+    """
+    conn = get_ro_connection()
     c = conn.cursor()
-    utc_date = volume_controller.get_utc_date_str()
-    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    # 1. Quotas and Daily Activity (Today UTC)
-    c.execute("""
-    SELECT ml.domain, ml.mailbox, ml.level, ml.status, ml.paused_reason,
-           COALESCE(mq.campaign_sent, 0) as campaign_sent,
-           COALESCE(mq.diagnostic_sent, 0) as diagnostic_sent
-    FROM mailbox_levels ml
-    LEFT JOIN mailbox_quotas mq ON ml.mailbox = mq.mailbox AND mq.date_utc = ?
-    ORDER BY ml.domain, ml.mailbox
-    """, (utc_date,))
-    mailbox_rows = c.fetchall()
+    now = datetime.now(timezone.utc)
+    now_iso = now.isoformat()
+    start_utc, end_utc = daily_mailbox_planner.get_ist_budget_period_bounds_utc(period_id)
+    start_utc_iso = start_utc.isoformat()
+    end_utc_iso = end_utc.isoformat()
 
-    # 2. Delivery States Summary (All-Time and Today)
+    mailboxes = load_mailboxes_config()
+
+    # 1. Fetch latest decisions for this period
     c.execute("""
-    SELECT purpose, delivery_state, count(*) as count
-    FROM messages
-    GROUP BY purpose, delivery_state
+        SELECT d1.*
+        FROM mailbox_daily_decisions d1
+        JOIN (
+            SELECT mailbox, MAX(revision) AS max_rev
+            FROM mailbox_daily_decisions
+            WHERE period_id = ?
+            GROUP BY mailbox
+        ) d2 ON d1.mailbox = d2.mailbox AND d1.revision = d2.max_rev
+        WHERE d1.period_id = ?
+    """, (period_id, period_id))
+    decisions_by_mb = {r["mailbox"]: dict(r) for r in c.fetchall()}
+
+    # 2. Fetch collector health
+    c.execute("SELECT mailbox, status, last_scan_at, error_message FROM collector_health")
+    health_by_mb = {r["mailbox"]: dict(r) for r in c.fetchall()}
+
+    # 3. Message telemetry within this budget period
+    c.execute("""
+        SELECT sender_email, purpose, campaign_touch, delivery_state, smtp_status,
+               auth_spf, auth_dkim, auth_dmarc, count(*) as count
+        FROM messages
+        WHERE sent_at >= ? AND sent_at < ?
+        GROUP BY sender_email, purpose, campaign_touch, delivery_state, smtp_status, auth_spf, auth_dkim, auth_dmarc
+    """, (start_utc_iso, end_utc_iso))
+    period_messages = [dict(r) for r in c.fetchall()]
+
+    # 4. Inbound replies within budget period
+    c.execute("""
+        SELECT source_mailbox, count(*) as count
+        FROM delivery_events
+        WHERE event_type = 'reply' AND detected_at >= ? AND detected_at < ?
+        GROUP BY source_mailbox
+    """, (start_utc_iso, end_utc_iso))
+    inbound_events = [dict(r) for r in c.fetchall()]
+
+    # 5. Outbound jobs status (due, deferred, uncertain)
+    c.execute("""
+        SELECT assigned_mailbox, status, count(*) as count
+        FROM outbound_jobs
+        GROUP BY assigned_mailbox, status
     """)
-    state_counts = {(r["purpose"], r["delivery_state"]): r["count"] for r in c.fetchall()}
+    job_counts: Dict[str, Dict[str, int]] = {}
+    for r in c.fetchall():
+        mb = r["assigned_mailbox"] or "unassigned"
+        if mb not in job_counts:
+            job_counts[mb] = {}
+        job_counts[mb][r["status"]] = r["count"]
 
-    # 3. Suppressions Count
+    # 6. Global stats
     c.execute("SELECT count(*) as count FROM recipient_suppressions")
-    suppressions_count = c.fetchone()["count"]
+    suppressions_total = c.fetchone()["count"]
 
-    # 4. Collector Health
+    # 7. Seed telemetry label: personal Gmail evidence
     c.execute("""
-    SELECT mailbox_type, status, count(*) as count
-    FROM collector_health
-    GROUP BY mailbox_type, status
+        SELECT recipient_email, count(*) as tests_received,
+               sum(case when delivery_state in ('inbox', 'promotions') then 1 else 0 end) as inbox_count,
+               sum(case when delivery_state = 'spam' then 1 else 0 end) as spam_count
+        FROM messages
+        WHERE purpose = 'test'
+        GROUP BY recipient_email
     """)
-    collector_summary = {(r["mailbox_type"], r["status"]): r["count"] for r in c.fetchall()}
-
-    c.execute("SELECT mailbox, status, error_message, last_scan_at FROM collector_health WHERE status = 'error'")
-    collector_errors = [dict(r) for r in c.fetchall()]
-
-    # 5. Gmail Test Coverage Summary
-    c.execute("""
-    SELECT recipient_email, count(*) as tests_received,
-           sum(case when delivery_state in ('inbox', 'promotions') then 1 else 0 end) as inbox_count,
-           sum(case when delivery_state = 'spam' then 1 else 0 end) as spam_count
-    FROM messages
-    WHERE purpose = 'test'
-    GROUP BY recipient_email
-    """)
-    gmail_coverage = [dict(r) for r in c.fetchall()]
+    seed_telemetry = [dict(r) for r in c.fetchall()]
 
     conn.close()
 
-    # Organize by domain
-    domains_data = {}
-    for r in mailbox_rows:
-        dom = r["domain"]
-        if dom not in domains_data:
-            domains_data[dom] = {
-                "level": r["level"],
-                "status": "active",
-                "campaign_today": 0,
-                "diagnostic_today": 0,
-                "paused_count": 0,
-                "mailboxes": []
-            }
-        domains_data[dom]["campaign_today"] += r["campaign_sent"]
-        domains_data[dom]["diagnostic_today"] += r["diagnostic_sent"]
-        if r["status"] == "paused":
-            domains_data[dom]["paused_count"] += 1
-            domains_data[dom]["status"] = "has_pauses"
-        domains_data[dom]["mailboxes"].append(dict(r))
+    # Compile per-mailbox telemetry
+    mailbox_reports: List[Dict[str, Any]] = []
+    total_active_capacity = 0
 
-    report = {
-        "generated_at": now_utc,
-        "date_utc": utc_date,
-        "domains": domains_data,
-        "delivery_states": {f"{k[0]}_{k[1]}": v for k, v in state_counts.items()},
-        "suppressions_total": suppressions_count,
-        "collector_health": {f"{k[0]}_{k[1]}": v for k, v in collector_summary.items()},
-        "collector_errors": collector_errors,
-        "gmail_test_coverage": gmail_coverage
+    for mb in mailboxes:
+        email_addr = mb["email"]
+        domain = mb["domain"]
+        dec = decisions_by_mb.get(email_addr, {})
+        hlth = health_by_mb.get(email_addr, {})
+
+        baseline_cap = dec.get("baseline_cap", 1)
+        effective_cap = dec.get("effective_campaign_cap", 0)
+        action = dec.get("decision_action", "NO_DECISION")
+        reason = dec.get("decision_reason", "No review decision recorded for this period")
+        scope = dec.get("scope", "mailbox")
+        recovery_condition = dec.get("recovery_condition")
+
+        total_active_capacity += effective_cap
+
+        # Period activity for this sender
+        camp_sends = sum(r["count"] for r in period_messages if r["sender_email"] == email_addr and r["purpose"] == "campaign")
+        new_contacts = sum(r["count"] for r in period_messages if r["sender_email"] == email_addr and r["purpose"] == "campaign" and r["campaign_touch"] == 1)
+        follow_ups = sum(r["count"] for r in period_messages if r["sender_email"] == email_addr and r["purpose"] == "campaign" and (r["campaign_touch"] or 0) > 1)
+        diag_sends = sum(r["count"] for r in period_messages if r["sender_email"] == email_addr and r["purpose"] == "test")
+        definite_failures = sum(r["count"] for r in period_messages if r["sender_email"] == email_addr and r["smtp_status"] == "perm_failure")
+        temp_failures = sum(r["count"] for r in period_messages if r["sender_email"] == email_addr and r["smtp_status"] == "temp_failure")
+
+        # Job queue for this sender
+        mb_jobs = job_counts.get(email_addr, {})
+        pending_jobs = mb_jobs.get("PENDING", 0)
+        claimed_jobs = mb_jobs.get("CLAIMED", 0)
+        reserved_jobs = mb_jobs.get("RESERVED", 0)
+        deferred_jobs = mb_jobs.get("DEFERRED", 0)
+        uncertain_jobs = mb_jobs.get("UNCERTAIN", 0)
+
+        remaining_allowance = max(0, effective_cap - camp_sends)
+
+        # Recent clean diagnostic from evidence
+        ev_summary = json.loads(dec.get("evidence_summary_json") or "{}")
+        recent_clean_diag = ev_summary.get("recent_clean_diag", {})
+
+        mailbox_reports.append({
+            "mailbox": email_addr,
+            "domain": domain,
+            "baseline_cap": baseline_cap,
+            "effective_allowance": effective_cap,
+            "used": camp_sends,
+            "reserved": reserved_jobs + claimed_jobs,
+            "remaining": remaining_allowance,
+            "action": action,
+            "reason": reason,
+            "scope": scope,
+            "recovery_condition": recovery_condition,
+            "campaign_submissions": camp_sends,
+            "new_contacts": new_contacts,
+            "follow_ups": follow_ups,
+            "diagnostics": diag_sends,
+            "failures": definite_failures + temp_failures,
+            "uncertain_submissions": uncertain_jobs,
+            "due_jobs": pending_jobs,
+            "deferred_jobs": deferred_jobs,
+            "latest_scan": hlth.get("last_scan_at"),
+            "latest_diagnostic": recent_clean_diag.get("sent_at")
+        })
+
+    return {
+        "period_id": period_id,
+        "policy_version": "v2.1-revised",
+        "generated_at": now_iso,
+        "period_bounds_utc": {
+            "start": start_utc_iso,
+            "end": end_utc_iso
+        },
+        "total_mailboxes": len(mailbox_reports),
+        "total_active_capacity": total_active_capacity,
+        "suppressions_total": suppressions_total,
+        "seed_telemetry_label": "Controlled Personal Gmail Evidence Only",
+        "seed_telemetry": seed_telemetry,
+        "unassigned_jobs": job_counts.get("unassigned", {}),
+        "mailboxes": mailbox_reports
     }
 
-    if save_json:
-        out_path = os.path.join(DATA_DIR, f"daily_summary_{utc_date}.json")
-        with open(out_path, "w") as f:
-            json.dump(report, f, indent=2)
 
-    return report
+def format_text_report(rep: Dict[str, Any]) -> str:
+    lines = []
+    lines.append("=" * 80)
+    lines.append(f"  MINDMAXING NIGHTLY CAMPAIGN REVIEW & MAILBOX REPORT: {rep['period_id']}")
+    lines.append(f"  Policy: {rep['policy_version']} | Generated: {rep['generated_at']} (UTC)")
+    lines.append(f"  Total Senders: {rep['total_mailboxes']} | Total Effective Daily Capacity: {rep['total_active_capacity']} messages")
+    lines.append("=" * 80)
 
-def print_status_cli():
-    rep = generate_status_report(save_json=True)
-    
-    print("=" * 80)
-    print(f"  MINDMAXING FORENSIC OUTBOUND & DELIVERY TELEMETRY STATUS")
-    print(f"  Report Time: {rep['generated_at']} | UTC Date: {rep['date_utc']}")
-    print("=" * 80)
+    lines.append("\n## MAILBOX STATUS & DECISION LEDGER\n")
+    lines.append(f"{'#':<3} {'Mailbox':<32} {'Base':<5} {'Eff':<5} {'Used':<5} {'Rem':<5} {'Action':<10} {'Reason'}")
+    lines.append("-" * 80)
 
-    print("\n--- DOMAIN & MAILBOX VOLUME CONTROLLER ---")
-    for dom, data in rep["domains"].items():
-        dom_status_badge = "[ACTIVE]" if data["status"] == "active" else "[PAUSES DETECTED]"
-        print(f"\n* Domain: {dom} | Level {data['level']} {dom_status_badge}")
-        print(f"  Today UTC Sends: {data['campaign_today']} Campaign | {data['diagnostic_today']} Diagnostic")
-        
-        paused_boxes = [m for m in data["mailboxes"] if m["status"] == "paused"]
-        if paused_boxes:
-            for pb in paused_boxes:
-                print(f"    ! PAUSED: {pb['mailbox']} - Reason: {pb['paused_reason']}")
-        else:
-            print(f"    All {len(data['mailboxes'])} mailboxes active and healthy.")
+    for i, m in enumerate(rep["mailboxes"], 1):
+        lines.append(
+            f"{i:<3} {m['mailbox']:<32} {m['baseline_cap']:<5} {m['effective_allowance']:<5} "
+            f"{m['used']:<5} {m['remaining']:<5} {m['action']:<10} {m['reason']}"
+        )
+        if m["recovery_condition"]:
+            lines.append(f"    ↳ Recovery: {m['recovery_condition']}")
 
-    print("\n--- DELIVERY OUTCOMES & REPUTATION ---")
-    print(f"Campaign Messages: Accepted={rep['delivery_states'].get('campaign_accepted', 0)}, Replied={rep['delivery_states'].get('campaign_replied', 0)}, Auto-Deflected={rep['delivery_states'].get('campaign_auto_response', 0)}, Bounced={rep['delivery_states'].get('campaign_bounced', 0)}, Pending/Unknown={rep['delivery_states'].get('campaign_unknown', 0)}")
-    print(f"Hard Bounces / Suppressions: {rep['suppressions_total']} recipient(s) permanently suppressed.")
+    lines.append("\n## WORKLOAD QUEUE & TELEMETRY")
+    total_due = sum(m["due_jobs"] for m in rep["mailboxes"])
+    total_def = sum(m["deferred_jobs"] for m in rep["mailboxes"])
+    total_unc = sum(m["uncertain_submissions"] for m in rep["mailboxes"])
+    lines.append(f"Pending Due Jobs: {total_due} | Deferred Jobs: {total_def} | Uncertain Submissions: {total_unc}")
+    lines.append(f"Recipient Suppressions: {rep['suppressions_total']} (Globally Enforced)")
 
-    print("\n--- GMAIL DIAGNOSTIC TEST COVERAGE (Strict Read-Only) ---")
-    if rep["gmail_test_coverage"]:
-        for gc in rep["gmail_test_coverage"]:
-            print(f"  * {gc['recipient_email']}: {gc['tests_received']} tests observed (Inbox={gc['inbox_count']}, Spam={gc['spam_count']})")
+    lines.append("\n## SEED TELEMETRY (Label: Controlled Personal Gmail Evidence Only)")
+    if rep["seed_telemetry"]:
+        for s in rep["seed_telemetry"]:
+            lines.append(f"  * {s['recipient_email']}: {s['tests_received']} tests (Inbox: {s['inbox_count']}, Spam: {s['spam_count']})")
     else:
-        print("  * No diagnostic tests recorded in test inboxes yet.")
+        lines.append("  * No seed diagnostic messages recorded yet.")
 
-    print("\n--- COLLECTOR HEALTH (Every 10m Polling) ---")
-    senders_healthy = rep['collector_health'].get('sender_healthy', 0)
-    tests_healthy = rep['collector_health'].get('test_inbox_healthy', 0)
-    print(f"  Sending Mailboxes: {senders_healthy}/25 healthy")
-    print(f"  Gmail Test Inboxes: {tests_healthy}/8 healthy")
-    
-    if rep["collector_errors"]:
-        print("\n  ! Collector Errors:")
-        for ce in rep["collector_errors"]:
-            print(f"    - {ce['mailbox']} ({ce['status']}): {ce['error_message']}")
+    lines.append("=" * 80)
+    return "\n".join(lines)
 
-    print("=" * 80)
-    print(f"Summary saved to: {os.path.join(DATA_DIR, f'daily_summary_{rep[\"date_utc\"]}.json')}\n")
+
+def main():
+    parser = argparse.ArgumentParser(description="Mindmaxing Outbound Status & Reporting CLI (Strictly Read-Only)")
+    subparsers = parser.add_subparsers(dest="command")
+
+    report_parser = subparsers.add_parser("report", help="Generate status report for a budget period")
+    period_group = report_parser.add_mutually_exclusive_group(required=True)
+    period_group.add_argument("--today", action="store_true", help="Report for current IST budget period")
+    period_group.add_argument("--date", help="Report for historical period (YYYY-MM-DD)")
+    report_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format (default: text)")
+
+    args = parser.parse_args()
+
+    if args.command == "report":
+        if args.today:
+            period_id = daily_mailbox_planner.get_ist_budget_period()
+        else:
+            date_clean = args.date.strip()
+            period_id = f"{date_clean}-IST" if not date_clean.endswith("-IST") else date_clean
+
+        rep = generate_period_report(period_id)
+        if args.format == "json":
+            print(json.dumps(rep, indent=2))
+        else:
+            print(format_text_report(rep))
+    else:
+        # Default legacy status report
+        period_id = daily_mailbox_planner.get_ist_budget_period()
+        rep = generate_period_report(period_id)
+        print(format_text_report(rep))
+
 
 if __name__ == "__main__":
-    print_status_cli()
+    main()

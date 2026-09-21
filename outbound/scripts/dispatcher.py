@@ -638,9 +638,10 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
                     break
 
         job_id = None
-        # Outbound Job Durable Claim (Live Mode)
+        # Outbound Job Durable Claim & Quota Reservation (Live Mode)
         if not dry_run:
-            job_id = claim_outbound_job(
+            src_name = lead.get("source", "dealstrike-distributors")
+            claimed, c_reason, claim_meta = volume_controller.reserve_and_claim_job(
                 lead_id=lead.get("id", 0),
                 domain=lead.get("domain", ""),
                 touch_number=touch_step,
@@ -648,20 +649,14 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
                 recipient=to_email,
                 subject=subject,
                 body=body,
-                worker_id=worker_id
+                worker_id=worker_id,
+                campaign_name=src_name
             )
-            if not job_id:
-                log(f"  [CONCURRENCY/TOUCH] Skipping {lead.get('domain')} touch {touch_step}: already claimed or sequence mismatch")
+            if not claimed:
+                log(f"  [TOUCH/QUOTA] Skipping {lead.get('domain')} touch {touch_step}: {c_reason}")
                 lead_idx += 1
                 continue
-
-            # Volume Controller Reservation (Fail-Closed)
-            reserved, r_reason = volume_controller.reserve_quota(sender["email"], "campaign")
-            if not reserved:
-                log(f"  [QUOTA/HEALTH] Mailbox {sender['email']} unavailable: {r_reason}")
-                update_outbound_job_status(job_id, "DEFERRED")
-                lead_idx += 1
-                continue
+            job_id = claim_meta["job_id"]
         elif mailbox_usage.get(sender["email"], 0) >= MAX_PER_MAILBOX:
             lead_idx += 1
             continue
