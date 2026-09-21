@@ -1,0 +1,181 @@
+THREAD #08: I am burned out and i dont know how to handle this
+SUBREDDIT: r/agencynewbies
+POST ID: 1taksi4
+PERMALINK: https://www.reddit.com/r/agencynewbies/comments/1taksi4/i_am_burned_out_and_i_dont_know_how_to_handle_this/
+ORIGINAL SCREENSHOT FILE: reddit.com_r_agencynewbies_comments_1taksi4_i_am_burned_out_and_i_dont_know_how_to_handle_this__2026_09_17_14_34_14.png
+################################################################################
+
+r/agencynewbies X
+r/agencynewbies • 4mo ago
+-*•
+r/agencynewbies
+Mobile_Custard_6607
+agencynewbies
+I am burned out and I don't know how to handle this
+I will be as short as possible.
+A few months ago I started a cold emailing marketing agency after my success in cold emailing business.
+luse very well warmed up emails and for sending I use Instantly.
+®
+Everything went smoothly, the pricing of my monthly packages are ranging from $3000 up to $6000.
+I am sending nearly 100k emails monthly for all the clients and I am sitting at $45k MRR (I have a lot of expenses).
+Now I am at a point where I don't have the strength anymore to continue, everyday I am working at least 16 hours
+8.5K
+and when I try to sleep I can't sleep properly because I am too tired and I am always thinking about better
+strategies.
+I can't take days off because many clients are depending on me.
+What do I do?
+• 26
+No Unsolicited DMs or Asking
+for DMs
+Q
+Give More Than You Take
+No Spam or Al Content
+AutoModerator @ App MOD • 4mo ago • 8
+RESOURCES & COMMUNITY
+passerbyjonas • 4mo ago
+New here? Start by reading the wiki, FAQ, and
+community recommended tools and resources.
+is: the work itself isn't the problem. the problem is that you're the only person who knows what each client
+expects, where each campaign is configured, and where the bottlenecks are. that's a memory-load
+Wiki (START HERE)
+problem, not an effort problem.
+what burned-out solo agency owners at your stage have done to get back to 8-hour days:
+1. document EVERYTHING about each client in one place. not for the team you'll hire eventually -- for
+Tools & Resources
+YOU. one doc per client: ICP, what's working in their campaign, what's not, what to do when their bounce
+Agency Discord
+rate spikes, the 3-4 questions they always ask. when you've documented this, you stop holding it in your
+head. mental load drops by 60% within 2 weeks, in my experience watching agency owners do this.
+Agency Growth Podcast
+2. mandatory off-day, no negotiation. pick one day a week -- not "when things slow down." tell all
+clients you don't respond on [day]. first 2 weeks feel impossible; weeks 3-4 you realize 90% of the urgent
+Agency Facebook
+stuff wasn't urgent. by week 6 your brain comes back online. you can't think strategically when you've
+been running 16-hour days for months, and strategic thinking is what'll let you escape.
+3. hire ONE part-time VA for $800-1200/mo for inbox triage. not the campaign work -- just email
+replies, slack messages, the "hey can you check this" inbound. 80% of your 16-hour day is inbound, not
+delivery. someone else triaging your inbox 2 hours/day removes the trap of every notification dragging you
+u/JakeHundley
+back in. you keep doing the strategy yourself. usually the biggest single hour-savings move at $45k MRR.
+4. raise prices on next 2-3 onboardings to slow growth. sounds counterintuitive but you're at $45k
+u/codysee
+MRR with no operating capacity. taking on another $5k client right now will break you, not help you. raise
+Cody
+minimum to $5k for new clients, give current clients 90-day notice they're moving to $4.5k. one client
+u/ci-countdown
+churning is FINE, because the time you save not delivering for them is what lets you maintain quality on
+5. the question to ask yourself: "in 6 months from now, do i want a $90k MRR agency working 18-hour
+days, or a $50k MRR agency working 8-hour days?" there's no version where you triple revenue AND drop
+to 8-hour days simultaneously. pick one for the next 6 months.
+INSTALLED APPS
+your stack (apollo, hunter, instantly, fonatica) suggests you've built the tech edge but not the ops edge.
+ci-countdown
+that's actually the easier of the two problems to fix -- you'll be fine. but you have to stop running yourself
+into the ground first.
+(small mention -- i've been working with a small team on alter, an ai service assistant aimed at solo
+operators at exactly this capacity stage. handles the off-platform layer: drafting client updates, surfacing
+who needs attention, drafting responses to inbound that's eating your day, still rough around the edges,
+but the inbound-drafting piece is what burnt-out agency owners report as the single biggest shift. not a
+magic fix -- you still need the off-day and the va.)
+# Share
+•
+[deleted] • 4mo ago
+Jumpy_Climate • 4mo ago
+Well what are you spending most of your day doing?
+Fulfillment? Client calls and updates? Tech set up? Sales? Writing copy and messaging?
+# Share
+Q Award
+02 8
+Successful_Cake_1889 • 4mo ago
+What do I do? - Post on Reddit
+# Share
+MCompSolutions • 4mo ago
+Are you leveraging technology to reduce your active tasks?
+Think about what can you outsource.
+What are your biggest expenses?
+Q Award
+Reply
+→ Share
+Norsoft-2 • 4mo ago
+hire someone to take over some of the workload - or get someone to help streamline your workflows and
+increase your efficiencies.
+01 Д
+Q Award
+# Share
+Individual-Rip3343 • 4mo ago
+Hire some help!
+Q Award
+kasish89 • 4mo ago
+Start hiring and build a team. Use ai tools where you can.
+# Share
+Р 1Д
+safe_humanbean • 4mo ago
+If you're considering hiring someone to take some of the lift, shoot me a message. I do SMM, cold
+outreach, and already using Instantly. I'm looking to get more work. I also incorporate Al to automate
+some tasks.
+# Share
+Q Award
+TheSaulGoodMan007 • 4mo ago
+You need help and I need a job.
+I'm an email developer with experience of developing emails for fortune 50 companies. DM me if you ever
+run into requirements.
+Q Award
+→ Share
++ 18
+andrebuilds • 4mo ago
+at $45k mr you can afford to hire. the problem is not the workload, it is that you have not replaced
+yourself in any part of the operation yet. pick the most repetitive task you do every day and hire someone
+to do only that. one hire, one task. that buys back 3 hours a day and proves to your brain that the
+business does not collapse without you touching everything. the 16 hour days are a systems problem, not
+a work ethic problem.
+Q Award
+→ Share
+Danrayme • 4mo ago
+Write down in excruciating detail everything that you do each day
+Make that into an SOP
+Hire somebody to do it exactly as it is in the document
+Check their work, make a loom video to show them what they did wrong, explain why, and how to do it
+correctly
+Add that video to your SOP
+Keep adding corrections until there aren't any.
+You now have a close to perfect sop and employee
+Hand it over
+Hire more and repeat the process until there are no mistakes
+Let the first employee add corrections for the second and so on.
+You now have a self evolving SOP
+Probably a project manager
+And employees who work underneath
+•*•
+# Share
+darjan_minov • 4mo ago
+Hire for delivery and focus on ops, sales and client relationships. Short answer but that's pretty much it.
+You have a good MRR but you need to consolidate your expenses and get operations in place. What it
+looks like is that you've grown quickly but without the system and people in place. As agency owner that's
+your job, not delivering. Good luck d
+# Share
+CurrencyReasonable36 • 4mo ago
+Sell it
+# Share
+jesso • 4mo ago
+a) Sounds like you're missing scalable systems. Right now, there is no company. You are the company.
+Your company is just your alter ego. You need systems in place so if you step away, the business
+continues.
+b) Welcome to entrepreneurship. If you're sleeping, you're not being aggressive enough
+Q Award
+→ Share
+LingonberryHot4567 • 4mo ago
+You need ops. Automate some processes like follow-ups. You can also hire a small team and automate
+your management. Feel free to reach out to me if you need help.
+Familiar-Meal9122 • 4mo ago
+Although you are doing great but I am also doing same things for my clients and if you want we can work
+together and build big empire
+# Share
+Spare_Ad_9780 • 4mo ago
+TelzaSales.com is a new biz I started, you can hire me to cleared some of the work load boss. You are
+tired and I need work, so why not partner with me to cleared out task you may not be able or too tired to
+complete so your work life improves?
+# Share
+
+
+
+################################################################################

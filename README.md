@@ -24,18 +24,18 @@
 - **100% Mobile Optimized**: Responsive fluid typography (`clamp()`), automatic rail index collapsing on mobile viewports, touch-friendly bottom-sheet lead modal with iOS 16px auto-zoom prevention.
 - **14 Active Showcase Products**:
   1. **SafeSpot** (`trysafespot.com`): Pre-date verification & background safety checking engine.
-  2. **Hisaab** (`hisaab-lilac-rho.vercel.app`): Employment FnF legal notice & Labour Commissioner pack builder.
-  3. **Before Token** (`before-token.vercel.app`): Real estate brochure vs MahaRERA registry risk screener.
-  4. **Bhoomiputra Foundation** (`bhoomi-roots-foundation.lovable.app`): Digital platform protecting coastal fishing & farming communities in Mumbai.
-  5. **Freedoms AI** (`freedoms.ai/join`): Voice capture & nightly memory pass AI journaling assistant.
-  6. **BUKL** (`bukl.co`): Ultralight friction-lock belt direct-to-consumer storefront.
-  7. **Xalt Watches** (`xaltwatches.com`): Swiss luxury timepiece storefront with bilingual Gulf checkout.
-  8. **Manifest** (`manifest.leblessed.com/lp01`): Direct response book funnel & conversion engine.
-  9. **WESHUB** (`weshub.lovable.app`): Multi-brand collective (Societe events, IHC master franchise expansion into India, Regenerate AI).
-  10. **Saffron Origins** (`saffronorigins.com`): Direct-to-consumer luxury storefront for pure Kashmiri saffron.
-  11. **WhatsApp Autopilot** (`whisper-buddy-21.mindmaxing.workers.dev`): 5-stage automated webinar attendance & support bot.
-  12. **Glaze** (`getglaze.in`): Anonymous peer feedback loop app.
-  13. **Pause**: Native Android distraction blocker built for habit change.
+  2. **ABX Engine** (`mindmaxing.one`): Shopify Liquid A/B testing & CRO telemetry engine.
+  3. **Hisaab** (`hisaab-lilac-rho.vercel.app`): Employment FnF legal notice & Labour Commissioner pack builder.
+  4. **Before Token** (`before-token.vercel.app`): Real estate brochure vs MahaRERA registry risk screener.
+  5. **Bhoomiputra Foundation** (`bhoomi-roots-foundation.lovable.app`): Digital platform protecting coastal fishing & farming communities in Mumbai.
+  6. **Freedoms AI** (`freedoms.ai/join`): Voice capture & nightly memory pass AI journaling assistant.
+  7. **BUKL** (`bukl.co`): Ultralight friction-lock belt direct-to-consumer storefront.
+  8. **Xalt Watches** (`xaltwatches.com`): Swiss luxury timepiece storefront with bilingual Gulf checkout.
+  9. **Manifest** (`manifest.leblessed.com/lp01`): Direct response book funnel & conversion engine.
+  10. **WESHUB** (`weshub.lovable.app`): Multi-brand collective (Societe events, IHC master franchise expansion into India, Regenerate AI).
+  11. **Saffron Origins** (`saffronorigins.com`): Direct-to-consumer luxury storefront for pure Kashmiri saffron.
+  12. **WhatsApp Autopilot** (`whisper-buddy-21.mindmaxing.workers.dev`): 5-stage automated webinar attendance & support bot.
+  13. **Glaze** (`getglaze.in`): Anonymous peer feedback loop app.
   14. **Janus** (`janus-engine.vercel.app`): Multi-business content command centre and DM pipeline.
 - **Dedicated Navigation & Pages**:
   - `About Us` (`/about.html`)
@@ -56,6 +56,29 @@
 ---
 
 ## 📜 Full Changelog & Evolution History
+
+### v2.1.0 (2026-09-21)
+- **Nightly Campaign Review & Mailbox Control System (v2.1)**:
+  - Built rules-based nightly review engine (`daily_mailbox_planner.py`) running at 00:30 IST (19:00 UTC) with explicit budget periods (`YYYY-MM-DD-IST`).
+  - Immediate baseline sending (cap 1) upon passing 1 clean diagnostic in Inbox with SPF/DKIM/DMARC pass, with 7-day maturation governing volume increases ($1 \to 2 \to 3$) up to a maximum cap of 3.
+  - Unified atomic touch reservation (`volume_controller.reserve_and_claim_job()`) running health checks, recipient suppression, sequence immutability, and job claiming in one short SQLite transaction before SMTP dispatch.
+  - Strictly read-only status reporting (`outbound_status.py report --today`).
+  - Enabled SQLite Write-Ahead Logging (`PRAGMA journal_mode=WAL`) and 30s busy timeout for high-concurrency dispatch.
+- **Lead Quality Audit & Capital Pre-Qualification Invariant**:
+  - Audited all 9 Reddit leads: identified that scraping `r/reviewmyshopify`, `r/dropshipping`, and `r/printondemand` captures micro-budget beginners ($10–$20/day ad spend) with free disposable webmail (`@gmail.com`), violating the $1,000/mo retainer requirement.
+  - Established Invariant #6: Mandatory pre-qualification requiring commercial custom domains, verified multi-ad Meta campaigns, and high-latency mobile bottlenecks (e.g. 58 Meta PageSpeed brands like Supergut, Koio, Supply, Helm Boots).
+
+### v1.8.0 (2026-09-19)
+- **ABX Engine Integration**: Featured the ABX Engine (Shopify Liquid A/B testing & CRO telemetry suite) as flagship Panel 02 on the homepage and added a dedicated case study card.
+- **Case Studies Page Overhaul (`/case-studies.html`)**: Fully restructured from SafeSpot-first to Shopify DTC-first. Built interactive category filter pills (All / Shopify DTC / Growth & Meta Ads / Custom Software) and replaced dense paragraphs with an ultra-lean 2-column card grid with high-contrast metric pills.
+- **Outbound Harvester & CRM Infrastructure**:
+  - Built autonomous Reddit OAuth Harvester (`reddit_harvester.py`) targeting founders with active funnel bottlenecks and ad spend bleed.
+  - Implemented multi-stage verification: live Linux DNS MX record verification (`host -t mx`), strict TLD boundary sanitization, and automated bare `.myshopify.com` rejection.
+  - Added strict geography/currency gatekeeping: automated detection and rejection of INR (`₹`, `INR`), `+91` numbers, and domestic COD signals to ensure 100% foreign DTC ICP targeting.
+  - Implemented biological Poisson/Gaussian timing jitter and rotating modern browser header profiles (macOS/Win11 Chrome/Safari/Firefox).
+  - Migrated SQLite CRM (`mindmaxing_crm.db`) with dedicated columns for `source`, `subreddit`, `post_title`, `post_url`, and `post_author`.
+  - Built two-way cross-source runtime deduplication between Trustpilot and Reddit scrapers (guaranteeing 0 duplicate emails or domains).
+  - Upgraded Outbound Dispatcher (`dispatcher.py` v2.2) to sort queue by freshest pain signals first and generate hyper-personalized Touch 1 openers quoting the founder's exact Reddit post title and specific problem.
 
 ### v1.7.0 (2026-08-19)
 - **Studio Repositioning (Full-Stack Product & Growth Studio)**: Repositioned Mindmaxing Creatives to feature both **Aryan Panchal** (Software & AI Engineering Founder) and **Himanshu Agrawal** (Creative Strategy & Performance Marketing Partner).

@@ -1,0 +1,213 @@
+{
+  "curated_on": "2026-09-17",
+  "scope": "23 user-supplied Reddit transcripts; original posts and visible comments, including OCR noise and missing text. No independent performance verification.",
+  "threads": [
+    {
+      "number": 1,
+      "title": "15% replies from Trustpilot 1–2 star review signals",
+      "tags": ["intent-signals", "trustpilot", "recency", "human-review", "copy", "benchmarks"],
+      "summary": "No_Cryptographer7800 reports replacing generic prospecting with recent negative-review signals, AI-drafted Gmail messages and manual review. Claimed outcome: 100 sends over three weeks, 15 replies and two deals. A Reddit pain-post variant is described.",
+      "observations": ["Commenters identify urgency and timing as the transferable mechanism, rather than any particular review website.", "Suggested first-touch treatment is the complaint category plus a concrete offer, rather than quoting identifiable review details.", "A commenter warns that drafts become stale when the human review queue grows faster than it can be processed."],
+      "mindmaxing": "Use a timestamped, source-linked problem as a prioritization signal; connect it to a service Mindmaxing can actually deliver. Cap draft intake at review capacity and re-check stale signals.",
+      "cautions": ["The post alternates between competitor reviews, contacting unhappy reviewers, and referring to a prospect's own customer complaints. The intended recipient and contact-resolution mechanism are ambiguous; questions about identification go unanswered.", "15% is total replies, not positive replies or appointments. Two deals do not establish an expected close rate for Mindmaxing.", "The $0.30 claim concerns API calls; it excludes the weekend of work and an existing lead list.", "Platform terms and legal restrictions are discussed by commenters, not verified here. Re-check applicable rules when implementing; no scraping or outreach is authorized by ingestion."]
+    },
+    {
+      "number": 2,
+      "title": "Starting an agency: offer, distribution, consistency and market fit",
+      "tags": ["positioning", "channel-selection", "benchmarks", "deliverability", "content", "referrals"],
+      "summary": "A broad discussion organizes acquisition around a understandable valuable output, distribution, consistent execution and market demand. Replies range from niche cold email and community participation to directories, warm engagement and referrals.",
+      "observations": ["Danrayme gives an illustrative funnel of 350 exposures, 35 conversations, seven customers and £1,500 per customer; this is an example, not measured campaign evidence.", "One commenter prescribes seven domains, three inboxes per domain and 300 daily sends; another favors 20 carefully selected accounts and weeks of useful interaction.", "Fit_Path_6450 reports clients across Reddit, LinkedIn, Twitter and cold email; teardown content and small pilots are also suggested."],
+      "mindmaxing": "Express each offer in one sentence, choose a narrow campaign audience, and build distribution around observable economics. Repurpose useful teardown work into credibility assets.",
+      "cautions": ["The funnel calculates to 10% exposure-to-conversation, 20% conversation-to-close, and 2% exposure-to-close; it is not a 10% close rate.", "Send limits, warmup networks, database accuracy and bounce thresholds are commenter prescriptions, not verified current provider rules.", "Vendor mentions and directory recommendations are leads for future evaluation, not an approved tool stack."]
+    },
+    {
+      "number": 3,
+      "title": "Winning clients without formal testimonials",
+      "tags": ["proof", "testimonials", "pilots", "referrals", "broker-network"],
+      "summary": "A founder has past delivery but lacks captured proof and a promised video testimonial. Replies distinguish evidence of work from polished testimonial assets and disagree on free work.",
+      "observations": ["A concise case study, attributable outcomes and a text testimonial can be more attainable than a video.", "Ishan_GS describes an initial referral, a second introduction from the same friend, five subsequent referrals, and a connector who helped with another 15 clients; connectors were paid.", "Another commenter reports discounted work without the promised recommendation."],
+      "mindmaxing": "Capture permissioned evidence at delivery milestones and make a specific introduction request after value is demonstrated. A broker can transfer trust before a technical demo.",
+      "cautions": ["Do not adopt suggestions to lie, recruit unrelated friends for testimonials, or use confidentiality as a cover for nonexistent work.", "A demo proves capability, not historical commercial performance. No referral fee percentage is supplied in the detailed chain.", "A promise of a testimonial is not payment and may never be fulfilled."]
+    },
+    {
+      "number": 4,
+      "title": "€8k weeks: intent targeting, short copy and restrained sequences",
+      "tags": ["intent-signals", "copy", "follow-up", "deliverability", "focus", "benchmarks"],
+      "summary": "Admirable-Station223 claims consistent €8k weeks and more than four million cold emails. The proposed approach uses intent-based lists, messages under 80 words, one follow-up, and stable campaigns before iteration.",
+      "observations": ["Copy structure: one specific observation, one relevant proof point, one simple question.", "OP proposes a maximum of two emails, a new angle 30–45 days later, three to four weeks before judging a campaign, and one channel for 60 days.", "Hiring signals appear in the post; a later answer describes third-party behavioral intent scores, which are a different type of evidence."],
+      "mindmaxing": "Separate observed business events from inferred vendor intent scores. Test concise copy and restrained follow-up, with relevant proof rather than an entire service menu.",
+      "cautions": ["Revenue and volume are self-reported and challenged by another commenter; no proof or campaign denominator is supplied.", "Five inboxes per domain, 30 daily sends per inbox and two-week warmup are historical prescriptions, not operating limits to inherit.", "A LinkedIn uplift claim comes from a disclosed tool founder. Do not treat it as independent validation.", "The two-touch position conflicts with T19's four-touch sequence."]
+    },
+    {
+      "number": 5,
+      "title": "Reliable acquisition through demand posts and referral relationships",
+      "tags": ["intent-signals", "community", "referrals", "partnerships", "retention"],
+      "summary": "Replies favor different channels, but useful themes include responding to explicit service requests and building relationships with repeat referrers. A small rural Australian agency attributes growth to clients, IT companies and accountants.",
+      "observations": ["Posts explicitly asking for help provide clearer demand than firmographic fit alone.", "UnitedClass734 reports a two-designer operation with development support, three IT-company referral sources and long-term relationship-led demand.", "Education about services and staying useful when client contacts change jobs are described as expansion mechanisms."],
+      "mindmaxing": "Track public requests and complementary introducers; make it easy for a CA, IT provider, designer or marketer to recognize and refer a specific fitting problem.",
+      "cautions": ["The same Australian commenter appears in T15; these are related accounts, not independent case studies.", "Active-client, occasional-client and hosting counts are not clearly defined and must not be added together as unique customers.", "Visibility in a community is not blanket permission for unsolicited DMs."]
+    },
+    {
+      "number": 6,
+      "title": "LinkedIn ghostwriting funnel: replies exist, budget and value remain weak",
+      "tags": ["funnel-diagnosis", "qualification", "proof", "budget", "benchmarks"],
+      "summary": "A ghostwriter paid about $5k for an academy and still struggles with outbound ROI. A commenter transcribes 448 outreaches, 33 responses, 21 Looms and five calls; OP says two sales-call prospects are still discussing but have budget/timing problems.",
+      "observations": ["Commenters disagree about whether the funnel is healthy; the same counts can point to different bottlenecks.", "Suggestions target founders already publishing but dissatisfied with outcomes, demonstrate a before/after rewrite, and explain commercial value rather than selling content alone.", "The numerical table in the opening post is missing its values in the supplied transcription; the usable counts come from a comment."],
+      "mindmaxing": "Diagnose reply quality, willingness to pay, urgency and the next step separately. Do not solve an affordability problem by simply sending more messages.",
+      "cautions": ["33/448 is 7.37% replies; five calls/448 is 1.12%; five calls/33 responses is 15.15%. Twenty-one Looms are not automatically 21 views or 21 qualified opportunities.", "Closed sales are not numerically recoverable from the post. Do not invent zero sales from an empty table.", "One diagnostic-tool recommendation is promotional; a good-looking audit does not prove pipeline impact."]
+    },
+    {
+      "number": 7,
+      "title": "Roughly 300 unsolicited mockups without traction",
+      "tags": ["failure-case", "proof-before-price", "mockups", "qualification", "referrals"],
+      "summary": "A founder reports roughly 300 attempts using branded templated sites, with 120 WhatsApps and 120 calls to the same prospects per week, and little interest. The niche is landscaping; a low-price SEO offer is discussed.",
+      "observations": ["Several replies argue the offer lacks a connection to a problem the owner wants solved; a prettier site is not itself buying intent.", "One response notes the effort cost of producing unsolicited prototypes and the interruption cost of repeating contact across channels.", "A separate agency owner reports a 35%-of-order-value lead-generation partnership, daily social posting and weekly community participation."],
+      "mindmaxing": "Qualify the business problem before the large demo. Use a small verified observation for unknown prospects and reserve the 45–90 minute prototype for strong signals, replies or warm introductions.",
+      "cautions": ["This directly limits the older claim that a live demo almost automatically closes a client.", "The post does not establish exactly 300 unique qualified recipients or a campaign close-rate denominator.", "The 35% partner fee and $250–$400 CAC comments are individual claims, not recommended Mindmaxing economics."]
+    },
+    {
+      "number": 8,
+      "title": "$45k MRR with 16-hour days: capacity and operational memory",
+      "tags": ["operations", "burnout", "capacity", "sops", "retention", "benchmarks"],
+      "summary": "Mobile_Custard_6607 reports $3k–$6k packages, nearly 100k monthly emails across clients and $45k MRR, but substantial expenses and at least 16-hour working days.",
+      "observations": ["Replies propose client dossiers, task logs, SOPs, communication boundaries, triage, higher minimums and limiting new intake.", "One detailed comment identifies the burden of remembering every client's expectations and campaign state.", "Hiring and delegation dominate the responses, while tool-based client-update drafting is also promoted."],
+      "mindmaxing": "For solo work, externalize client state, automate routine preparation, bound response times, and cap concurrent commitments. Record delivery and acquisition hours alongside revenue.",
+      "cautions": ["MRR is not profit; revenue alone does not prove a desirable operating model.", "Reported time-savings percentages and hiring-cost claims are not validated.", "Hiring advice is incompatible with the legacy solo-delivery constraint unless Aryan changes that constraint; do not silently introduce a team."]
+    },
+    {
+      "number": 9,
+      "title": "600+ clients AMA: offer validation, discovery and onboarding",
+      "tags": ["qualification", "closing", "onboarding", "partnerships", "pricing", "proof"],
+      "summary": "Practical_Table_5740 claims eight-plus years and work with 600-plus clients. Detailed answers emphasize urgent problems, timing, ability to pay, accessible markets, complementary partners and clear onboarding.",
+      "observations": ["A technical founder is advised to rank possible ICPs by urgency, ability to pay and access; technical skill becomes the delivery mechanism, not the headline offer.", "A vendor building ten Shopify-store audits per agency without traction is advised to validate recurring demand and differentiation from AI-generated reports.", "Onboarding includes the plan, shared workspace, tracking, kickoff and communication boundaries. Long-result-cycle services need explicit expectations.", "Past projects can demonstrate execution without famous logos. A webinar-first cold approach is proposed hypothetically, not documented as a tested campaign."],
+      "mindmaxing": "Use problem-led discovery, transparent milestones and a focused proof artifact. Explain what is deliverable on a short build schedule versus what depends on adoption, traffic or ongoing work.",
+      "cautions": ["600+ is claimed historical work across eight-plus years, not current active retainers or a verified company roster.", "Advice against promising views or sales should become precise delivery commitments, not the vague promise to 'give it your all'.", "Do not invent revenue losses for an audit or turn an SEO-versus-ads thought experiment into measured ROI."]
+    },
+    {
+      "number": 10,
+      "title": "Acquisition starts with a compelling narrow offer",
+      "tags": ["positioning", "proof", "distribution", "pricing"],
+      "summary": "Replies distinguish learning/setup from actual distribution and argue for a specific buyer problem, a compelling offer and a small demonstration of the fix.",
+      "observations": ["One commenter claims six startups and two exits and illustrates outcome-first offers and pricing relative to the cost of the existing solution.", "Another recommends choosing a few businesses, identifying one real issue and showing a small useful fix before asking for business.", "Other replies propose SMS, content, networking and calls without comparable outcome data."],
+      "mindmaxing": "Use a concise offer and bounded proof artifact with a clear next step. Treat setup activity as overhead unless it contributes to conversations and paid work.",
+      "cautions": ["Guaranteed lead/view examples are illustrative copy, not promises Mindmaxing can make.", "The SMS appointment claim lacks a denominator, eligibility details and a cost model. It is not authority to scrape numbers or message prospects.", "A proposed $4,500 current cost versus $1,500–$2,500 price is an illustration, not market pricing evidence."]
+    },
+    {
+      "number": 11,
+      "title": "A technical founder's six-month struggle and the workflow-control trap",
+      "tags": ["failure-case", "buyer-research", "positioning", "automation", "focus"],
+      "summary": "A developer cycles through Upwork, voice AI and custom software without traction, then questions sales ability. Replies recommend a narrow buyer/trigger/offer and real discovery before more changes.",
+      "observations": ["The driving-instructor example explains why a manual diary can be intentional: geographic scheduling, control and sufficient demand may matter more than recovering every booking.", "A commenter proposes speaking with 20 matching buyers before reinventing the offer.", "OP later clarifies that the offer already says recovered missed-call leads but bundles web optimization, SEO, CRM and sequences. Outcome language alone did not remove all offer complexity."],
+      "mindmaxing": "Investigate why the current workflow exists before offering automation. Distinguish a fixable expensive problem from a tolerated trade-off or a business already at capacity.",
+      "cautions": ["Do not reduce this case to 'they only pitched AI'; the OP explicitly clarifies outcome-led language.", "Advice and startup-failure percentages are anecdotal and sometimes exaggerated.", "A friend's reported $10k MRR is secondhand and not a benchmark. A suggested AI-call tactic is not authorization to impersonate a human."]
+    },
+    {
+      "number": 12,
+      "title": "Zero clients after two months: credibility and conflicting audits",
+      "tags": ["failure-case", "trust", "proof", "website", "positioning", "source-quality"],
+      "summary": "A three-person UK agency reports no paid clients after two months of email, calls and social posting. Comments critique generic positioning, weak proof and template artifacts; others dispute the criticism or argue different distribution strategies.",
+      "observations": ["A long site audit alleges fake/template details, but another commenter says the audit may refer to the wrong site. Preserve this rebuttal with the allegation.", "Useful general tests include authentic team identity, permissioned work samples, complete copy, credible contact details and a clear commercial offer.", "Comments disagree about early niching, free work, cold email and calls. One nuanced response distinguishes a narrow marketing campaign from restricting the whole business."],
+      "mindmaxing": "Verify every critique on the actual prospect before using it in outreach. Keep campaign messaging specific while retaining the ability to accept suitable adjacent work.",
+      "cautions": ["Do not record the alleged fake address, fabricated case studies or SEO problems as established facts about Nexavon.", "No exact outreach volume is provided, so neither 'not enough volume' nor a response-rate calculation is justified.", "Recommendations to fabricate proof, guarantee results after 21 days or infer AI use from punctuation are not valid evidence."]
+    },
+    {
+      "number": 13,
+      "title": "Paid acquisition economics: an asserted model, not a proven funnel",
+      "tags": ["paid-acquisition", "benchmarks", "unit-economics", "testing", "tools"],
+      "summary": "Affi_69 proposes paying for Facebook calls: $1,500 spend, $60 per call, 25 calls, 20% closing and five $1,500 customers. Comments discuss low-budget tests and a competing automated-demo approach.",
+      "observations": ["The example yields $7,500 in billed customer value and $300 ad-only acquisition cost per customer, before show rate, sales effort, delivery and retention.", "An OP suggestion to judge after 20–25 clicks is a small-sample heuristic, not a statistical rule.", "An automated site-demo commenter quotes $1 in tokens per business while promoting their own pipeline."],
+      "mindmaxing": "Treat paid-channel inputs as scenarios until Mindmaxing has observed qualified calls, attendance, wins, payment and margin. Include time and fulfilment costs.",
+      "cautions": ["The funnel is framed as a hypothetical. Twenty-five booked calls are not automatically 25 attended qualified calls.", "Do not recommend spending emergency cash based on an unvalidated funnel.", "'Unlimited leads' is sample advertising copy, not a credible service promise or adopted offer."]
+    },
+    {
+      "number": 14,
+      "title": "Free pilot case: proof improved sales, but delivery needed validation",
+      "tags": ["pilots", "proof", "churn", "pricing", "white-label"],
+      "summary": "InnerFaithlessness11 describes difficulty selling a broad 5k lead-generation offer with no testimonials: 100 dials a day and about ten meetings over the first three months. A later free-management pilot approach reportedly improved acquisition and proof.",
+      "observations": ["The free part was management, scripting and development; the client still paid ad spend.", "OP proposes a 30-day pilot followed by full-price month two, with upfront disclosure of being new.", "White-label services with established proof are proposed as an alternative to learning delivery from scratch."],
+      "mindmaxing": "Separate a bounded proof experiment from an open-ended free service. Specify deliverables, effort cap, client-funded inputs, permission to document results and conversion terms.",
+      "cautions": ["The sentence about the first client's 30-day outcome is truncated; the exact churn event cannot be reconstructed.", "No before/after close-rate denominator is given despite a claimed large improvement.", "White-label proof must be attributed and licensed; it is not Mindmaxing's own historical work.", "A later commenter says even three free months did not solve decision-maker access."]
+    },
+    {
+      "number": 15,
+      "title": "Restarting after the largest client leaves",
+      "tags": ["concentration-risk", "reactivation", "referrals", "partnerships", "retainers"],
+      "summary": "An experienced founder loses the largest client and faces an immediate pipeline gap. Responses prioritize former contacts, repeat referrers, useful small observations and recurring services.",
+      "observations": ["UnitedClass734 reports five major referrers, about 200 active clients, about $140k annual hosting/maintenance revenue, and around ten recent site builds.", "Warm reactivation and complementary local businesses appear repeatedly.", "A concrete and verifiable website-performance observation is suggested as a reason to start a cold conversation."],
+      "mindmaxing": "Maintain an acquisition habit during delivery periods and measure revenue concentration by both client and introducer. Build sustainable recurring work where it has ongoing value.",
+      "cautions": ["The Australian agency story overlaps with T05; numbers are self-reported, definitions differ and the currency behind '$140k' is not explicitly stated.", "Twenty warm messages outperforming 200 cold ones is an illustrative claim, not a measured paired experiment.", "Do not quote an invented 20–25 second load time or imply a prospect was tested when it was not."]
+    },
+    {
+      "number": 16,
+      "title": "600+ MedSpa DMs: saturation, trust and fulfilment gaps",
+      "tags": ["failure-case", "trust", "niche-selection", "qualification", "funnel-diagnosis"],
+      "summary": "A founder reports 600-plus Instagram DMs across two months and more than ten messaging variants without finding a repeatable acquisition motion. Positioning changes between AI, automation, visibility and leads.",
+      "observations": ["A respondent with investor-network access attributes much of the work to operator problems such as converting leads into appointments.", "Others emphasize prior agency disappointments, a focused offer and genuine credibility.", "The thread contains direct disagreement between '10x volume' and 'fix the method'; isolated 20% conversion claims omit the denominator."],
+      "mindmaxing": "Evaluate niche access, existing trust, client capacity to handle enquiries and ability to fulfil before entering an attractive high-LTV vertical. Diagnose where leads die after delivery.",
+      "cautions": ["No complete reply, meeting or close counts are supplied; the title is not proof of zero closes.", "A less-than-$100 booked-call and 95% attendance claim concerns another unspecified niche, not proven MedSpa acquisition economics.", "Medical/regulatory comments are practitioner concerns, not verified legal guidance; clinical markets require separate review if pursued."]
+    },
+    {
+      "number": 17,
+      "title": "Long-retained clients do not guarantee new-business distribution",
+      "tags": ["retention", "referrals", "validation", "concentration-risk", "benchmarks"],
+      "summary": "A content strategist with five clients over three years and two employees wants to grow. Replies discuss visibility, systematic introductions, buyer validation and outreach, while another experienced owner reports a largest-client loss.",
+      "observations": ["salaryscript reports contacting at least 50 local businesses, 14 agreeing and nine paying; the same reply promotes a named lead tool.", "Client longevity can be turned into permissioned proof and introduction requests.", "One commenter says industry relationships prevent referrals, showing that referral potential varies with competitive structure."],
+      "mindmaxing": "Separate retention strength from acquisition capability. Check whether partners can actually introduce noncompeting buyers, and track payment rather than verbal agreement.",
+      "cautions": ["The base is 'at least 50', so 28% agreement and 18% paid are ceilings if 50 is assumed, not exact observed rates.", "Nine/14 is 64.3% agreement-to-paid only if those nine belong to the 14; the narrative suggests this but does not provide records.", "Other '10–20% retention' wording is unclear and should not be recast as an acquisition close rate."]
+    },
+    {
+      "number": 18,
+      "title": "First five clients: warm credibility before cold acquisition",
+      "tags": ["case-study", "referrals", "cold-email", "proof", "costs", "benchmarks"],
+      "summary": "OutreachStudio reports five clients in a three-month DACH side business: the first from Reddit, the next two through existing relationships, and the fourth and fifth through cold email. The author already works in sales and marketing.",
+      "observations": ["Nearly €11k is described as order volume, with the first two projects effectively given away to build a portfolio.", "Roughly €100 monthly tools and ongoing always-on acquisition effort are noted; meeting generation remains a bottleneck.", "A commenter reports 150 personalized emails, two replies and zero clients over two months, offering a contrasting outcome."],
+      "mindmaxing": "Use genuine network access and demonstrated delivery to establish proof, then test cold outreach. Account for tool subscriptions and founder time even in a small operation.",
+      "cautions": ["Order volume is not collected revenue, profit or MRR. The author does not give cold-campaign send counts or conversion rates.", "The exact aggregate-expense sentence is OCR-corrupted and should not be recovered by guesswork.", "This is not a complete beginner with no sales background or existing professional credibility."]
+    },
+    {
+      "number": 19,
+      "title": "Three retainer clients: list, copy, follow-up, paid pilot and introductions",
+      "tags": ["cold-email", "copy", "follow-up", "pilots", "retainers", "referrals", "benchmarks"],
+      "summary": "mikecut22 presents a complete proposed acquisition loop after reporting three cold-acquired retainers: familiar niche, expensive problem, qualified contacts, short copy, daily sends, follow-up, paid pilot and two introductions per customer.",
+      "observations": ["Suggested list qualification is a reachable named owner plus signs of spending; sources include maps, directories, professional networks and hiring pages.", "Copy: observation, problem/consequence, mechanism and soft ask, under 90 words, with no first-touch attachment or calendar link.", "The proposed schedule is day 0/3/7/14. The fixed-fee pilot has a defined deliverable and deadline; a commenter warns against carrying its discount into the retainer.", "Track lead, sends, touches, replies and outcomes; quoted acquisition effort is two to three hours daily and four to eight weeks to first payment."],
+      "mindmaxing": "Keep the full loop connected: a signal-led first message should lead to a bounded paid deliverable, a result review, appropriately priced ongoing work and a specific referral request.",
+      "cautions": ["The claimed three retainers are not tied to a disclosed campaign denominator.", "300 leads, 25 sends/day and 2–8% replies are prescriptions, not measured outcomes. At 125 weekly sends that range means 2.5–10 replies, not necessarily one qualified conversation.", "Four touches conflict with T04's two-touch advice. Test marginal useful replies and negative feedback; do not automatically recontact opt-outs.", "A zero-reply cohort should trigger measurement and delivery checks as well as offer/list review, not an automatic diagnosis of the subject line or niche."]
+    },
+    {
+      "number": 20,
+      "title": "Consistent leads: measured funnels, complementary partners and channel trade-offs",
+      "tags": ["benchmarks", "channel-selection", "partnerships", "referrals", "content", "measurement"],
+      "summary": "Responses combine outcome positioning, distribution measurement and channel focus. A French SEO agency reports referral-dominated wins and a long content ramp, while cold-email commenters give different reply benchmarks.",
+      "observations": ["leadg3njay suggests 1%+ total replies and 0.5%+ interested replies as good benchmarks, without supporting campaign data.", "tibz36 says roughly 60% of wins come from referrals, two or three partnerships take two to three months to begin working, and content took 12–18 months to deliver three to five monthly inbound leads.", "The same French commenter reports stopping cold email and Sales Navigator after six months, which contradicts universal claims that any channel must work.", "mikecut22's 90-day focus/adjacent-partner comment appears twice verbatim in the supplied text."],
+      "mindmaxing": "Keep one outbound experiment interpretable while maintaining compatible referral relationships. Use Mindmaxing's actual qualified opportunities, payment and margin to select the next channel investment.",
+      "cautions": ["Deduplicate repeated content and repeated authors before counting corroboration.", "The phrase '(100–300) days i make a decision' is OCR-ambiguous; do not convert it into a clean sample-size or duration rule.", "Do not blend 1%+, 2–8%, 3–5% and 15% into one market average."]
+    },
+    {
+      "number": 21,
+      "title": "White-label acquisition: risk reduction matters more than a free month",
+      "tags": ["white-label", "copy", "risk-reversal", "paid-acquisition", "partnerships", "benchmarks"],
+      "summary": "An SEO fulfiller shares a generic agency pitch and a free first month. Replies argue for a narrow capability, credible delivery and trusted introductions; another practitioner reports ad-only acquisition costs.",
+      "observations": ["tibz36 argues an agency is risking its client relationship, so a free month can attract a troubled account without resolving that risk.", "The suggested alternative is a specific issue, a result and realistic timeframe, grounded in one client-site observation.", "Due_Treat1025 reports $250–$500 SEO acquisition cost and about $500 for a $5,000 website, using instant forms and $50–$200 daily budgets in the US/Canada, excluding California."],
+      "mindmaxing": "For agency partners, sell a bounded reliable delivery capability with acceptance criteria, response expectations and proof of execution. Do not make a service-menu pitch or assume a discount resolves trust.",
+      "cautions": ["The CAC figures are stated as ad-channel costs, not fully loaded acquisition cost or Indian-market forecasts; currency symbol is preserved without an explicit currency code.", "A different commenter reports failure with free-audit landing pages. Different offers and acquisition mechanisms prevent a clean head-to-head comparison.", "The market-research comment is truncated and not sufficient to reconstruct a tested process."]
+    },
+    {
+      "number": 22,
+      "title": "Freelancer-to-agency transition: cash flow without visibility",
+      "tags": ["concentration-risk", "white-label", "proof-rights", "distribution", "operations"],
+      "summary": "A freelancer describes good paid work without public ownership or portfolio access and income dependent on three or four people. Moving into direct acquisition increases meetings but is still early.",
+      "observations": ["Restricted attribution can leave delivery experience invisible to new buyers.", "A commenter advises maintaining subcontract cash flow until direct acquisition is producing retainers.", "Other replies discuss process documentation, spare delivery capacity and complementary referral relationships."],
+      "mindmaxing": "Discuss permission to show work and describe contributions when scoping a project. Maintain independent distribution alongside broker/white-label revenue, and track introducer concentration.",
+      "cautions": ["The opening is truncated; named brands are the author's claims and never Mindmaxing credentials.", "Do not publish work or client details when rights or permission are absent.", "The 'first two retainers' transition point is a commenter heuristic, not a universally sufficient runway threshold."]
+    },
+    {
+      "number": 23,
+      "title": "Predictability comes from diagnosing the whole sales path",
+      "tags": ["funnel-diagnosis", "channel-selection", "closing", "measurement", "referrals"],
+      "summary": "A small business tries seven acquisition routes but cannot connect effort to client outcomes. Replies urge diagnosis of existing conversations, buyer needs and sales progression before adding another channel.",
+      "observations": ["A1Faustino asks which existing channel creates conversations and where those conversations stop, rather than prescribing another tool.", "Other replies lay out research, offer, distribution, presentation, proposal and closing as one connected process.", "dasfoo reports about 80% of new business from a hyperlocal referral network that took years to build; another founder describes early referrals, two Nextdoor wins and one call-acquired client.", "A tool founder suggests 60–90 days of focused measurement and an illustrative 100 contacts → ten conversations → two clients funnel."],
+      "mindmaxing": "Use stage-specific bottleneck review and protect a recurring acquisition block during delivery. Focus a campaign while keeping genuine long-term relationships active.",
+      "cautions": ["The example funnel is not observed campaign evidence; the 80% network share lacks sample size.", "'Provide literally everything' conflicts with a sustainable solo scope and is not adopted.", "The thread's channel superiority claims are mutually contradictory; explain the context of any future choice."]
+    }
+  ]
+}

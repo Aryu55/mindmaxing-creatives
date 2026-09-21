@@ -1,0 +1,560 @@
+THREAD #09: 8 years agency owner 600 clients ama
+SUBREDDIT: r/agencynewbies
+POST ID: 1tboyhl
+PERMALINK: https://www.reddit.com/r/agencynewbies/comments/1tboyhl/8_years_agency_owner_600_clients_ama/
+ORIGINAL SCREENSHOT FILE: reddit.com_r_agencynewbies_comments_1tboyhl_8_years_agency_owner_600_clients_ama__2026_09_17_14_27_07.png
+################################################################################
+
+r/agencynewbies X
+r/agencynewbies • 4mo ago
+r/agencynewbies
+Practical_Table_5740
+agencynewbies
+8+ years agency owner. 600+ clients. AMA
+Over the last 8+ years, I've worked with startups, local businesses, founders, and service providers across
+different stages of growth. I started my agency while working a 9-5, scaled it into a multiple six-figure business,
+and now help others start and grow marketing agencies of their own.
+Happy to answer questions around starting and scaling a marketing agency.
+- Getting clients
+®
+- Pricing and offers
+- Lead generation
+- Building a marketing agency
+- Freelancing
+- Niching down
+8.5K
+- Sales calls
+- Retainers
+- Content strategy
+- Systems and scaling
+- Transitioning from a 9-5 into business ownership
+Or anything else
+Д
+• 112
+→ Share
+No Unsolicited DMs or Asking
+for DMs
+AutoModerator @ App MOD • 4mo ago • 8
+•
+Agency Discord
+Alternative-Web-7035 • 4mo ago
+Agency Growth Podcast
+Here's a curveball: how do I get agencies to work with me?
+Agency Facebook
+I'm running cold email/linkedin in tandem offering a service for Shopify agencies. Its a deep dive into
+Shopify stores that gives them a full breakdown of what's working/not working so they can walk into a
+prospect meeting with a full plan of action instead of "here's our case studies".
+I've been leading with a full 10 store breakdown per agency with problems, solutions, and suggested
+outreach, but haven't gotten any traction yet.
+u/JakeHundley
+As an agency owner who were the vendors you worked with and how did they get you to work with them?
+u/codysee
+42 Д
+→ Share
+Cody
+Practical_Table_5740 OP • 4mo ago
+u/ci-countdown
+I'm not fully clear on the offer yet, so it's hard to guide you on vendors or partnerships. My first step
+would be talking directly to potential customers to validate whether this solves a real problem they'd
+pay for consistently. I'd also want clearer differentiation, especially around how this is different from
+what Al tools can already generate today.
+INSTALLED APPS
+Q Award
+→ Share
+Alternative-Web-7035 • 4mo ago
+ci-countdown
+The audit runs through a headless scraper and subagent browser session verification (technical
+talk, basically it runs a browser session how a human would navigate the actual site). The
+results are broken down into revenue critical moderate minor Issues, steps given to nix the
+situation, estimated potential revenue loss, and the report includes suggested outreach for the
+agency.
+Without diving into the weeds the audit provides technical breakdowns (things developers
+would fix) as well as practical issues such as missing cross-sell opportunities in cart drawers,
+SEO gaps in alt text, CTA's below the fold on mobile experience, missing email capture, and fully
+captures what Shopify apps are installed and if they are working together properly.
+Currently trying to get conversations started by giving agency owners a selection of these and
+seeing if they could be helpful in business development. With the offer being a monthly bundle
+of audit-driven prospecting kits.
+Here's an example piece:
+# Share
+Q Award
+• 1Д 0 Reply
+Zain_320 • 4mo ago
+Hey just sent you a dm could you check it please
+Share
+jo_builds_ • 2mo ago
+Thanks for the AMA!
+I know you said networking and partnerships OFFLINE first. Any tips for client acquisition for an entirely
+online business?
+I want to offer content operations services to creators.
+→ Share
+uzair_01 • 4mo ago
+Not in marketing, but what do you recommend for lead generation and getting the business owner info for
+newbies, i am trying cold emailing but struggling to find leads
+→ Share
+Practical_Table_5740 OP • 4mo ago
+The channel honestly matters less than people think. You can get clients from cold email, Linkedin,
+referrals, content, etc. if your offer solves a real, urgent problem.
+Most beginners struggle because they're selling the service they want to offer instead of positioning
+it around the problem the client actually cares about.
+I'd spend more time understanding:
+- What pain point the business owner is actively trying to solve
+- Whether your offer feels like the obvious solution
+- Whether the timing is right
+Sometimes the offer is good, but the lead just isn't ready yet. That's where nurturing matters. Good
+leads often convert later when the timing aligns.
+T 4 8 D Reply
+# Share
+Federal_Astronaut_88 • 3mo ago
+I'm curious about this. I've had a few leads that are interested but timing isn't right as of now.
+Apart from the occasional text, how would you go about the nurturing process without being a
+pain in the ass? Web design agency here.
+# Share
+Q Award
+7 1д 0 Reply
+[deleted] • 4mo ago
+[deleted] • 4mo ago
+[deleted] • 4mo ago
+Heyy can we talk into dm cuz I have lots of questions
+# Share
+T 1 .
+Practical_Table_5740 OP • 4mo ago
+Happy to connect over DMs, but I'd also encourage you to ask your questions here in the thread first
+so others can benefit from the answers too.
+# Share
+[deleted] • 4mo ago
+Okay no problem man Here are my questions :-
+1. How do you onboard the client and how do you manage the relation with client?
+2. Mam aap muje kuch issa bata skti hai jes se me instagram ki full proof samjh sku so muje
+organically and with paid marketing ke threw grow kara sky apne client aur tora eloborate
+karke cuz me isse industry me Boht time se hu aur ye hooks aur surface level ki saari baat
+muje pata hai so kuch different aur relvent ho and merko pura instagram samha de cuz
+muje Boht uncertainty lagti hai aaj bhi aur muje same for the Facebook and yt ke baarme
+jaana tha (ye specific question marketing side ke liye hai and organic and paid dono ko
+samjh ne ke live)
+3. Social media management and optimization kese karte hai aap like how do you do kese
+usko unbelievable growth engine bana dete hai???
+4. muje ads management and uske baare me aur aache se jaana hai vo bata skti hai aap??
+Currently mene honda and martinoz jese do bade brands and Boht se local businesses ke kaam
+kiya hai ab mere bade brands ke paas Jake kaam karne wala hu so muje uske uske liye bhi tips
+and tricks soo that too....
+Ye tore Boht questions hai Aur bhi hai let's start with this
+Q Award
+# Share
+T 1 & D Reply
+Practical_Table_5740 OP • 4mo ago
+I keep my onboarding process pretty simple. I have an email template that includes
+everything the client needs upfront - project plan, shared folders/drives, next steps, and
+During the kickoff call, I clearly explain:
+- What the engagement will look like
+- Communication timelines and boundaries
+That clarity upfront makes the relationship much smoother.
+And when it comes to social media growth, nothing happens overnight. Results compound
+through consistency. The best thing you can do is study what's already working for others,
+understand why it's working, and then adapt that strategy to fit you or your client's brand
+instead of trying to reinvent everything from scratch.
+# Share
+[deleted] • 4mo ago
+If you feel comfortable can share me the template and sample onboarding And What
+get by your answer ke Jo koi specific chiz nhi hoti hai jise growth mile but quality and
+engaging content se testing kar kar ke jo suitable ho aur relvent ho usko adapt karke
+grow karo Isse ek aur question Kese aap promise karte like views and sales typa
+thing???
+# Share
+Q Award
+Practical_Table_5740 OP • 4mo ago
+You cannot promise likes, views or sales. There's no guarantee in life. But what
+you can promise is that you will give it your all.
+• Award
+# Share
+[deleted] • 4mo ago
+Okay get it merko aur quieres hogi na I will surely consider you and aapse
+help luga
+Q Award
+[deleted] • 4mo ago
+AdExpensive4279 • 4mo ago
+I want to understand what your lead gen strategy is and what sort of offers you run for cold emails?
+# Share
+Q Award
+Practical_Table_5740 OP • 4mo ago
+My lead gen strategy is a mix of organic content and funnels.
+For my direct offer, I mainly rely on organic social media. For lead magnets, I run ads to bring people
+into my ecosystem.
+If I were doing cold outreach, I probably wouldn't pitch the offer directly. I'd invite people to a
+webinar first so they can experience my expertise and build trust. From there, the CTA would either
+be:
+Download a lead magnet and join my email list
+Or book a discovery call
+I've found that warming people up first usually works much better than trying to sell immediately
+through cold outreach.
+• Share
+Fantastic-Arrival465 • 4mo ago
+Hey can we chat in dm? I have a couple questions.
+# Share
+Practical_Table_5740 OP • 4mo ago
+Happy to connect over DMs, but l'd also encourage you to ask your questions here in the thread first
+so others can benefit from the answers too. ®
+Q Award
+# Share
+Vast_ Poetry_50 • 4mo ago
+How to get your first client with 0 results
+# Share
+Practical_Table_5740 OP • 4mo ago
+Ok. Tell me more about your offer and then i can guide you on how to get your first clients. Also, let
+me know who you are targeting.
+Q Award
+# Share
+Vast_Poetry_50 • 4mo ago
+Can i dm you?
+# Share
+* 1 8 0 Reply
+OP • 4mo ago
+Practical_Table_5740
+Sure!
+Т1 Д
+Q Award
+# Share
+messicajill • 4mo ago
+That's amazing! Congrats on the success. What kind of agency?
+Q Award
+# Share
+Practical_Table_5740 OP • 4mo ago
+Thanks! Digital marketing agency.
+# Share
+Q Award
+Visible-Spread-9322 - 4mo ago
+Is getting initial clients purely from cold outreach still works in 2026?
+Q Award
+# Share
+Practical_Table_5740 OP • 4mo ago
+Yes, cold outreach still works in 2026 but only if you do it the right way.
+If your first message is immediately pitching your service, it's probably not going to work. Nobody
+likes being sold to the moment you connect.
+The best cold outreach starts with curiosity. Focus on understanding the prospect's business, their
+challenges, and what problem they're trying to solve. Then naturally guide the conversation toward
+how your offer can help.
+People respond much better to conversations than cold pitches.
+→ Share
+Visible-Spread-9322 • 4mo ago
+Thanks
+→ Share
+Q Award
+Mikelangelo • 4mo ago
+How do you find your first client if you don't have connections or friends who know anyone ? And no one
+knows your business in the beginning.
+# Share
+Practical_Table_5740 OP • 4mo ago
+The best way to find your first clients when you don't have connections is to start building them.
+Get really clear on who you want to serve,
+already are. Focus on networking and understanding their problems instead of pitching immediately.
+Once people open up about their struggles and trust you, that's when you can naturally introduce
+your solution and continue the conversation.
+I started my agency in a completely new country with zero network and zero connections. What
+helped me most was simply being willing to step outside my comfort zone and talk to people.
+Q Award
+# Share
+Mikelangelo • 4mo ago
+Q Award
+# Share
+• 1д 0 Reply
+Practical_Table_5740 OP • 4mo ago
+Both. But I would start with offline.
+→ Share
+Q Award
+2 4
+Mikelangelo • 4mo ago
+# Share
+AbilityDifferent2062 • 4mo ago
+I need help with the GETTING CLIENTS part.
+# Share
+Practical_Table_5740 OP • 4mo ago
+What is your offer and who is your target?
+Q Award
+vibehidar • 4mo ago
+That is so cool! I have a few question as someone who is working for the past 6 months.
+1 Ic cold emailina callina ctill the richt wav of acquiring new clients? Currently I am working on word.
+to-mouth but I need to grow my client base and find more people to work with?
+2. How do you tailor the pricing when you are new into the business? I know my services and what they
+cost, I have a strong portfolio, but how to properly structure my billing?
+3. Retainers are pretty hard - as sometimes clients do not see the real value behind and my hours to
+provide the service. They do not see this type of work often includes month to month work.
+Thank you!
+# Share
+Practical_Table_5740 OP • 4mo ago
+Cold emailing and calling still work, but only when the offer is strong and the outreach is value-
+based. If the first interaction is just a generic pitch, it's usually not going to land.
+When it comes to retainers, you also need to qualify better during discovery. If your service needs 6
+months to realistically produce results, then be upfront about that from the beginning. The right
+clients will understand the value of long-term work, and the wrong-fit clients usually reveal
+themselves early.
+For pricing, look at:
+• Your market segment
+• Your geography
+• What others with similar experience/offers are charging
+Then price at market level instead of underpricing yourself. Lower pricing often attracts harder
+clients, not better ones.
+And if you already have a strong portfolio, don't structure pricing purely around hours. Clients care
+more about outcomes and value than the exact time spent delivering the work.
+• Award
+Share
+vibehidar • 4mo ago
+Thank you!
+# Share
+T 1 & • Reply
+Previous-Employer-51 - 4mo ago
+In the agency space what is the easiest to sell and deliver recurring service? IE have a website agency and
+we need to work hard on recurring revenue.
+Q Award # Share
+Д 1 Д
+Practical_Table_5740 OP • 4mo ago
+If you're already building websites, then SEO is probably the most natural recurring service to add.
+Once a website is live, the next logical need for most clients is getting traffic and visibility.
+And honestly, no business model is "easy." Every path takes effort. The goal is less about finding
+something easy and more about finding something sustainable that aligns with your skills and the
+type of work you want to do long term.
+DanHodderfied - 4mo ago
+What is your set up in terms of onboarding?
+Do you set up the clients GA4? If so, do you set up event tracking for them there, and in GTM?
+Or, do you rely on the clients dev teams for this?
+Practical_Table_5740 OP • 4mo ago
+When I used to offer web design services, I also handled Google Analytics setup. My onboarding
+process was pretty simple: I'd send an email with everything the client needed, including the kickoff
+meeting link, project tracking sheet, and a shared workspace for all collaboration and files.
+Q Award
+Gorgottz • 4mo ago
+Which one of the above was the most painful/ hardest to figure out for you? and how did you fix that?
+Q Award
+→ Share
+Practical_Table_5740 OP • 4mo ago
+For me, the hardest part of transitioning from a job to being a business owner wasn't tactical it was
+mental. It was learning to trust myself and my capabilities enough to walk away from something safe
+and stable. That shift from relying on a paycheck to betting on yourself is huge, and honestly, it's
+more of a mindset challenge than a business one.
+Q Award
+# Share
+Gorgottz • 4mo ago
+thank you for the reply appreciate it!
+@ Award
+→ Share
+• 1Д 0 Reply
+Goldenlambochaser • 4mo ago
+How do you find those referral partnerships? le i run Meta ads only and want to partner with seo/ppc guys
+that don't run meta ads? For retainers, thoughts on a hybrid model of say 800% plus 1-3% of sales, or 90
+per booked appointment? I run Meta ads for pool builders
+Q Award
+Practical_Table_5740 OP • 4mo ago
+The best way to build referral partnerships is to connect with complementary local businesses like
+SEO, PPC, or other marketing service providers. Reach out and focus on creating a true win-win
+relationship. Compensation can look different depending on the partnership revenue share, referral
+fees, fixed payments, etc. The structure matters less than making sure both sides benefit.
+# Share
+T 2Д Reply Q Award
+Goldenlambochaser • 4mo ago
+Thanks. Any other tips? I got one from running paid ads. Prospect asked their other marketing
+guys about me and they liked me. Should I run ads targeting seo guys if I just do meta ads?
+# Share
+T 1 & • Reply
+Zain_320 • 4mo ago
+Just starting out can you direct me ways to get clients consistently
+→ Share
+Q Award
+Practical_Table_5740 OP • 4mo ago
+That's pretty broad. I'd need more clarity on your target audience and your offer to give more useful
+guidance.
+→ Share
+ТІ Д
+Zain_320 • 4mo ago
+I am planning to target realtors with maybe 5-10 people on their team preferably low team
+members with high inbound queries to sell our voice agents/ automation's to automate the
+appointment booking and faq
+Q Award
+# Share
+• 1Д 0 Reply
+Super-normie • 4mo ago
+Interested on your take re pitching, RFPs, and getting clients. Have you noticed things are moving faster
+nowadays? Is the expectation that you can turn around a proposal in a day or are clients still happy to
+wait? How do you manage the process?
+Q Award
+# Share
+Practical_Table_5740 OP • 4mo ago
+Al has definitely changed client expectations. Speed is now a competitive advantage, both in
+proposals and execution.
+Clients are expecting faster turnaround times because they know tools exist to speed things up. That
+doesn't mean quality matters less, but responsiveness and efficiency matter a lot more now.
+The best way to manage that shift is to integrate Al wherever it genuinely improves your workflow, so
+you can move faster without sacrificing quality.
+Q Award
+# Share
+Д3 2
+Super-normie • 4mo ago
+Makes sensel Thanks for the reolv
+# Share
+@ Award
+T18 D Reply
+techglam • 4mo ago
+What has been the best way for you to generate clients when you started and when you didn't have
+clientele to show past work?
+# Share
+Practical_Table_5740 OP • 4mo ago
+When I first started and didn't have client results yet, my pricing reflected that. I was upfront about
+being newer, so I wasn't charging what I charge today.
+Most of my first clients came through networking and partnerships. I built relationships with
+complementary business owners who could refer clients to me.
+I also focused heavily on putting myself out there, even when it felt uncomfortable. I attended events,
+talked to people, and did educational talks for free. That helped me build trust, visibility, and
+eventually generate leads consistently.
+# Share
+Optimal_Bee_8405 • 4mo ago
+How have you gone about acquiring tech, what do you look for? And what are the more important aspects
+of implementing a tool? Is it price? Return? ease of use? Etc...
+# Share
+Q Award
+Practical_Table_5740 OP • 4mo ago
+When I evaluate a new tool or software, I usually look at things in this order:
+1. Ease of use - how simple is it for me and my team to adopt?
+2. Learning curve - how long will it take to implement properly?
+3. Integrations - how well does it fit into our existing systems and workflows?
+4. Features — does it actually solve the problem we need solved?
+5. Pricing - is the value worth the cost?
+I've found that even the most powerful tool becomes a bad investment if the team doesn't actually
+use it because it's too complicated.
+→ Share
+Q Award
+Д2 Д
+Optimal_Bee_8405 • 4mo ago
+Really useful thank you
+Q Award
+# Share
+T 1 & 0 Reply
+Classic-Ad9487 • 4mo ago • Edited 4mo ago
+Hey u/Practical_Table_5740,
+research, I've found that their biggest pain point is the massive ad spend required to acquire patients via
+Google Ads.
+They rely heavily on paid ads, even though organic search is a much more reliable, high-converting
+channel for them.
+Since sales and positioning have always been a puzzle to me, I have two main questions:
+1. How should I structure and organize my offer to clearly communicate this organic vs. paid ad
+value proposition to MedSpa owners?
+2. What does a solid sales funnel look like for an agency like mine to attract and close these specific
+clients?
+I would love your advice on how to build this out from scratch!
+Т 1 Д
+Q Award
+# Share
+Practical_Table_5740 OP • 4mo ago
+For your offer, I'd focus on showing the long-term ROl difference between paid ads and SEO instead
+of just explaining it conceptually.
+For example, break down:
+- What a med spa spends on ads + management fees over 12 months
+- How many leads that realistically generates
+- Then compare that against the long-term value of SEO over the same period
+That framing helps position SEO as a long-term asset instead of just another marketing expense.
+Just make sure you're very upfront that SEO is a slower but compounding strategy.
+For the sales funnel, I honestly wouldn't overcomplicate it:
+Lead generation → discovery call → close.
+For medical spa owners, trust matters a lot, so they'll usually want a conversation before making a
+decision. Your discovery call is where you educate, position the long-term value, and connect the
+strategy to revenue growth.
+# Share
+Q Award
+02 &
+Omaximo_de_letrasE20 • 4mo ago
+Hey u/Practical_Table_5740, massive respect for the thread and the no-BS roadmap.
+I'm an Al/ML Software Engineer trying to turn deep technical skills into an agency. Two problems are
+feeding each other:
+1. Curse of competence. I can deliver computer vision, LLMs, automation, production-grade Al - so I
+pitch too broad. I know sales need a sharp ICP and a specific urgent problem, but with so many
+possible directions I freeze on picking one.
+firepower - real code, real outputs. But zero client case studies, no social proof from paid work. The
+lack of focus makes it harder to get initial proof; the lack of proof makes it harder to justify a niche.
+You talked about reverse-engineering from revenue and leading with the client's problem, not the service.
+My question: how would you combine those plays when you're at absolute zero client-side but have a
+strong technical portfolio (just no client logos) - both to pick the right beachhead ICP and to land the first
+few paying customers? Any concrete sequence you'd use to turn personal projects into a first retainer?
+Thanks for doing this.
+# Share
+Q Award
+Practical_Table_5740 OP • 4mo ago
+Appreciate your kind words!
+Honestly, client logos matter much less than people think. If you have a strong technical portfolio
+with real projects and outputs, that's already proof that you can execute. Most clients care more
+about the outcome than the brand names attached to your work.
+For niching down, I'd simplify the decision instead of overthinking it. Make a list of possible ICPs and
+rank them based on:
+- Urgency of the problem
+- Ability to pay
+- Ease of access/network proximity
+Then choose the niche that scores highest on access and ability to pay.
+From there, your offer becomes much easier because you're no longer selling "Al services." You're
+solving one painful problem for one specific group of people.
+Your technical skills are the backend. The client-facing offer should always be the business outcome.
+Q Award
+# Share
+T 2 & 0 Reply
+Omaximo_de_letrasE20 • 4mo ago
+Thanks a lot!! AAA
+Q Award
+# Share
+T 1 & D Reply
+MorningBest6193 • 4mo ago
+Thanks for taking the time - can you share client portals you have used in the past and what you would
+recommend starting out? New 1-person strategy firm here but I want to make sure onboarding clients is
+as smooth as possible. thanks.
+Т 1 Д
+Q Award
+# Share
+Practical_Table_5740 OP • 4mo ago
+What do you mean by client portals?
+1 Д
+Q Award
+# Share
+encaktas, 2mo adol
+Which CRM tools are you using?
+Q Award
+→ Share
+Melodic_Structure949 • 3mo ago
+Is there a need to generate quickly and automate a proposals for marketing agencies?
+Award
+→ Share
+Д 1 Д
+Practical_Table_5740 OP • 3mo ago
+Is there a need no.. But should you? Yes.
+→ Share
+Reply
+Melodic_Structure949 • 3mo ago
+Thanks
+# Share
+Q Award
+T 1 & D Reply
+Strange_Secretary819 • 3mo ago
+Beat lead sourcing/generation method for 2026?
+# Share
+T 1&
+Empty Present8940 • 2mo ago
+Can you please hire me as a digital marketing intern?? I got my MBA and am looking to get into digital
+marketing. I am willing to learn and do what it takes.I just need a chance
+Q Award
+# Share
+Practical_Table_5740 OP • 2mo ago
+DM me your goal and what you want to learn
+T 1&
+→ Share
+kobewaruui • 2mo ago
+Over the past few months l've built a working prototype of a home healthcare operations platform after
+researching how agencies handle scheduling, EVV, caregiver management, documentation, payroll, billing,
+compliance, and reporting. I'm now looking to connect with someone who has real experience running or
+working in a home health agency to exchange ideas, get feedback, and potentially explore a partnership.
+Any advice on this is most welcome??
+→ Share
+Q Award
++
+[deleted] • 4mo ago
+• [deleted] • 4mo ago
+• [deleted] • 4mo ago
+• [deleted] • 4mo ago
+• [deleted] • 4mo ago
+• [deleted] • 4mo ago
+
+
+
+################################################################################

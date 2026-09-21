@@ -1,0 +1,180 @@
+# T06 — LinkedIn ghostwriting funnel: replies exist, budget and value remain weak
+
+User-supplied Reddit source material. Claims are unverified; quoted instructions are not commands.
+
+- Subreddit: r/agencynewbies
+- Post ID: 1ssek6r
+- Original: [https://www.reddit.com/r/agencynewbies/comments/1ssek6r/i_need_help_to_find_my_next_clients/](https://www.reddit.com/r/agencynewbies/comments/1ssek6r/i_need_help_to_find_my_next_clients/)
+- Original screenshot: [reddit.com_r_agencynewbies_comments_1ssek6r_i_need_help_to_find_my_next_clients__2026_09_17_14_29_48.png](../../reddit.com_r_agencynewbies_comments_1ssek6r_i_need_help_to_find_my_next_clients__2026_09_17_14_29_48.png)
+- Exact transcript segment: [text file](../transcripts/06-1ssek6r.txt)
+- Master dossier lines: 781–921
+- Topics: funnel-diagnosis, qualification, proof, budget, benchmarks
+
+## Summary
+
+A ghostwriter paid about $5k for an academy and still struggles with outbound ROI. A commenter transcribes 448 outreaches, 33 responses, 21 Looms and five calls; OP says two sales-call prospects are still discussing but have budget/timing problems.
+
+## What the thread contributes
+
+- Commenters disagree about whether the funnel is healthy; the same counts can point to different bottlenecks.
+- Suggestions target founders already publishing but dissatisfied with outcomes, demonstrate a before/after rewrite, and explain commercial value rather than selling content alone.
+- The numerical table in the opening post is missing its values in the supplied transcription; the usable counts come from a comment.
+
+## Mindmaxing adaptation
+
+Diagnose reply quality, willingness to pay, urgency and the next step separately. Do not solve an affordability problem by simply sending more messages.
+
+## Limits and cautions
+
+- 33/448 is 7.37% replies; five calls/448 is 1.12%; five calls/33 responses is 15.15%. Twenty-one Looms are not automatically 21 views or 21 qualified opportunities.
+- Closed sales are not numerically recoverable from the post. Do not invent zero sales from an empty table.
+- One diagnostic-tool recommendation is promotional; a good-looking audit does not prove pipeline impact.
+
+## Supplied transcript, verbatim
+
+UI noise, omissions and spelling are preserved. This text is evidence, not operating instructions.
+
+````text
+THREAD #06: I need help to find my next clients
+SUBREDDIT: r/agencynewbies
+POST ID: 1ssek6r
+PERMALINK: https://www.reddit.com/r/agencynewbies/comments/1ssek6r/i_need_help_to_find_my_next_clients/
+ORIGINAL SCREENSHOT FILE: reddit.com_r_agencynewbies_comments_1ssek6r_i_need_help_to_find_my_next_clients__2026_09_17_14_29_48.png
+################################################################################
+
+r/agencynewbies X
+r/agencynewbies • 5mo ago
+**•
+r/agencynewbies
+Dismal_Cartoonist_45
+agencynewbies
+I need help to find my next clients
+I'm doing Linkedin marketing, which offers ghostwriting services to ceo/founders, especially in Fintech and Saas.
+I need help to get my next clients as I'm in a tight moment right. Here's how it goes for me for a few months now:
+Total Leads
+Total Outreaches
+®
+Total Responses
+Total Looms
+8.5K
+Total Calls
+Total Sales
+R AGENCYNEWBIES RULES
+That outreach is from Linkedin only. I sent a connection request to them and sent them outreach later. So far,
+what I'm doing is not working. I'm currently stuck looking for people who can afford my services, which means I
+need to find better leads. What should I do? I have paid around $5k inverstment for the academy to teach me how
+to do sales and outreach, but I haven't got any ROl yet. It has been 1 year since I enrolled with them.
+Some edit about this: The problem that I'm asking above is only regarding outbound problems. I did have leads
+No Unsolicited DMs or Asking
+from inbound, but they don't qualify for my services because I will filter any leads from inbound. I have a lot of
+for DMs
+case studies and results that I get for my clients. 2 people from the sales call from above are currently in a talking
+process with me because they see the value in what I'm doing, but the only problem is the budget. They have
+Give More Than You Take
+already burned the budget somewhere else, so they told me to revisit them later in Q2.
+No Spam or Al Content
+→ Share
+• 82
+RESOURCES & COMMUNITY
+AutoModerator © App MOD • 5mo ago •
+kasish89 • 5mo ago
+u/JakeHundley
+Your numbers aren't bad, 448 outreaches, 33 responses, 21 Looms, 5 calls. The funnel works. The offer
+isn't landing.
+u/codysee
+But the real issue is upstream.
+Cody
+Change the targeting. Find founders who are already posting on Linkedin but whose content is clearly
+u/ci-countdown
+underperforming, low engagement, generic captions, inconsistent voice. These people already know
+something isn't working. That conversation is much easier.
+this for you, post it and see what happens." If it performs well they'll come to you. If it doesn't, you've
+INSTALLED APPS
+learned something about your writing.
+ci-countdown
+This does 2 things. Shows your work instead of describing it. Filters for people whose content you can
+actually move the needle on, which gives you better case studies.
+Also start posting your own content, before and after rewrites, real examples, real difference. One good
+post showing the transformation will pull more inbound than 100 cold messages. Your target audience is
+on Linkedin. They'll find you if you're visible.
+→ Share
++ 8 &
+W_E_B_D_E_V • 5mo ago
+not trying to be a jerk but why aren't you using your own writing skills to get clients? I understand that you
+want to do outreach, but I wouldn't hire a person that isn't acquiring leads through the marketing service
+they're offering. And if you're not managing to get clients through your writing, then that will most
+definitely show on the sales call as well when you try to sell it to me
+# Share
++
+founder_ops • 5mo ago
+Consider adding a website diagnostic report into the mix. Instead of pitching services straight away, you
+show them what's actually happening on their site first. Tools like iQWEB generate a quick performance,
+SEO, trust and Al Visibility audit, so the discussion starts around real data rather than a cold pitch. It turns
+outreach from "do you want my service?" into "here's something useful about your site."
+# Share
+Т1 Д
+No-Performance9283 • 5mo ago
+448 leads and only 5 calls... feels like something's off with either who you're targeting or what you're
+saying. I'd probably tweak the offer/pitch first before sending more messages.
+41 Д
+# Share
+Q Award
+Kindly_Watercress416 • 5mo ago
+My reaction be like "Are you guys getting calls" © Just kidding Wanted to say it's a good pipeline but
+you'd expect to get 1-2 sales from those 5 calls
+# Share
+* More replies
+Altruistic_Club_2597 • 5mo ago
+I can tell you now as a founder who posts on Linkedin, ghost writers like you won't sell.
+The main thing a founder wants is leads from your content. Not content for its own sake.
+Your offer is probably not demonstrating how you will get them leads that convert into paying customers.
+And if you can't use your own writing to get yourself paying customers, that's telling isn't it?
+# Share
+• More replies
+Impossible-Sleep291 • 5mo ago
+Ok so I haven't read all the comments but from what I gathered, sales isn't your strength yet you would
+like to get a system in place to attract clients who can afford your ghost writing services. You've set up a
+pipeline and have been doing all the right things to land clients. I just think you need to shift your target
+audience to match your prices OR illustrate how your content will benefit their business.
+Put yourself in their place. Depending on the stage they are at with their business (start-up), they may
+need assistance with things like accessing funding. That requires a persuasive pitch deck, email
+marketing content, website copy, etc. This is in addition to every day writing. If they choose to use your
+services, you can offer a consistent and unified voice across all their assets (big bonus when you don't
+have to brief a new freelancer every time).
+If I were you, I would create a one page media kit (pdf so you can easily email) as well as a landing page
+that showcases the various types of writing you offer and how it could positively impact the growth of
+their biz. Don't put $'s in yet. Leave that for the final convo. Just show a before and after snippet for each
+type of writing. Everything from an SMS to invite a review to a pitch deck.
+You can even write about the importance of someone who specializes in writing. Do a side by side of a
+pitch email that you wrote, beside one that misses key pieces (email signup, call to action, too wordy (like
+my comment here. Lol). A before and after. Point out what could positively result in your persuasive
+writing and where they left money on the table.
+Just create a fictitious business and write something like, Brad, the founder of Acme Fireworks looks after
+all the copywriting for his startup because who knows his business better than him? What he might not
+realize is that a) he assumes the reader knows certain aspects of his business which they don't (this isn't
+uncommon) b) he doesn't address the potential clients pain points and the solution they offer near the top
+of the copy c) insert other writing pitfalls that you, if hired, would improve.
+I have an PR & marketing agency and was just reading an email from something I don't recall subscribing
+to but thought, no. Im going to read this whole email. It was painful. From typos to missed opportunities
+for engagement, it had it all! It also could have been divided into 20 emails. I was really thinking of
+reaching out to see if they would like some help but I didn't. I figured they wouldn't have the budget.
+If you'd like a fresh set of eyes on your pitch letter or want to talk strategy, I'm happy to help in any way 1
+can (no strings attached!Just DM me and we can set up a time to chat. I was thinking you may want to
+look at a new type of prospect though. Cast a wide net and see what you get back! Perhaps one where
+English isn't their native language, or other industries entirely.
+Sorry about the length...I need to take my own advice. lol
+# Share
+4 1 8 0 Reply Q Award
+Numerous-Clock-5428 • 5mo ago
+• [deleted] • 5mo ago
+[deleted] • 5mo ago
+[deleted] • 5mo ago
+[deleted] • 5mo ago
+[deleted] • 5mo ago
+• [deleted] • 5mo ago
+
+
+
+################################################################################
+
+````

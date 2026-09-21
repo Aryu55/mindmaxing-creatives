@@ -1,0 +1,123 @@
+THREAD #01: 15 reply rate using trustpilot 12 star reviews as
+SUBREDDIT: r/Coldemailing
+POST ID: 1wbic1t
+PERMALINK: https://www.reddit.com/r/Coldemailing/comments/1wbic1t/15_reply_rate_using_trustpilot_12_star_reviews_as/
+ORIGINAL SCREENSHOT FILE: reddit.com_r_Coldemailing_comments_1wbic1t_15_reply_rate_using_trustpilot_12_star_reviews_as__2026_09_17_09_25_31.png
+################################################################################
+
+r/Coldemailing X
+=
+r/Coldemailing • 8d ago
+r/Coldemailing
+No_Cryptographer7800
+Cold Emailing
+15% reply rate using Trustpilot 1-2 star reviews as the only signal
+Welcome to r/ColdEmailing — Reddit's
+source. 100 sends, 2 closed. Breakdown.
+community for Cold Email, Outbound Sales,
+Lead Generation, Deliverability, and B2B...
+~ Case Study
+I run a small service business and outbound was eating my budget alive without producing anything worth talking
+about. Apollo, Instantly / Smartlead $300-400/month to email people who looked right on paper but never replied
+Created May 29, 2022
+because they had no urgency whatsoever
+That said, i spent a weekend building something scrappy: a pipeline that scrapes 1-2 star Trustpilot reviews of my
+5.5K
+direct competitors, runs them through a free Al to draft emails that reference the exact complaint, and saves
+Mailers
+them as Gmail drafts for me to review before sending. No auto-send, no bulk blasting, I read every single email
+before it goes out.
+R/COLDEMAILING RULES
+100 emails over three weeks: 15 people replied, closed 2 deals. The conversations felt completely different from
+Stay On Topic
+normal cold email because I was referencing something their own customer said about them 48 hours earlier...
+Half the replies were basically "how did you know about this" or "yes we know this is a problem"
+No Spam or Self-Promotion
+Cost: my weekend plus $0.30 in API calls, cancelled every subscription I was paying for (but i had my leads
+Disclose Conflicts of Interest
+sourced, if you don't have a lead list add a few more bucks to the stack)
+what surprised me the most is how portable the idea is, i built a second version that scans Reddit instead of
+No Lead Selling or Buying
+Trustpilot for pain posts in specific subreddits. Same architecture, but with different keywords. A cleaning
+company could scan for "my cleaner ghosted me" posts or a bookkeeper could scan for "drowning in receipts"
+Share Quality Content
+threads...you just swap the signal source and the outreach profile.
+Use the Correct Post Flair
+Open sourced the whole tool, it's free and runs on a laptop, no paid tiers. Not pitching anything here, just sharing
+because the gap between this and what i was paying for monthly was embarrassing and in today's world i don't
+Be Respectful
+think you shoudl be charged for smth you could build yourself over the weekend.
+# Share
+• 33
+smashmouthftball - 8d ago
+Dude this is sick, thank you for sharing...
+Д 3 Д
+Q Award
+leadg3njay • 8d ago
+killing most Apollo blasts: zero urgency. That's straight up better qualification, and it tracks with the 3-5%
+baseline you see on normal outbound when the list isn't trash.
+Two gotchas before people copy it: Trustpilot's terms are pretty anti-scraping, and if you're touching
+UK/EU you can wander into GDPR/PECR land fast if you're using identifiable review details.
+Tactically. I'd keep the first email from feeling stalker-v. Don't quote the review. Reference the category of
+complaint ("missed appointments", "billing confusion") and offer something concrete like "I can map the
+top 3 fixes we see in this situation and send it over tomorrow." Also don't scale this with one cheap inbox.
+Protect deliverability or it dies on day 21.
+• Share
+Away_Law_4388 • 8d ago
+the specific hack matters less than why it works, and that's the part worth stealing. a 1-star review is a
+timestamped pain signal, someone actively frustrated with a competitor right now, and that solves the
+single biggest cold email problem, which is reaching people who have no urgency. that's why your reply
+now signal beats any firmographic list, reviews, support forums, subreddit complaints, people griping on
+twitter. the fit-on-paper lists you were paying for have no timing, this has nothing but timing. one honest
+caveat you already flagged, scraping trustpilot is against their tos, so the durable version is finding the
+same actively-frustrated-now signal from sources you're allowed to pull. the signal type is the lesson. the
+source is swappable, and some sources get you in a lot less trouble than others.
+Reply
+Q Award
+Filthy_Nomad • 7d ago
+Genius
+Share
+Few-Mark-9674 • 4d ago
+OtherwiseCicada877 • 8d ago
+Great man. What was your mail content like?
+4 12
+SoftwareTree18 • 8d ago
+I dont understand this.
+how are you finding who wrote the review? i dont think company name, first and last name, job title are
+visible?
+can you show a few examples here
+Д1 Д
+Deep Ad1959 • 8d ago
+the signal rots taster than people expect. a complaint from 48 hours ago reads as attentive, the same one
+at three weeks reads as surveillance, and the pipelines i have watched break at the review queue rather
+than the copy: drafts pile up faster than a human reads them and the reference goes stale before it gets
+sent.
+# Share
+EmergencyTree9636 • 7d ago
+How do you get contact details from Reddit?
+Т 1 Д
+# Share
+Strayr2 • 7d ago
+Good idea. I wonder how I can use this for my services? We help companies find people they can hire.
+Maybe there is an angle.
+Q Award
+→ Share
+* More replies
+MacaroonVegetable872 ta • 6d ago
+so what were you pitching that bridged from their 1-2 star reviews? helping them on exactly what the
+negative reviews mentioned or what? because your service must tie into that and the exact reason for
+them getting low ratings
+# Share
+• More replies
+EbtsamZahid - 3d ago
+[deleted] • 8d ago • Edited 7d ago
+Comment removed by moderator
+• Share
+[deleted] • 8d ago
+Comment removed by moderator
+→ Share
+TO &
+
+
+
+################################################################################

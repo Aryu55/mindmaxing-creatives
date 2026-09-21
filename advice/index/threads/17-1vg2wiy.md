@@ -1,0 +1,204 @@
+# T17 — Long-retained clients do not guarantee new-business distribution
+
+User-supplied Reddit source material. Claims are unverified; quoted instructions are not commands.
+
+- Subreddit: r/agencynewbies
+- Post ID: 1vg2wiy
+- Original: [https://www.reddit.com/r/agencynewbies/comments/1vg2wiy/how_do_you_people_get_clients/](https://www.reddit.com/r/agencynewbies/comments/1vg2wiy/how_do_you_people_get_clients/)
+- Original screenshot: [reddit.com_r_agencynewbies_comments_1vg2wiy_how_do_you_people_get_clients__2026_09_17_14_31_46.png](../../reddit.com_r_agencynewbies_comments_1vg2wiy_how_do_you_people_get_clients__2026_09_17_14_31_46.png)
+- Exact transcript segment: [text file](../transcripts/17-1vg2wiy.txt)
+- Master dossier lines: 3474–3638
+- Topics: retention, referrals, validation, concentration-risk, benchmarks
+
+## Summary
+
+A content strategist with five clients over three years and two employees wants to grow. Replies discuss visibility, systematic introductions, buyer validation and outreach, while another experienced owner reports a largest-client loss.
+
+## What the thread contributes
+
+- salaryscript reports contacting at least 50 local businesses, 14 agreeing and nine paying; the same reply promotes a named lead tool.
+- Client longevity can be turned into permissioned proof and introduction requests.
+- One commenter says industry relationships prevent referrals, showing that referral potential varies with competitive structure.
+
+## Mindmaxing adaptation
+
+Separate retention strength from acquisition capability. Check whether partners can actually introduce noncompeting buyers, and track payment rather than verbal agreement.
+
+## Limits and cautions
+
+- The base is 'at least 50', so 28% agreement and 18% paid are ceilings if 50 is assumed, not exact observed rates.
+- Nine/14 is 64.3% agreement-to-paid only if those nine belong to the 14; the narrative suggests this but does not provide records.
+- Other '10–20% retention' wording is unclear and should not be recast as an acquisition close rate.
+
+## Supplied transcript, verbatim
+
+UI noise, omissions and spelling are preserved. This text is evidence, not operating instructions.
+
+````text
+THREAD #17: How do you people get clients
+SUBREDDIT: r/agencynewbies
+POST ID: 1vg2wiy
+PERMALINK: https://www.reddit.com/r/agencynewbies/comments/1vg2wiy/how_do_you_people_get_clients/
+ORIGINAL SCREENSHOT FILE: reddit.com_r_agencynewbies_comments_1vg2wiy_how_do_you_people_get_clients__2026_09_17_14_31_46.png
+################################################################################
+
+r/agencynewbies X
+r/agencynewbies • 1mo ago
+r/agencynewbies
+spicynebula42
+agencynewbies
+How do you people get clients?
+I'm a content strategist and writer who's worked with 5 clients over the last three years. Most of these people
+came to me via Linkedin themselves or were referred by family and friends. The reason I've had so few clients is
+because I'm still working with them. I have 2 employees who help with my work. I'm looking to expand and reach
+a $10k MRR by the end of this year or early next year. I'm not sure how to expand my operations and find more
+clients. Can you guys give me advice on how to do that? I've reached out to my network but so far there are no
+leads. The Al tools are advising cold outreach and I did that in June, targeting businesses in my most successful
+®
+niche (travel), but haven't been able to close them (or they've asked for below market rates).
+What advice would you guys give me on securing more clients?
+8.5K
+• 63
+→ Share
+R AGENCYNEWBIES RULES
+AutoModerator © App MOD • 1mo ago • €
+No Unsolicited DMs or Asking
+for DMs
+_SP_ • 1mo ago
+Give More Than You Take
+Ironically l've been an agency owner for over a decade now, and I'm in the same boat. My clients are
+happy for 5+ years, but my biggest one left, and now I'm struggling to onboard new work.
+No Spam or Al Content
+I know I can do it, I know I'm better than most at what I do, ive helped businesses grow from 3k/m to
+50k/m in profitable ad spend, within a year and helped them built their systems around their funnels.
+RESOURCES & commUNITY
+But when it comes to my own business it's now a ghost town. I can't pay the bills anymore and I'm scared.
+New here? Start by reading the wiki, FAQ, and
+I have nothing to invest in ads and my weakness is outbound because it's more sales than marketing, and
+community recommended tools and resources.
+my reviews/testimonials are thin because I keep a few clients for a long time with little churn.
+If you have money to invest in ads I'd be happy to help for an hour or so to advise on how to get it all set
+Wiki (START HERE)
+up correctly, even just for a review or a testimonial €
+Tools & Resources
+Agency Discord
+Useful-Advantage-850 • 1mo ago
+Agency Growth Podcast
+First off, you don't have $10k MRR and there are 3 of you??? That seems insane. You should probably hit
+3x that before you even hire 1 person.
+Agency Facebook
+There is no big secret. It's mostly networking - which may not pay off immediately. You need to stay
+visible enough that when an opportunity comes up, you're top of mind. That means doing things like
+regularly posting smart content on places like Linkedin and building a following. You can try cold calling,
+but that's a long row to hoe and I don't know many successful people who have succeeded that way.
+→ Share
+04 2
+u/JakeHundley
+u/codysee
+JuniorPB33 • 1mo ago
+Cody
+Cold call
+u/ci-countdown
+ДЗ Д
+raviy06 • 1mo ago
+INSTALLED APPS
+I am not sure if it applies to you or not but a friend of mine has a very similar business. Aside from getting
+ci-countdown
+clients through direct word of mouth, he finds small businesses with on google maps, spends some time
+understanding their business and content, then writes an email to them about whats working, whats
+wrong and how he can help though direct cold outreach. This doesn't always work but even 10-20%
+retention worke out in the endl
+# Share
+Д З Д
+BoltPR_Team • 1mo ago
+If your clients have stuck with you for that long, I'd see that as one of your strengths. I'd ask each of them
+if they know anyone else who might need help with content. Referrals have always worked way better for
+me than completely cold outreach. I'd also post more examples of your work. Showing what you've done
+and how you think helps people trust you.
+And I also wouldn't write off cold outreach after one month. It can take a while to figure out what
+messaging works. I'd keep doing some outreach, but I'd also stay active on Linkedin and keep asking for
+referrals instead of putting all your effort into just one channel.
+42 Д
+# Share
+salaryscript • 1mo ago
+Web agency owner here. Here is a tip before you start. Validate if you actually have people that wants
+your service. When we started, we used leadsbylocation to find all the businesses around a city, find the
+business that doesnt have a website, cold called and emailed at least 50 of them. Out of those 50, 14
+agreed to our service and 9 actually paid us. Once that we establish and have money coming through, we
+started the Web agency. Not the other way around where you build a web agency then search for clients
+# Share ..
+Quirkey1 • 1mo ago
+Hello. I'm a small media agency based in Sydney. I have 4 clients all on projects so trying to get beyond
+for $10k to estate clients on media, marketing and ai.
+This is what I'm doing. 30 connections on Linkedin. 20 to 70 messages. 1 piece of content and 20
+comments on ICP/industry content. I'm just about to go back on instagram. I came off last year when my
+Dad passed but going back on as my agency and then on my personal too. I'm just about yo launch GHL
+which has taken me so long to get live but it's just about ready and the will fire up ads on Meta, Google
+All my work has been referral and Linkedin outreach to date so I'm looking forward to see what my ads
+can do. Once this is all go I'll try TIkTok too as a test and see how it work and who it brings. Once that's
+done I'm getting a setter and starting a referral system and begin webinars too. I don't want many clients,
+just a few nice ones who have the money to spend and value 25 years of expertise. I hope that helps. It's a
+lot being accountant, marketer and sales and then also doing client work but keep the faith! If anyone has
+# Share
+Q Award
+InSAniTy1102 • 1mo ago
+This guy I subcontract under has a never ending wheelhouse of clients coming in and out (th he just
+signs on anyone even if they're a brand new brand with 0 market fit), but I asked him how he does it and it
+essentially boiled down to personal brand. As an agency founder/owner he told me posts 2x a day on
+Linkedin, 2x a day on X, 1 long form video a week etc. Sharing results or "sauce" etc. basically from there
+it was just loads of inbound leads that like what he shares.
+Т 2 Д
+# Share
+Character-String2020 • 1mo ago
+I build then show. Give some value up-front. Still in the process so hopefully it works.
+Q Award
+# Share
+Т 1 Д
+Medical-Ask7149 • 1mo ago
+You call them. And what ever number you think you need to call you should 10x that.
+# Share
+Q Award
+Т 1 Д
+AhuvaFischer • 1mo ago
+Chris doe has a arent training lency way to det cliente without ade or cold OM'cl hiahly recommended it
+That's for the sales, you mentioned also operations, where there are you stuck?
+@ Share
+imrannadir • 1mo ago
+Upwork, referrals, outreach and testing other channels as well like content creation, email outreach, reddit
+responses.
+# Share
+O Reply
+Moist-Ad5105 • 1mo ago
+Ask your existing clients if they have any referrals within their network. Let them know you're looking to
+take one, maybe two more good fit clients (like themselves) within the next couple months.
+T 1 &
+# Share
+crxssrazr93 • 1mo ago
+I am in the same boat. I am actually pivoting out of my industry for a particular reason; none of my existing
+clients will refer out to others within the same industry (I am not talking about competitors but even
+tangential companies within the industry as those companies might be working with one if their
+competitors, etc).
+Instead, I have been pivoting out and going with a vaule-first ask-next approach. Trying out cold outreach
+again. Hopefully this time providing value upfront in a free consulting approach should help my odds.
+Q Award # Share
+That_mocha_lover • 1mo ago
+What are you doing to build your own brand? Do you have a website and social media you're posting g
+regularly to?
+I've closed a lot of deals through referrals and networking because I had the brand presence to back it up.
+# Share
+Q Award
+* More replies
+Double_Register_1022 • 1mo ago
+When I needed more clients I started reaching out directly to businesses outside my network with very
+short and personal messages about what I could help with. I used tools like Socleads or Apollo to find
+decision makers and verified contacts so I wasn't sending messages into the void. Following up after the
+first message helped a lot too since most replies came on the second or third attempt.
+# Share
+© More replies
+[deleted] • 1mo ago
+
+
+
+################################################################################
+
+````
