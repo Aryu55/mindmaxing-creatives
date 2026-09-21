@@ -22,6 +22,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections import Counter
 from datetime import datetime, timezone
 
 try:
@@ -559,9 +560,10 @@ def post_passes_incident_evaluation(title: str, selftext: str, created_utc: floa
     decision, reasons, _ = evaluate_reddit_signal(post, datetime.now(timezone.utc))
     return (decision == INCIDENT_CANDIDATE), ", ".join(reasons)
 
-def run_reddit_harvester():
+def run_reddit_harvester(once: bool = False, dry_run: bool = False):
     os.makedirs(ICP1_DIR, exist_ok=True)
-    log("=== Mindmaxing Reddit Incident Harvester v3.0 (Astra Architecture) Starting ===")
+    mode_str = "DRY-RUN (zero writes/sends)" if dry_run else ("SINGLE-PASS" if once else "CONTINUOUS")
+    log(f"=== Mindmaxing Reddit Incident Harvester v3.0 [Mode: {mode_str}] Starting ===")
 
     auth = RedditAuth(REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT)
     known_domains, known_emails = load_existing_records()
@@ -570,6 +572,14 @@ def run_reddit_harvester():
     cycle = 0
     total_new_qualified = 0
     seen_post_ids = set()
+
+    sweep_stats = {
+        "posts_examined": 0,
+        "incident_candidates": [],
+        "review_required": [],
+        "rejected": Counter(),
+        "total_new_qualified": 0
+    }
 
     while True:
         cycle += 1
@@ -644,6 +654,7 @@ def run_reddit_harvester():
                 if post_id in seen_post_ids:
                     continue
                 seen_post_ids.add(post_id)
+                sweep_stats["posts_examined"] += 1
 
                 title = p.get("title", "")
                 selftext = p.get("selftext", "")
@@ -654,6 +665,36 @@ def run_reddit_harvester():
 
                 # Post-level evidence filter using pure evaluate_reddit_signal
                 decision, reason_codes, evidence = evaluate_reddit_signal(p, datetime.now(timezone.utc))
+
+                if decision == INCIDENT_CANDIDATE:
+                    sweep_stats["incident_candidates"].append({
+                        "post_id": post_id,
+                        "title": title,
+                        "author": author,
+                        "subreddit": subreddit,
+                        "reasons": reason_codes,
+                        "evidence": evidence,
+                        "url": f"https://reddit.com{permalink}"
+                    })
+                    log(f"  [★ INCIDENT_CANDIDATE r/{subreddit}] /u/{author}: {title[:70]}")
+                elif decision == REVIEW_REQUIRED:
+                    sweep_stats["review_required"].append({
+                        "post_id": post_id,
+                        "title": title,
+                        "author": author,
+                        "subreddit": subreddit,
+                        "reasons": reason_codes,
+                        "evidence": evidence,
+                        "url": f"https://reddit.com{permalink}"
+                    })
+                    log(f"  [? REVIEW_REQUIRED r/{subreddit}] /u/{author}: {title[:70]}")
+                else:
+                    for r in reason_codes:
+                        sweep_stats["rejected"][r] += 1
+
+                if dry_run:
+                    continue
+
                 if decision in (NO_MATCH, STALE, INVALID_SOURCE):
                     continue
 
@@ -755,6 +796,7 @@ def run_reddit_harvester():
 
                     if save_lead(lead_record):
                         total_new_qualified += 1
+                        sweep_stats["total_new_qualified"] += 1
                         known_domains.add(clean_dom)
                         known_emails.add(clean_em)
                         log(f"    ⭐ QUALIFIED CANDIDATE #{total_new_qualified} -> {company_display} ({email}) [{c_code}]")
@@ -763,10 +805,55 @@ def run_reddit_harvester():
                     human_delay("candidate")
 
             # Pacing delay between query tasks
-            time.sleep(random.uniform(3.5, 7.0))
+            if dry_run:
+                time.sleep(random.uniform(1.2, 2.0))
+            else:
+                time.sleep(random.uniform(3.5, 7.0))
+
+        log("=================================================================")
+        log("=== MINDMAXING REDDIT INCIDENT HARVESTER SWEEP REPORT ===")
+        log("=================================================================")
+        log(f"Total Posts Examined:        {sweep_stats['posts_examined']}")
+        log(f"INCIDENT_CANDIDATE:          {len(sweep_stats['incident_candidates'])}")
+        log(f"REVIEW_REQUIRED:             {len(sweep_stats['review_required'])}")
+        rejected_total = sweep_stats['posts_examined'] - len(sweep_stats['incident_candidates']) - len(sweep_stats['review_required'])
+        log(f"REJECTED / NO_MATCH / STALE: {rejected_total}")
+        log("")
+        log("--- Rejection Reasons Breakdown ---")
+        for r, count in sweep_stats["rejected"].most_common():
+            log(f"  {r}: {count}")
+        log("")
+        if sweep_stats["incident_candidates"]:
+            log("--- INCIDENT CANDIDATES ---")
+            for idx, cand in enumerate(sweep_stats["incident_candidates"], 1):
+                log(f"  #{idx} [r/{cand['subreddit']}] /u/{cand['author']} | Reasons: {cand['reasons']}")
+                log(f"      Title: \"{cand['title']}\"")
+                log(f"      URL: {cand['url']}")
+                log(f"      Evidence: {cand['evidence']}")
+        else:
+            log("No INCIDENT_CANDIDATE found in this sweep. (Zero qualifying leads is expected per Invariant #6).")
+
+        if sweep_stats["review_required"]:
+            log("--- REVIEW REQUIRED ---")
+            for idx, rev in enumerate(sweep_stats["review_required"], 1):
+                log(f"  #{idx} [r/{rev['subreddit']}] /u/{rev['author']} | Reasons: {rev['reasons']}")
+                log(f"      Title: \"{rev['title']}\"")
+                log(f"      URL: {rev['url']}")
+                log(f"      Evidence: {rev['evidence']}")
+        log("=================================================================")
+
+        if once or dry_run:
+            log("Execution mode finished. Exiting sweep.")
+            return sweep_stats
 
         log("Cycle complete. Pacing before next cycle...")
         human_delay("cycle")
 
+
 if __name__ == "__main__":
-    run_reddit_harvester()
+    import argparse
+    parser = argparse.ArgumentParser(description="Mindmaxing Reddit Incident Harvester v3.0")
+    parser.add_argument("--once", action="store_true", help="Run a single pass and exit")
+    parser.add_argument("--dry-run", action="store_true", help="Dry run evaluation without scraping or saving")
+    args = parser.parse_args()
+    run_reddit_harvester(once=args.once, dry_run=args.dry_run)
