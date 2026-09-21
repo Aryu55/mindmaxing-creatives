@@ -1,15 +1,25 @@
-import sqlite3, json, re
+import sqlite3, json, re, os
 
-conn = sqlite3.connect('/root/outbound/data/mindmaxing_crm.db')
-conn.row_factory = sqlite3.Row
-c = conn.cursor()
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.environ.get("MINDMAXING_BASE_DIR") or (
+    "/root/outbound" if os.path.exists("/root/outbound/data") else os.path.dirname(SCRIPT_DIR)
+)
+DB_PATH = os.path.join(BASE_DIR, "data", "mindmaxing_crm.db")
 
-c.execute('''
-    SELECT * FROM leads 
-    WHERE contact_email IS NOT NULL AND contact_email != ''
-    ORDER BY COALESCE(review_freshest_date, review_date, captured_at) DESC
-''')
-leads = [dict(r) for r in c.fetchall()]
+def check_queue():
+    if not os.path.exists(DB_PATH):
+        print(f"DB not found: {DB_PATH}")
+        return
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    c.execute('''
+        SELECT * FROM leads 
+        WHERE contact_email IS NOT NULL AND contact_email != ''
+        ORDER BY COALESCE(review_freshest_date, review_date, captured_at) DESC
+    ''')
+    leads = [dict(r) for r in c.fetchall()]
 
 valid_queue = []
 for l in leads:
@@ -42,12 +52,5 @@ for l in leads:
         'pattern': l.get('dominant_pattern')
     })
 
-print(f'Total valid clean leads in CRM: {len(valid_queue)}')
-sept_18_20 = [x for x in valid_queue if x['date'] >= '2026-09-18']
-print(f'Valid clean leads from Sept 18-20: {len(sept_18_20)}')
-sept_15_20 = [x for x in valid_queue if x['date'] >= '2026-09-15']
-print(f'Valid clean leads from Sept 15-20: {len(sept_15_20)}')
-
-print('\nTop 30 Freshest Clean Pain Leads:')
-for i, x in enumerate(valid_queue[:30], 1):
-    print(f"{i}. {x['domain']} ({x['company']}) | {x['email']} | Src: {x['source']} | Date: {x['date']} | Metric: {x['lcp'] or x['pattern']}")
+if __name__ == '__main__':
+    check_queue()

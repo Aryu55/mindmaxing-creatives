@@ -354,6 +354,10 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
         log("ERROR: IONOS_SMTP_PASSWORD not set in environment or .env file.")
         sys.exit(1)
 
+    if not dry_run and not volume_controller:
+        log("CRITICAL ERROR: volume_controller module not found. Halting live dispatch (Fail-Closed).")
+        sys.exit(1)
+
     log(f"Loaded {len(mailboxes)} mailboxes across 4 domains.")
     log(f"Loaded {len(leads)} harvested leads from reservoir.")
 
@@ -474,8 +478,10 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
 
         sender = get_pinned_sender(lead.get("domain"), mailboxes, history, mailbox_usage)
 
-        # Volume Controller Reservation
-        if not dry_run and volume_controller:
+        # Volume Controller Reservation (Fail-Closed)
+        if not dry_run:
+            if not volume_controller:
+                raise RuntimeError("FAIL-CLOSED: volume_controller missing in live dispatch")
             reserved, r_reason = volume_controller.reserve_quota(sender["email"], "campaign")
             if not reserved:
                 log(f"  [QUOTA/HEALTH] Mailbox {sender['email']} unavailable: {r_reason}")
@@ -492,6 +498,26 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
         else:
             subject, body = generate_touch_3_copy(lead, sender, orig_subj)
 
+        # Threading: fetch parent message ID for follow-up touches
+        parent_msg_id = None
+        if touch_step > 1 and volume_controller:
+            try:
+                conn_p = volume_controller.get_db_connection()
+                cp = conn_p.cursor()
+                cp.execute("SELECT message_id FROM messages WHERE recipient_email = ? AND purpose = 'campaign' ORDER BY sent_at DESC LIMIT 1", (to_email,))
+                p_row = cp.fetchone()
+                if p_row and p_row["message_id"]:
+                    parent_msg_id = p_row["message_id"]
+                conn_p.close()
+            except Exception:
+                pass
+
+        if not parent_msg_id and touch_step > 1 and history:
+            for h in reversed(history):
+                if h.get("lead_email") == to_email and h.get("message_id"):
+                    parent_msg_id = h.get("message_id")
+                    break
+
         freshest = lead.get("review_freshest_date") or lead.get("review_date", "N/A")
         src_tag = lead.get("source", "trustpilot").upper()
 
@@ -504,8 +530,8 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
             mailbox_usage[sender["email"]] = mailbox_usage.get(sender["email"], 0) + 1
             total_sent += 1
         else:
-            log(f"[LIVE] [{touch_label}] [{src_tag}] Sending from {sender['email']} -> {to_email}...")
-            ok, msg_id = send_email(sender, password, to_email, subject, body)
+            log(f"[LIVE] [{touch_label}] [{src_tag}] Sending from {sender['email']} -> {to_email} (In-Reply-To: {parent_msg_id})...")
+            ok, msg_id = send_email(sender, password, to_email, subject, body, in_reply_to=parent_msg_id)
             if ok:
                 if volume_controller:
                     volume_controller.record_campaign_message(

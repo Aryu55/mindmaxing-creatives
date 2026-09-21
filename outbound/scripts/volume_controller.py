@@ -87,17 +87,29 @@ def check_mailbox_health(mailbox: str) -> tuple[bool, str]:
         conn.close()
         return False, f"Domain {domain} is PAUSED: {domain_paused['paused_reason']}"
 
-    # 3. Check collector freshness (Stale > 1 hour pauses sending)
+    # 3. Check collector freshness (Missing or Stale > 1 hour pauses sending)
     one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     c.execute("SELECT last_scan_at, status, error_message FROM collector_health WHERE mailbox = ?", (mailbox,))
     health = c.fetchone()
-    if health:
-        if health["status"] == "error":
-            conn.close()
-            return False, f"Collector reporting ERROR on {mailbox}: {health['error_message']}"
-        if health["last_scan_at"] and health["last_scan_at"] < one_hour_ago:
-            conn.close()
-            return False, f"Collector monitoring on {mailbox} is STALE (>1h ago: {health['last_scan_at']})"
+    if not health or not health["last_scan_at"]:
+        conn.close()
+        return False, f"Collector monitoring MISSING on {mailbox}: no successful scan recorded"
+    if health["status"] == "error":
+        conn.close()
+        return False, f"Collector reporting ERROR on {mailbox}: {health['error_message']}"
+    if health["last_scan_at"] < one_hour_ago:
+        conn.close()
+        return False, f"Collector monitoring on {mailbox} is STALE (>1h ago: {health['last_scan_at']})"
+
+    # 3b. Check seed collector freshness
+    c.execute("""
+        SELECT count(*) as cnt FROM collector_health 
+        WHERE mailbox_type = 'test_inbox' AND status = 'healthy' AND last_scan_at >= ?
+    """, (one_hour_ago,))
+    seed_row = c.fetchone()
+    if not seed_row or seed_row["cnt"] == 0:
+        conn.close()
+        return False, "Seed collector monitoring is UNAVAILABLE or STALE across all seeds"
 
     # 4. Check temporary failure streak on this mailbox (3 consecutive pauses route)
     c.execute("""
@@ -118,6 +130,7 @@ def reserve_quota(mailbox: str, purpose: str = "campaign") -> tuple[bool, str]:
     """
     Transactionally reserves sending quota for the current UTC date.
     Returns (True, 'Reserved') or (False, reason).
+    Enforces caps from mailbox_daily_decisions ledger if generated.
     """
     healthy, reason = check_mailbox_health(mailbox)
     if not healthy:
@@ -134,7 +147,26 @@ def reserve_quota(mailbox: str, purpose: str = "campaign") -> tuple[bool, str]:
         c.execute("SELECT level FROM mailbox_levels WHERE mailbox = ?", (mailbox,))
         lvl_row = c.fetchone()
         level = lvl_row["level"] if lvl_row else 1
-        caps = LEVEL_CAPS.get(level, LEVEL_CAPS[1])
+        base_caps = LEVEL_CAPS.get(level, LEVEL_CAPS[1])
+
+        # Check daily decision ledger if available
+        c.execute("""
+            SELECT effective_campaign_cap, effective_diagnostic_cap, decision_action, decision_reason
+            FROM mailbox_daily_decisions
+            WHERE mailbox = ? AND decision_date_utc = ?
+        """, (mailbox, utc_date))
+        d_row = c.fetchone()
+
+        if d_row:
+            if d_row["decision_action"].startswith("HOLD_") or d_row["decision_action"] in ("PAUSED", "DOMAIN_PAUSED"):
+                c.execute("COMMIT")
+                conn.close()
+                return False, f"Daily decision engine held {mailbox}: {d_row['decision_reason']}"
+            camp_cap = d_row["effective_campaign_cap"]
+            diag_cap = d_row["effective_diagnostic_cap"]
+        else:
+            camp_cap = base_caps["campaign"]
+            diag_cap = base_caps["diagnostic"]
 
         # Get or insert current usage
         c.execute("SELECT campaign_sent, diagnostic_sent FROM mailbox_quotas WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
@@ -147,16 +179,16 @@ def reserve_quota(mailbox: str, purpose: str = "campaign") -> tuple[bool, str]:
             diag_sent = q_row["diagnostic_sent"]
 
         if purpose == "campaign":
-            if camp_sent >= caps["campaign"]:
+            if camp_sent >= camp_cap:
                 c.execute("COMMIT")
                 conn.close()
-                return False, f"Campaign daily limit reached ({camp_sent}/{caps['campaign']} UTC sends for {mailbox} at Level {level})"
+                return False, f"Campaign daily limit reached ({camp_sent}/{camp_cap} UTC sends for {mailbox} at Level {level})"
             c.execute("UPDATE mailbox_quotas SET campaign_sent = campaign_sent + 1 WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
         elif purpose == "test":
-            if diag_sent >= caps["diagnostic"]:
+            if diag_sent >= diag_cap:
                 c.execute("COMMIT")
                 conn.close()
-                return False, f"Diagnostic daily limit reached ({diag_sent}/{caps['diagnostic']} UTC sends for {mailbox})"
+                return False, f"Diagnostic daily limit reached ({diag_sent}/{diag_cap} UTC sends for {mailbox})"
             c.execute("UPDATE mailbox_quotas SET diagnostic_sent = diagnostic_sent + 1 WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
         else:
             c.execute("COMMIT")
@@ -326,7 +358,14 @@ def evaluate_mailbox_promotion(mailbox: str) -> tuple[bool, str]:
         return False, "Already at maximum volume level (Level 3)"
 
     # Check 1: Time at current level (7 calendar days)
-    level_updated = datetime.fromisoformat(m_row["level_updated_at"].replace("Z", "+00:00"))
+    clean_lu = (m_row["level_updated_at"] or now.isoformat()).replace("Z", "+00:00")
+    try:
+        level_updated = datetime.fromisoformat(clean_lu)
+        if level_updated.tzinfo is None:
+            level_updated = level_updated.replace(tzinfo=timezone.utc)
+    except Exception:
+        level_updated = now
+
     if (now - level_updated).total_seconds() < 7 * 86400:
         days_left = 7 - ((now - level_updated).total_seconds() / 86400)
         conn.close()

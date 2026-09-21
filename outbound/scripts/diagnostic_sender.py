@@ -20,7 +20,10 @@ from email.utils import formatdate, make_msgid
 
 import volume_controller
 
-BASE_DIR = "/root/outbound"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.environ.get("MINDMAXING_BASE_DIR") or (
+    "/root/outbound" if os.path.exists("/root/outbound/data") else os.path.dirname(SCRIPT_DIR)
+)
 MAILBOXES_FILE = os.path.join(BASE_DIR, "config", "mailboxes.json")
 TEST_INBOXES_FILE = os.path.join(BASE_DIR, "config", "test_inboxes.json")
 CREDENTIALS_FILE = os.path.join(BASE_DIR, "config", "credentials.env")
@@ -152,11 +155,17 @@ def run_diagnostic_rotation(limit: int = None):
     skipped = 0
     errors = 0
 
+    if not test_inboxes:
+        print(f"[{datetime.now(timezone.utc).isoformat()}] HOLD: Zero test Gmail inboxes configured. Skipping diagnostic rotation.")
+        return
+
+    day_offset = int(datetime.now(timezone.utc).timestamp() // 86400)
+
     for idx, m in enumerate(mailboxes):
         if limit and idx >= limit:
             break
-        # Rotate evenly through test Gmails
-        target_gmail = test_inboxes[idx % len(test_inboxes)]
+        # Rotate evenly through test Gmails across days
+        target_gmail = test_inboxes[(idx + day_offset) % len(test_inboxes)]
         ok, reason = send_diagnostic(m, target_gmail)
         if ok:
             successful += 1

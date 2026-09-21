@@ -177,7 +177,7 @@ def generate_copy(lead: dict, sender: dict, touch_step: int = 1) -> tuple[str, s
     else:
         return generate_touch_3_copy(lead, sender, "Re: quick question")
 
-def send_email(sender: dict, password: str, to_email: str, subject: str, body: str) -> tuple[bool, str]:
+def send_email(sender: dict, password: str, to_email: str, subject: str, body: str, in_reply_to: str = None) -> tuple[bool, str]:
     msg = MIMEMultipart("alternative")
     msg["From"] = f"{sender['name']} <{sender['email']}>"
     msg["To"] = to_email
@@ -185,6 +185,11 @@ def send_email(sender: dict, password: str, to_email: str, subject: str, body: s
     msg["Subject"] = subject
     msg_id = f"<{int(time.time())}.{random.randint(1000, 9999)}@{sender['email'].split('@')[1]}>"
     msg["Message-ID"] = msg_id
+
+    if in_reply_to:
+        msg["In-Reply-To"] = in_reply_to
+        msg["References"] = in_reply_to
+
     msg.attach(MIMEText(body, "plain", "utf-8"))
 
     try:
@@ -229,6 +234,10 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
         log(f"⏸️  WEEKEND HOLDING PATTERN ACTIVE ({now_utc.strftime('%A')}).")
         log("    Inboxes paused to protect open rates and deliverability. Next window opens Monday 08:30 UTC.")
         log("    (Pass --now to dispatch human-reviewed leads immediately).")
+        return
+
+    if live_mode and not volume_controller:
+        log("CRITICAL ERROR: volume_controller missing in live mode. Halting scheduler (Fail-Closed).")
         return
 
     # Build queue of eligible leads
@@ -309,6 +318,17 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
         elif step == 2 and last_dt and (now_utc - last_dt) >= timedelta(days=5):
             queue.append((l, 3, "TOUCH_3", status))
 
+    # Prioritize Follow-ups (Touch 2, Touch 3) over new leads (Touch 1)
+    def queue_sort_key(item):
+        ld, t_step, t_lbl, st = item
+        is_followup = 0 if t_step > 1 else 1  # follow-ups come first (0 < 1)
+        c_i = crm_data.get(ld.get("domain", ""), {})
+        last_str = c_i.get("last_contacted_at") or "9999-99-99"
+        pain = float(ld.get("pain_score", 0) or 0)
+        return (is_followup, last_str if is_followup == 0 else -pain)
+
+    queue.sort(key=queue_sort_key)
+
     log(f"Eligible Leads in Currently Active Windows: {len(queue)}")
 
     if not queue:
@@ -332,8 +352,10 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
 
         sender = get_pinned_sender(lead.get("domain"), mailboxes, history, mailbox_usage)
 
-        # Volume Controller Reservation
-        if live_mode and volume_controller:
+        # Volume Controller Reservation (Fail-Closed)
+        if live_mode:
+            if not volume_controller:
+                raise RuntimeError("FAIL-CLOSED: volume_controller missing in live scheduler")
             reserved, r_reason = volume_controller.reserve_quota(sender["email"], "campaign")
             if not reserved:
                 log(f"  [QUOTA/HEALTH] Mailbox {sender['email']} unavailable: {r_reason}")
@@ -344,14 +366,34 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
         subject, body = generate_copy(lead, sender, touch_step)
         c_code = lead.get("country_code", "US")
 
+        # Threading: fetch parent message ID for follow-up touches
+        parent_msg_id = None
+        if touch_step > 1 and volume_controller:
+            try:
+                conn_p = volume_controller.get_db_connection()
+                cp = conn_p.cursor()
+                cp.execute("SELECT message_id FROM messages WHERE recipient_email = ? AND purpose = 'campaign' ORDER BY sent_at DESC LIMIT 1", (to_email,))
+                p_row = cp.fetchone()
+                if p_row and p_row["message_id"]:
+                    parent_msg_id = p_row["message_id"]
+                conn_p.close()
+            except Exception:
+                pass
+
+        if not parent_msg_id and touch_step > 1 and history:
+            for h in reversed(history):
+                if h.get("lead_email") == to_email and h.get("message_id"):
+                    parent_msg_id = h.get("message_id")
+                    break
+
         if not live_mode:
             log(f"[DRY-RUN] [{touch_label}] {sender['email']} -> {to_email} [{c_code}]")
             log(f"  Subject: {subject}")
             mailbox_usage[sender["email"]] = mailbox_usage.get(sender["email"], 0) + 1
             total_sent_today += 1
         else:
-            log(f"[LIVE DISPATCH] [{touch_label}] Sending from {sender['email']} -> {to_email} [{c_code}]...")
-            ok, msg_id = send_email(sender, password, to_email, subject, body)
+            log(f"[LIVE DISPATCH] [{touch_label}] Sending from {sender['email']} -> {to_email} [{c_code}] (In-Reply-To: {parent_msg_id})...")
+            ok, msg_id = send_email(sender, password, to_email, subject, body, in_reply_to=parent_msg_id)
             if ok:
                 if volume_controller:
                     volume_controller.record_campaign_message(
