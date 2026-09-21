@@ -154,6 +154,23 @@ def run_migration(db_path: str = DB_PATH) -> bool:
             );
         """)
 
+        # 6. mailbox_quotas (add period_id for unified IST budget tracking)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS mailbox_quotas (
+                mailbox TEXT NOT NULL,
+                date_utc TEXT NOT NULL,
+                campaign_sent INTEGER DEFAULT 0,
+                diagnostic_sent INTEGER DEFAULT 0,
+                period_id TEXT,
+                PRIMARY KEY (mailbox, date_utc)
+            );
+        """)
+        c.execute("PRAGMA table_info(mailbox_quotas);")
+        quota_cols = [r[1] for r in c.fetchall()]
+        if "period_id" not in quota_cols:
+            c.execute("ALTER TABLE mailbox_quotas ADD COLUMN period_id TEXT;")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_mb_quotas_period ON mailbox_quotas (mailbox, period_id);")
+
         conn.commit()
         print("[+] Adaptive mailbox migration successfully applied.")
         return True

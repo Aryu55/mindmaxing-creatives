@@ -555,6 +555,164 @@ class TestRevisedPlan(unittest.TestCase):
         self.assertEqual(c.fetchone()[0], 1)
         conn.close()
 
+    # 13. DMARC pass requirement enforced for clean diagnostic
+    def test_scenario_13_dmarc_pass_requirement_enforced(self):
+        conn = sqlite3.connect(self.test_db)
+        c = conn.cursor()
+        now_iso = datetime.now(timezone.utc).isoformat()
+        mb = "aryan@mindmaxing.online"
+
+        c.execute("INSERT OR REPLACE INTO collector_health VALUES (?, 'sender', ?, 'healthy', NULL, 1, ?)", (mb, now_iso, now_iso))
+        c.execute("INSERT OR REPLACE INTO collector_health VALUES ('seed@gmail.com', 'test_inbox', ?, 'healthy', NULL, 1, ?)", (now_iso, now_iso))
+
+        # Diagnostic with SPF and DKIM pass, but DMARC FAIL
+        c.execute("""
+            INSERT INTO messages (
+                message_id, sender_email, sender_domain, recipient_email, recipient_domain,
+                recipient_provider, purpose, sent_at, sent_date, smtp_status, delivery_state,
+                auth_spf, auth_dkim, auth_dmarc, last_event_at
+            ) VALUES ('<diag-dmarc-fail@mindmaxing.online>', ?, 'mindmaxing.online', 'seed@gmail.com', 'gmail.com', 'gmail', 'test', ?, '2026-09-22', 'accepted', 'inbox', 'pass', 'pass', 'fail', ?)
+        """, (mb, now_iso, now_iso))
+        conn.commit()
+
+        # Must NOT unlock mailbox because DMARC failed! (Caught by Rule 3 domain auth failure)
+        res_fail = daily_mailbox_planner.plan_day(conn, period_id="2026-09-22-IST", shadow=True)
+        dec_fail = next(d for d in res_fail["decisions"] if d["mailbox"] == mb)
+        self.assertEqual(dec_fail["campaign_cap"], 0)
+        self.assertEqual(dec_fail["action"], "PAUSE")
+        self.assertIn("authentication failure", dec_fail["reason"].lower())
+
+        # Update DMARC to pass
+        c.execute("UPDATE messages SET auth_dmarc = 'pass' WHERE message_id = '<diag-dmarc-fail@mindmaxing.online>'")
+        conn.commit()
+
+        # Now it unlocks baseline 1!
+        res_pass = daily_mailbox_planner.plan_day(conn, period_id="2026-09-22-IST", shadow=True)
+        conn.close()
+        dec_pass = next(d for d in res_pass["decisions"] if d["mailbox"] == mb)
+        self.assertEqual(dec_pass["campaign_cap"], 1)
+        self.assertEqual(dec_pass["action"], "KEEP")
+
+    # 14. Narrow diagnostic recovery permits awaiting readiness, but hard stops reject diagnostics
+    def test_scenario_14_narrow_diagnostic_recovery_vs_hard_stops(self):
+        conn = sqlite3.connect(self.test_db)
+        c = conn.cursor()
+        now_iso = datetime.now(timezone.utc).isoformat()
+        period_id = volume_controller.get_current_period_id()
+        mb_readiness = "readiness@mindmaxing.online"
+        mb_manual_pause = "manual@mindmaxing.online"
+        mb_auth_fail = "authfail@mindmaxing.online"
+
+        c.execute("INSERT OR REPLACE INTO mailbox_levels VALUES (?, 'mindmaxing.online', 1, ?, 'active', NULL, NULL)", (mb_readiness, now_iso))
+        c.execute("INSERT OR REPLACE INTO collector_health VALUES (?, 'sender', ?, 'healthy', NULL, 1, ?)", (mb_readiness, now_iso, now_iso))
+        c.execute("""
+            INSERT INTO mailbox_daily_decisions (
+                decision_id, period_id, decision_date_utc, mailbox, domain, current_level,
+                effective_campaign_cap, effective_diagnostic_cap, decision_action, decision_reason,
+                evidence_summary_json, revision, created_at
+            ) VALUES (?, ?, '2026-09-22', ?, 'mindmaxing.online', 1, 0, 1, 'PAUSE', 'Awaiting first clean diagnostic in Inbox with passing SPF/DKIM/DMARC', '{}', 1, ?)
+        """, (f"DEC-{period_id}-{mb_readiness}", period_id, mb_readiness, now_iso))
+
+        # Manual pause mailbox
+        c.execute("INSERT OR REPLACE INTO mailbox_levels VALUES (?, 'mindmaxing.online', 1, ?, 'paused', 'Operator hold', NULL)", (mb_manual_pause, now_iso))
+        c.execute("""
+            INSERT INTO mailbox_daily_decisions (
+                decision_id, period_id, decision_date_utc, mailbox, domain, current_level,
+                effective_campaign_cap, effective_diagnostic_cap, decision_action, decision_reason,
+                evidence_summary_json, revision, created_at
+            ) VALUES (?, ?, '2026-09-22', ?, 'mindmaxing.online', 1, 0, 0, 'PAUSED', 'Manually paused by operator', '{}', 1, ?)
+        """, (f"DEC-{period_id}-{mb_manual_pause}", period_id, mb_manual_pause, now_iso))
+
+        # Auth failure mailbox
+        c.execute("INSERT OR REPLACE INTO mailbox_levels VALUES (?, 'mindmaxing.online', 1, ?, 'active', NULL, NULL)", (mb_auth_fail, now_iso))
+        c.execute("""
+            INSERT INTO mailbox_daily_decisions (
+                decision_id, period_id, decision_date_utc, mailbox, domain, current_level,
+                effective_campaign_cap, effective_diagnostic_cap, decision_action, decision_reason,
+                evidence_summary_json, revision, created_at
+            ) VALUES (?, ?, '2026-09-22', ?, 'mindmaxing.online', 1, 0, 0, 'HOLD_AUTH_FAILED', 'Confirmed authentication failure', '{}', 1, ?)
+        """, (f"DEC-{period_id}-{mb_auth_fail}", period_id, mb_auth_fail, now_iso))
+
+        conn.commit()
+        conn.close()
+
+        # Case A: Awaiting readiness permits 1 diagnostic ping
+        test_ok, test_msg = volume_controller.reserve_quota(mb_readiness, purpose="test", period_id=period_id)
+        self.assertTrue(test_ok, f"Awaiting readiness must permit recovery diagnostic: {test_msg}")
+
+        # Case B: Manual pause strictly rejects diagnostic send
+        man_ok, man_msg = volume_controller.reserve_quota(mb_manual_pause, purpose="test", period_id=period_id)
+        self.assertFalse(man_ok, "Manual pause must reject diagnostic sends")
+
+        # Case C: Auth failure strictly rejects diagnostic send
+        auth_ok, auth_msg = volume_controller.reserve_quota(mb_auth_fail, purpose="test", period_id=period_id)
+        self.assertFalse(auth_ok, "Auth failure must reject diagnostic sends")
+
+    # 15. Unified budget period accounting across midnight UTC rollover
+    def test_scenario_15_midnight_utc_crossing_preserves_period_quota(self):
+        conn = sqlite3.connect(self.test_db)
+        c = conn.cursor()
+        mb = "aryan@mindmaxing.online"
+        period_id = "2026-09-22-IST"
+        now_iso = datetime.now(timezone.utc).isoformat()
+
+        # Insert required leads with HUMAN_APPROVED
+        c.execute("""
+            INSERT OR REPLACE INTO leads (id, domain, contact_email, status)
+            VALUES (1, 'store1.com', 'owner@store1.com', 'HUMAN_APPROVED'),
+                   (2, 'store2.com', 'owner@store2.com', 'HUMAN_APPROVED')
+        """)
+
+        c.execute("INSERT OR REPLACE INTO mailbox_levels VALUES (?, 'mindmaxing.online', 1, ?, 'active', NULL, NULL)", (mb, now_iso))
+        c.execute("INSERT OR REPLACE INTO collector_health VALUES (?, 'sender', ?, 'healthy', NULL, 5, ?)", (mb, now_iso, now_iso))
+        c.execute("""
+            INSERT INTO mailbox_daily_decisions (
+                decision_id, period_id, decision_date_utc, mailbox, domain, current_level,
+                effective_campaign_cap, effective_diagnostic_cap, decision_action, decision_reason,
+                evidence_summary_json, revision, created_at
+            ) VALUES (?, ?, '2026-09-21', ?, 'mindmaxing.online', 1, 1, 1, 'KEEP', 'Baseline', '{}', 1, ?)
+        """, (f"DEC-{period_id}-{mb}", period_id, mb, now_iso))
+        conn.commit()
+        conn.close()
+
+        # Step 1: Send 1 campaign email before midnight UTC (date_utc = 2026-09-21)
+        res1, msg1, data1 = volume_controller.reserve_and_claim_job(
+            lead_id=1, domain="store1.com", touch_number=1, mailbox=mb,
+            recipient="owner@store1.com", subject="Test", body="Body", worker_id="w1",
+            campaign_name="c1", period_id=period_id
+        )
+        self.assertTrue(res1, f"First send should succeed: {msg1}")
+
+        # Step 2: Simulate midnight UTC crossing: date_utc becomes 2026-09-22, but period_id is still 2026-09-22-IST
+        # Attempt second send on the same IST budget period
+        res2, msg2, data2 = volume_controller.reserve_and_claim_job(
+            lead_id=2, domain="store2.com", touch_number=1, mailbox=mb,
+            recipient="owner@store2.com", subject="Test", body="Body", worker_id="w1",
+            campaign_name="c1", period_id=period_id
+        )
+        # Must be REJECTED! Budget period cap is 1 send
+        self.assertFalse(res2, "Second send in same IST budget period must be blocked even if date_utc changed")
+        self.assertIn("quota reached", msg2.lower())
+
+    # 16. Timezone window precision for Ireland and US Pacific
+    def test_scenario_16_timezone_window_precision(self):
+        import scheduler
+        # Tuesday Sept 22 at 13:30 UTC
+        utc_1330 = datetime(2026, 9, 22, 13, 30, tzinfo=timezone.utc)
+
+        # Ireland (IE): 13:30 UTC is 14:30 local BST/IST -> Window is OPEN
+        ie_open, ie_msg = scheduler.get_timezone_window_status("IE", now_utc=utc_1330)
+        self.assertTrue(ie_open, f"Ireland at 13:30 UTC (14:30 local) must be OPEN: {ie_msg}")
+
+        # US California (state='CA'): 13:30 UTC is 06:30 AM PDT -> Window is CLOSED
+        ca_open, ca_msg = scheduler.get_timezone_window_status("US", now_utc=utc_1330, state="CA")
+        self.assertFalse(ca_open, f"California at 13:30 UTC (06:30 PDT) must be CLOSED: {ca_msg}")
+
+        # Later at 17:00 UTC (10:00 AM PDT) -> Window is OPEN
+        utc_1700 = datetime(2026, 9, 22, 17, 0, tzinfo=timezone.utc)
+        ca_later_open, ca_later_msg = scheduler.get_timezone_window_status("US", now_utc=utc_1700, state="CA")
+        self.assertTrue(ca_later_open, f"California at 17:00 UTC (10:00 PDT) must be OPEN: {ca_later_msg}")
+
 
 if __name__ == "__main__":
     unittest.main()

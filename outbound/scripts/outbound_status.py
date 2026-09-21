@@ -131,6 +131,18 @@ def generate_period_report(period_id: str) -> Dict[str, Any]:
     """)
     seed_telemetry = [dict(r) for r in c.fetchall()]
 
+    # 8. Historical campaign archive (pre-v2.1 or out-of-period records)
+    c.execute("""
+        SELECT count(*) as count, min(sent_at) as first_sent, max(sent_at) as last_sent,
+               sum(case when smtp_status = 'accepted' then 1 else 0 end) as accepted_count
+        FROM messages
+        WHERE purpose = 'campaign' AND (sent_at < ? OR sent_at >= ?)
+    """, (start_utc_iso, end_utc_iso))
+    hist_row = c.fetchone()
+    historical_campaign_count = hist_row["accepted_count"] if hist_row and hist_row["accepted_count"] else 0
+    historical_first = hist_row["first_sent"] if hist_row else None
+    historical_last = hist_row["last_sent"] if hist_row else None
+
     conn.close()
 
     # Compile per-mailbox telemetry
@@ -201,17 +213,16 @@ def generate_period_report(period_id: str) -> Dict[str, Any]:
     return {
         "period_id": period_id,
         "policy_version": "v2.1-revised",
-        "generated_at": now_iso,
-        "period_bounds_utc": {
-            "start": start_utc_iso,
-            "end": end_utc_iso
-        },
-        "total_mailboxes": len(mailbox_reports),
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "total_senders": len(mailboxes),
         "total_active_capacity": total_active_capacity,
         "suppressions_total": suppressions_total,
-        "seed_telemetry_label": "Controlled Personal Gmail Evidence Only",
         "seed_telemetry": seed_telemetry,
-        "unassigned_jobs": job_counts.get("unassigned", {}),
+        "historical_archive": {
+            "accepted_count": historical_campaign_count,
+            "first_sent": historical_first,
+            "last_sent": historical_last
+        },
         "mailboxes": mailbox_reports
     }
 
@@ -220,8 +231,8 @@ def format_text_report(rep: Dict[str, Any]) -> str:
     lines = []
     lines.append("=" * 80)
     lines.append(f"  MINDMAXING NIGHTLY CAMPAIGN REVIEW & MAILBOX REPORT: {rep['period_id']}")
-    lines.append(f"  Policy: {rep['policy_version']} | Generated: {rep['generated_at']} (UTC)")
-    lines.append(f"  Total Senders: {rep['total_mailboxes']} | Total Effective Daily Capacity: {rep['total_active_capacity']} messages")
+    lines.append(f"  Policy: {rep['policy_version']} | Generated: {rep['generated_at_utc']} (UTC)")
+    lines.append(f"  Total Senders: {rep['total_senders']} | Total Effective Daily Capacity: {rep['total_active_capacity']} messages")
     lines.append("=" * 80)
 
     lines.append("\n## MAILBOX STATUS & DECISION LEDGER\n")
@@ -243,7 +254,16 @@ def format_text_report(rep: Dict[str, Any]) -> str:
     lines.append(f"Pending Due Jobs: {total_due} | Deferred Jobs: {total_def} | Uncertain Submissions: {total_unc}")
     lines.append(f"Recipient Suppressions: {rep['suppressions_total']} (Globally Enforced)")
 
-    lines.append("\n## SEED TELEMETRY (Label: Controlled Personal Gmail Evidence Only)")
+    lines.append("\n## HISTORICAL CAMPAIGN ARCHIVE (Pre-v2.1 / Out-of-Period)")
+    hist = rep.get("historical_archive", {})
+    if hist.get("accepted_count"):
+        lines.append(f"Historical accepted campaign sends on record: {hist['accepted_count']} (From {str(hist['first_sent'])[:10]} to {str(hist['last_sent'])[:10]})")
+        lines.append("Note: Preserved separately from active budget period accounting.")
+    else:
+        lines.append("No out-of-period historical campaign sends recorded.")
+
+    lines.append("\n## CONTROLLED SEED TELEMETRY (Test Gmail Inboxes Only — Not Prospect Delivery)")
+    lines.append("Note: Measures SPF/DKIM/DMARC and folder placement in controlled test accounts; does not guarantee founder inbox placement or Primary tab delivery.")
     if rep["seed_telemetry"]:
         for s in rep["seed_telemetry"]:
             lines.append(f"  * {s['recipient_email']}: {s['tests_received']} tests (Inbox: {s['inbox_count']}, Spam: {s['spam_count']})")

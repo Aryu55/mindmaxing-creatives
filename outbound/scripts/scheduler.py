@@ -89,53 +89,74 @@ def log(msg: str):
     except Exception:
         pass
 
-def get_timezone_window_status(country_code: str, now_utc: datetime = None) -> tuple[bool, str]:
+def get_timezone_window_status(country_code: str, now_utc: datetime = None, state: str = None, city: str = None) -> tuple[bool, str]:
     """
-    Evaluates whether the lead's country is currently inside the B2B Golden Sending Window:
-    - Monday through Friday ONLY (Weekend = PAUSE).
+    Evaluates whether the lead's location is currently inside the B2B Golden Sending Window:
+    - Monday through Friday in recipient's LOCAL timezone ONLY (Weekend = PAUSE).
     - Local Business Hours: 09:00 to 16:30 local time.
     """
     if now_utc is None:
         now_utc = datetime.now(timezone.utc)
 
-    # 0 = Monday, ..., 4 = Friday, 5 = Saturday, 6 = Sunday
-    weekday = now_utc.weekday()
-    day_name = now_utc.strftime("%A")
-
-    if weekday in (5, 6):
-        return False, f"Weekend Holding Pattern ({day_name}). Outbound paused to protect open rates & deliverability."
-
     cc = (country_code or "US").upper()
     hour_utc = now_utc.hour + (now_utc.minute / 60.0)
 
-    # UK Window: 08:30 to 15:30 UTC (09:30 - 16:30 BST)
-    if cc in ("GB", "UK"):
-        if 8.5 <= hour_utc <= 15.5:
-            return True, f"UK Window OPEN ({hour_utc:.1f} UTC / 09:30-16:30 BST)"
-        return False, f"UK Window CLOSED ({hour_utc:.1f} UTC - outside 08:30-15:30 UTC)"
+    # Determine approximate local UTC offset (hours)
+    # Offsets during Daylight Saving Time (September)
+    local_offset = 0.0
 
-    # Europe Window (DE, NL, FR, IT, ES, SE, DK, NO, FI): 07:30 to 15:00 UTC (09:30 - 17:00 CEST)
-    if cc in ("DE", "NL", "FR", "IT", "ES", "SE", "DK", "NO", "FI", "EU"):
-        if 7.5 <= hour_utc <= 15.0:
-            return True, f"EU Window OPEN ({hour_utc:.1f} UTC / 09:30-17:00 CEST)"
-        return False, f"EU Window CLOSED ({hour_utc:.1f} UTC - outside 07:30-15:00 UTC)"
+    if cc in ("GB", "UK", "IE"):
+        # BST / Irish Standard Time (IST): UTC+1
+        local_offset = 1.0
+    elif cc in ("DE", "NL", "FR", "IT", "ES", "SE", "DK", "NO", "FI", "EU", "PL", "AT", "CH", "BE"):
+        # CEST: UTC+2
+        local_offset = 2.0
+    elif cc in ("AU", "NZ"):
+        # AEST: UTC+10
+        local_offset = 10.0
+    elif cc in ("US", "CA"):
+        st = (state or "").upper().strip()
+        eastern_states = {"ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "DE", "MD", "DC", "VA", "WV", "NC", "SC", "GA", "FL", "OH", "MI"}
+        central_states = {"IL", "WI", "MN", "IA", "MO", "ND", "SD", "NE", "KS", "OK", "TX", "LA", "AR", "MS", "AL", "TN"}
+        mountain_states = {"MT", "WY", "UT", "CO", "NM", "AZ"}
+        pacific_states = {"WA", "OR", "CA", "NV"}
 
-    # US & Canada Window (Eastern to Pacific): 13:30 to 20:30 UTC (09:30 EDT to 13:30 PDT / 16:30 EDT)
-    if cc in ("US", "CA"):
-        if 13.5 <= hour_utc <= 20.5:
-            return True, f"US/CA Window OPEN ({hour_utc:.1f} UTC / 09:30-16:30 EDT)"
-        return False, f"US/CA Window CLOSED ({hour_utc:.1f} UTC - outside 13:30-20:30 UTC)"
+        if st in eastern_states:
+            local_offset = -4.0  # EDT
+        elif st in central_states:
+            local_offset = -5.0  # CDT
+        elif st in mountain_states:
+            local_offset = -6.0  # MDT / MST
+        elif st in pacific_states:
+            local_offset = -7.0  # PDT
+        else:
+            # Conservative nationwide default: guaranteed business hours across all US zones
+            # 16:00 UTC = 09:00 PDT / 12:00 EDT; 20:30 UTC = 13:30 PDT / 16:30 EDT
+            local_dt = now_utc - timedelta(hours=7)  # check Pacific for local day
+            weekday = local_dt.weekday()
+            day_name = local_dt.strftime("%A")
+            if weekday in (5, 6):
+                return False, f"Weekend Holding Pattern in recipient local time ({day_name}). Outbound paused."
+            if 16.0 <= hour_utc <= 20.5:
+                return True, f"US/CA Nationwide Overlap Window OPEN ({hour_utc:.1f} UTC / 09:00 PDT - 16:30 EDT)"
+            return False, f"US/CA Nationwide Overlap Window CLOSED ({hour_utc:.1f} UTC - outside 16:00-20:30 UTC)"
+    else:
+        local_offset = -4.0
 
-    # Australia / NZ Window: 23:00 to 06:00 UTC
-    if cc in ("AU", "NZ"):
-        if hour_utc >= 23.0 or hour_utc <= 6.0:
-            return True, f"AU Window OPEN ({hour_utc:.1f} UTC)"
-        return False, f"AU Window CLOSED ({hour_utc:.1f} UTC)"
+    # Calculate exact local datetime with determined offset
+    local_dt = now_utc + timedelta(hours=local_offset)
+    local_weekday = local_dt.weekday()
+    day_name = local_dt.strftime("%A")
 
-    # Default foreign fallback: check US window
-    if 13.5 <= hour_utc <= 20.5:
-        return True, f"Default Foreign Window OPEN ({hour_utc:.1f} UTC)"
-    return False, f"Default Foreign Window CLOSED ({hour_utc:.1f} UTC)"
+    if local_weekday in (5, 6):
+        return False, f"Weekend Holding Pattern in recipient local time ({day_name}). Outbound paused."
+
+    local_hour = local_dt.hour + (local_dt.minute / 60.0)
+
+    # Standard B2B business window: 09:00 to 16:30 local time
+    if 9.0 <= local_hour <= 16.5:
+        return True, f"Local Business Window OPEN ({local_hour:.1f} local / {local_dt.strftime('%H:%M')} {day_name})"
+    return False, f"Local Business Window CLOSED ({local_hour:.1f} local - outside 09:00-16:30 {day_name})"
 
 def load_mailboxes():
     if not os.path.exists(CONFIG_FILE):

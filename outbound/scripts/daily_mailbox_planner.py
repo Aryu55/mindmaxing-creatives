@@ -271,7 +271,7 @@ def plan_day(
             FROM messages
             WHERE sender_email = ? AND purpose = 'test'
               AND delivery_state IN ('inbox', 'promotions')
-              AND auth_spf = 'pass' AND auth_dkim = 'pass'
+              AND auth_spf = 'pass' AND auth_dkim = 'pass' AND auth_dmarc = 'pass'
             ORDER BY sent_at DESC LIMIT 1
         """, (email_addr,))
         ever_clean = c.fetchone()
@@ -290,7 +290,7 @@ def plan_day(
                 FROM messages
                 WHERE sender_email = ? AND purpose = 'test'
                   AND delivery_state IN ('inbox', 'promotions')
-                  AND auth_spf = 'pass' AND auth_dkim = 'pass'
+                  AND auth_spf = 'pass' AND auth_dkim = 'pass' AND auth_dmarc = 'pass'
                   AND sent_at >= ?
                 ORDER BY sent_at DESC LIMIT 1
             """, (email_addr, seventy_two_hours_ago_iso))
@@ -363,7 +363,7 @@ def plan_day(
                 SELECT message_id, recipient_email FROM messages
                 WHERE sender_email = ? AND purpose = 'test'
                   AND delivery_state IN ('inbox', 'promotions')
-                  AND auth_spf = 'pass' AND auth_dkim = 'pass'
+                  AND auth_spf = 'pass' AND auth_dkim = 'pass' AND auth_dmarc = 'pass'
                   AND sent_at >= ?
             """, (email_addr, seven_days_ago_iso))
             diag_rows = c.fetchall()

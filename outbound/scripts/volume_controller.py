@@ -180,34 +180,52 @@ def reserve_quota(mailbox: str, purpose: str = "campaign", period_id: str = None
 
         if d_row:
             action = d_row["decision_action"]
-            reason_str = d_row["decision_reason"]
+            reason_str = d_row["decision_reason"] or ""
             
-            # Hard blocks prevent both campaign and diagnostic sends
-            if action in ("PAUSE", "PAUSED", "DOMAIN_PAUSED", "HOLD_TRANSPORT_ERROR", "HOLD_AUTH_FAILED"):
-                c.execute("COMMIT")
-                conn.close()
-                return False, f"Daily decision engine held {mailbox}: {reason_str}"
-            
-            # Diagnostic recovery decoupling
-            if action.startswith("HOLD_"):
-                if purpose == "campaign":
+            if purpose == "campaign":
+                if action in ("PAUSE", "PAUSED", "DOMAIN_PAUSED", "HOLD_TRANSPORT_ERROR", "HOLD_AUTH_FAILED") or action.startswith("HOLD_"):
                     c.execute("COMMIT")
                     conn.close()
                     return False, f"Daily decision engine held campaign for {mailbox}: {reason_str}"
-                elif purpose == "test":
-                    camp_cap = 0
-                    diag_cap = d_row["effective_diagnostic_cap"]
-                    if diag_cap <= 0:
-                        c.execute("COMMIT")
-                        conn.close()
-                        return False, f"Daily decision diagnostic cap is 0 for {mailbox}: {reason_str}"
-                else:
+                camp_cap = d_row["effective_campaign_cap"]
+                if camp_cap <= 0:
                     c.execute("COMMIT")
                     conn.close()
-                    return False, f"Invalid message purpose: {purpose}"
-            else:
-                camp_cap = d_row["effective_campaign_cap"]
+                    return False, f"Daily decision campaign cap is 0 for {mailbox}: {reason_str}"
+                diag_cap = 0
+
+            elif purpose == "test":
+                camp_cap = 0
                 diag_cap = d_row["effective_diagnostic_cap"]
+
+                if diag_cap <= 0:
+                    c.execute("COMMIT")
+                    conn.close()
+                    return False, f"Daily decision diagnostic cap is 0 for {mailbox}: {reason_str}"
+
+                # Hard blocks that strictly apply to diagnostics:
+                is_manual_pause = (action in ("PAUSED", "MANUAL_PAUSE") or "manually paused" in reason_str.lower() or "mailbox is paused" in reason_str.lower())
+                is_domain_pause = (action == "DOMAIN_PAUSED" or "domain" in action.lower() or ("domain" in reason_str.lower() and "paused" in reason_str.lower()))
+                is_transport_or_auth = (action in ("HOLD_TRANSPORT_ERROR", "HOLD_AUTH_FAILED") or "transport" in reason_str.lower() or "authentication failure" in reason_str.lower())
+
+                if is_manual_pause or is_domain_pause or is_transport_or_auth:
+                    c.execute("COMMIT")
+                    conn.close()
+                    return False, f"Diagnostic blocked by hard stop ({action}): {reason_str}"
+
+                # Narrow exemption: allow test pings when awaiting readiness or expired diagnostic
+                is_awaiting_readiness = ("awaiting first clean diagnostic" in reason_str.lower())
+                is_diag_expired = ("hold_diagnostic_expired" in action.lower() or "older than 72 hours" in reason_str.lower() or "expired" in reason_str.lower())
+                is_active_or_kept = (action in ("KEEP", "INCREASE", "DECREASE", "ACTIVE"))
+
+                if not (is_awaiting_readiness or is_diag_expired or is_active_or_kept):
+                    c.execute("COMMIT")
+                    conn.close()
+                    return False, f"Diagnostic send not permitted under decision ({action}): {reason_str}"
+            else:
+                c.execute("COMMIT")
+                conn.close()
+                return False, f"Invalid message purpose: {purpose}"
         else:
             # Fail closed for campaign sending if no daily decision exists
             if purpose == "campaign":
@@ -222,32 +240,47 @@ def reserve_quota(mailbox: str, purpose: str = "campaign", period_id: str = None
                 conn.close()
                 return False, f"Invalid message purpose: {purpose}"
 
-        # Get or insert current usage
-        c.execute("SELECT campaign_sent, diagnostic_sent FROM mailbox_quotas WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
+        # Unified period usage tracking
+        c.execute("""
+            SELECT SUM(campaign_sent) as camp_sent, SUM(diagnostic_sent) as diag_sent
+            FROM mailbox_quotas
+            WHERE mailbox = ? AND (period_id = ? OR (period_id IS NULL AND date_utc = ?))
+        """, (mailbox, period_id, period_id))
         q_row = c.fetchone()
-        if not q_row:
-            c.execute("INSERT INTO mailbox_quotas (mailbox, date_utc, campaign_sent, diagnostic_sent) VALUES (?, ?, 0, 0)", (mailbox, utc_date))
-            camp_sent, diag_sent = 0, 0
-        else:
-            camp_sent = q_row["campaign_sent"]
-            diag_sent = q_row["diagnostic_sent"]
+        camp_sent = (q_row["camp_sent"] or 0) if q_row else 0
+        diag_sent = (q_row["diag_sent"] or 0) if q_row else 0
 
         if purpose == "campaign":
             if camp_sent >= camp_cap:
                 c.execute("COMMIT")
                 conn.close()
                 return False, f"Campaign daily limit reached ({camp_sent}/{camp_cap} sends for {mailbox} at Level {level})"
-            c.execute("UPDATE mailbox_quotas SET campaign_sent = campaign_sent + 1 WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
         elif purpose == "test":
             if diag_sent >= diag_cap:
                 c.execute("COMMIT")
                 conn.close()
                 return False, f"Diagnostic daily limit reached ({diag_sent}/{diag_cap} sends for {mailbox})"
-            c.execute("UPDATE mailbox_quotas SET diagnostic_sent = diagnostic_sent + 1 WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
+
+        # Check existing row for this date_utc
+        c.execute("SELECT 1 FROM mailbox_quotas WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
+        if not c.fetchone():
+            c.execute("""
+                INSERT INTO mailbox_quotas (mailbox, date_utc, period_id, campaign_sent, diagnostic_sent)
+                VALUES (?, ?, ?, ?, ?)
+            """, (mailbox, utc_date, period_id, 1 if purpose == "campaign" else 0, 1 if purpose == "test" else 0))
         else:
-            c.execute("COMMIT")
-            conn.close()
-            return False, f"Invalid message purpose: {purpose}"
+            if purpose == "campaign":
+                c.execute("""
+                    UPDATE mailbox_quotas 
+                    SET campaign_sent = campaign_sent + 1, period_id = ?
+                    WHERE mailbox = ? AND date_utc = ?
+                """, (period_id, mailbox, utc_date))
+            elif purpose == "test":
+                c.execute("""
+                    UPDATE mailbox_quotas 
+                    SET diagnostic_sent = diagnostic_sent + 1, period_id = ?
+                    WHERE mailbox = ? AND date_utc = ?
+                """, (period_id, mailbox, utc_date))
 
         c.execute("COMMIT")
         conn.close()
@@ -376,15 +409,19 @@ def reserve_and_claim_job(
             conn.close()
             return False, f"Mailbox {mailbox} effective campaign cap is 0 ({d_reason})", None
 
-        # 3. Quota check & reservation
-        c.execute("SELECT campaign_sent FROM mailbox_quotas WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
+        # 3. Quota check & reservation by unified period_id
+        c.execute("""
+            SELECT SUM(campaign_sent) as camp_sent
+            FROM mailbox_quotas
+            WHERE mailbox = ? AND (period_id = ? OR (period_id IS NULL AND date_utc = ?))
+        """, (mailbox, period_id, period_id))
         q_row = c.fetchone()
-        current_sent = q_row["campaign_sent"] if q_row else 0
+        current_sent = (q_row["camp_sent"] or 0) if q_row else 0
 
         if current_sent >= effective_camp_cap:
             c.execute("ROLLBACK")
             conn.close()
-            return False, f"Mailbox {mailbox} quota reached ({current_sent}/{effective_camp_cap} sends)", None
+            return False, f"Mailbox {mailbox} quota reached ({current_sent}/{effective_camp_cap} sends for period {period_id})", None
 
         # 4. Outbound Job Claiming
         # Insert if not exists
@@ -420,11 +457,19 @@ def reserve_and_claim_job(
         job_id = job_row["id"] if job_row else None
         attempt_count = job_row["attempt_count"] if job_row else 1
 
-        # Increment quota
-        if not q_row:
-            c.execute("INSERT INTO mailbox_quotas (mailbox, date_utc, campaign_sent, diagnostic_sent) VALUES (?, ?, 1, 0)", (mailbox, utc_date))
+        # Increment quota by period_id
+        c.execute("SELECT 1 FROM mailbox_quotas WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
+        if not c.fetchone():
+            c.execute("""
+                INSERT INTO mailbox_quotas (mailbox, date_utc, period_id, campaign_sent, diagnostic_sent)
+                VALUES (?, ?, ?, 1, 0)
+            """, (mailbox, utc_date, period_id))
         else:
-            c.execute("UPDATE mailbox_quotas SET campaign_sent = campaign_sent + 1 WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
+            c.execute("""
+                UPDATE mailbox_quotas 
+                SET campaign_sent = campaign_sent + 1, period_id = ?
+                WHERE mailbox = ? AND date_utc = ?
+            """, (period_id, mailbox, utc_date))
 
         c.execute("COMMIT")
         conn.close()
@@ -445,29 +490,39 @@ def update_outbound_job_status(job_id: Optional[int], new_status: str, error_msg
     """Updates status on outbound_jobs row safely."""
     if not job_id:
         return
+    conn = get_db_connection()
+    c = conn.cursor()
     now_iso = datetime.now(timezone.utc).isoformat()
     try:
-        conn = get_db_connection()
-        c = conn.cursor()
         c.execute("UPDATE outbound_jobs SET status = ?, updated_at = ? WHERE id = ?", (new_status, now_iso, job_id))
         conn.close()
     except Exception:
         pass
 
-def rollback_quota(mailbox: str, purpose: str = "campaign"):
+def rollback_quota(mailbox: str, purpose: str = "campaign", period_id: str = None):
     """
     Rollback quota ONLY if SMTP failed completely before DATA submission.
     INVARIANT: Never rollback quota for post-DATA exceptions (e.g. QUIT errors or timeouts).
     """
+    if not period_id:
+        period_id = get_current_period_id()
     utc_date = get_utc_date_str()
     conn = get_db_connection()
     c = conn.cursor()
     try:
         c.execute("BEGIN IMMEDIATE")
         if purpose == "campaign":
-            c.execute("UPDATE mailbox_quotas SET campaign_sent = MAX(0, campaign_sent - 1) WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
+            c.execute("""
+                UPDATE mailbox_quotas 
+                SET campaign_sent = MAX(0, campaign_sent - 1) 
+                WHERE mailbox = ? AND (period_id = ? OR (period_id IS NULL AND date_utc = ?))
+            """, (mailbox, period_id, utc_date))
         elif purpose == "test":
-            c.execute("UPDATE mailbox_quotas SET diagnostic_sent = MAX(0, diagnostic_sent - 1) WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
+            c.execute("""
+                UPDATE mailbox_quotas 
+                SET diagnostic_sent = MAX(0, diagnostic_sent - 1) 
+                WHERE mailbox = ? AND (period_id = ? OR (period_id IS NULL AND date_utc = ?))
+            """, (mailbox, period_id, utc_date))
         c.execute("COMMIT")
     except Exception:
         c.execute("ROLLBACK")
