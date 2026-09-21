@@ -11,3 +11,9 @@ brands/
 .env
 .env.*
 outbound/data/
+outbound/backups/
+outbound/config/
+*.db
+*.sqlite
+__pycache__/
+*.pyc

@@ -1,0 +1,426 @@
+#!/usr/bin/env python3
+"""
+Mindmaxing Timezone-Aware Outbound Scheduler Daemon
+- Strictly enforces B2B Golden Sending Windows:
+    * Mon – Fri ONLY (Zero weekend sending: 100% pause on Saturday & Sunday).
+    * UK / Europe Window: 08:30 – 15:30 UTC (09:30 – 16:30 BST / CEST).
+    * US / Canada Window: 13:30 – 20:30 UTC (09:30 – 16:30 EDT / 06:30 – 13:30 PDT).
+- Enforces Balanced Mailbox Ramp:
+    * Max 1 send per mailbox per day across all 25 mailboxes (Total cap: 25 sends/day).
+    * Biological Poisson delays (40s – 85s) between sends.
+- Runs as a persistent background daemon, evaluating windows every 5 minutes.
+- Synchronous logging to mindmaxing_crm.db and sent_history.json.
+"""
+
+import json
+import os
+import random
+import smtplib
+import sqlite3
+import sys
+import time
+from datetime import datetime, timedelta, timezone
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_FILE = os.path.join(BASE_DIR, "config", "mailboxes.json")
+DATA_DIR = os.path.join(BASE_DIR, "data")
+ICP1_DIR = os.path.join(DATA_DIR, "icp1_shopify_dtc")
+LEADS_FILE = os.path.join(ICP1_DIR, "leads.json")
+HISTORY_FILE = os.path.join(DATA_DIR, "sent_history.json")
+DB_PATH = os.path.join(DATA_DIR, "mindmaxing_crm.db")
+LOG_FILE = os.path.join(DATA_DIR, "scheduler.log")
+
+try:
+    from crm_manager import log_touch
+except ImportError:
+    try:
+        from outbound.scripts.crm_manager import log_touch
+    except ImportError:
+        log_touch = None
+
+try:
+    import volume_controller
+except ImportError:
+    try:
+        from outbound.scripts import volume_controller
+    except ImportError:
+        volume_controller = None
+
+try:
+    from contact_policy import evaluate_contact, ContactDecision
+except ImportError:
+    try:
+        from outbound.scripts.contact_policy import evaluate_contact, ContactDecision
+    except ImportError:
+        evaluate_contact = None
+
+SMTP_HOST = os.environ.get("IONOS_SMTP_HOST", "smtp.ionos.com")
+SMTP_PORT = int(os.environ.get("IONOS_SMTP_PORT", 587))
+REPLY_TO = os.environ.get("REPLY_TO", "aryan@mindmaxing.info")
+MAX_PER_MAILBOX_DAILY = 1  # Strictly 1 email per mailbox for safe warm-up ramp
+DAILY_SEND_CAP = 25        # 25 mailboxes × 1 = 25 emails/day total
+
+PHYSICAL_FOOTER = """--
+Mindmaxing Studio
+102, Sunrise Business Park, Road No. 16, Wagle Estate, Thane, Maharashtra 400604, India
+Reply "stop" to opt out"""
+
+def log(msg: str):
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    line = f"[{ts}] [Outbound Scheduler] {msg}"
+    print(line, flush=True)
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    except Exception:
+        pass
+
+def get_timezone_window_status(country_code: str, now_utc: datetime = None) -> tuple[bool, str]:
+    """
+    Evaluates whether the lead's country is currently inside the B2B Golden Sending Window:
+    - Monday through Friday ONLY (Weekend = PAUSE).
+    - Local Business Hours: 09:00 to 16:30 local time.
+    """
+    if now_utc is None:
+        now_utc = datetime.now(timezone.utc)
+
+    # 0 = Monday, ..., 4 = Friday, 5 = Saturday, 6 = Sunday
+    weekday = now_utc.weekday()
+    day_name = now_utc.strftime("%A")
+
+    if weekday in (5, 6):
+        return False, f"Weekend Holding Pattern ({day_name}). Outbound paused to protect open rates & deliverability."
+
+    cc = (country_code or "US").upper()
+    hour_utc = now_utc.hour + (now_utc.minute / 60.0)
+
+    # UK Window: 08:30 to 15:30 UTC (09:30 - 16:30 BST)
+    if cc in ("GB", "UK"):
+        if 8.5 <= hour_utc <= 15.5:
+            return True, f"UK Window OPEN ({hour_utc:.1f} UTC / 09:30-16:30 BST)"
+        return False, f"UK Window CLOSED ({hour_utc:.1f} UTC - outside 08:30-15:30 UTC)"
+
+    # Europe Window (DE, NL, FR, IT, ES, SE, DK, NO, FI): 07:30 to 15:00 UTC (09:30 - 17:00 CEST)
+    if cc in ("DE", "NL", "FR", "IT", "ES", "SE", "DK", "NO", "FI", "EU"):
+        if 7.5 <= hour_utc <= 15.0:
+            return True, f"EU Window OPEN ({hour_utc:.1f} UTC / 09:30-17:00 CEST)"
+        return False, f"EU Window CLOSED ({hour_utc:.1f} UTC - outside 07:30-15:00 UTC)"
+
+    # US & Canada Window (Eastern to Pacific): 13:30 to 20:30 UTC (09:30 EDT to 13:30 PDT / 16:30 EDT)
+    if cc in ("US", "CA"):
+        if 13.5 <= hour_utc <= 20.5:
+            return True, f"US/CA Window OPEN ({hour_utc:.1f} UTC / 09:30-16:30 EDT)"
+        return False, f"US/CA Window CLOSED ({hour_utc:.1f} UTC - outside 13:30-20:30 UTC)"
+
+    # Australia / NZ Window: 23:00 to 06:00 UTC
+    if cc in ("AU", "NZ"):
+        if hour_utc >= 23.0 or hour_utc <= 6.0:
+            return True, f"AU Window OPEN ({hour_utc:.1f} UTC)"
+        return False, f"AU Window CLOSED ({hour_utc:.1f} UTC)"
+
+    # Default foreign fallback: check US window
+    if 13.5 <= hour_utc <= 20.5:
+        return True, f"Default Foreign Window OPEN ({hour_utc:.1f} UTC)"
+    return False, f"Default Foreign Window CLOSED ({hour_utc:.1f} UTC)"
+
+def load_mailboxes():
+    if not os.path.exists(CONFIG_FILE):
+        return []
+    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def load_leads():
+    if not os.path.exists(LEADS_FILE):
+        return []
+    with open(LEADS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def get_crm_status():
+    if not os.path.exists(DB_PATH):
+        return {}
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT domain, status, current_sequence_step, last_contacted_at, client_won,
+               source, subreddit, post_title, post_url, post_author, contact_email
+        FROM leads
+    """)
+    data = {r["domain"]: dict(r) for r in cursor.fetchall()}
+    conn.close()
+    return data
+
+def get_pinned_sender(domain: str, mailboxes: list, history: list, mailbox_usage: dict = None) -> dict:
+    for h in reversed(history):
+        if h.get("lead_domain") == domain and h.get("sender_email"):
+            match = next((m for m in mailboxes if m["email"] == h["sender_email"]), None)
+            if match:
+                return match
+    if mailbox_usage is not None:
+        min_used = min(mailbox_usage.get(m["email"], 0) for m in mailboxes)
+        available = [m for m in mailboxes if mailbox_usage.get(m["email"], 0) == min_used]
+        if available:
+            return random.choice(available)
+    return random.choice(mailboxes)
+
+def generate_copy(lead: dict, sender: dict, touch_step: int = 1) -> tuple[str, str]:
+    from dispatcher import generate_touch_1_copy, generate_touch_2_copy, generate_touch_3_copy
+    if touch_step == 1:
+        return generate_touch_1_copy(lead, sender)
+    elif touch_step == 2:
+        return generate_touch_2_copy(lead, sender, "Re: quick question")
+    else:
+        return generate_touch_3_copy(lead, sender, "Re: quick question")
+
+def send_email(sender: dict, password: str, to_email: str, subject: str, body: str) -> tuple[bool, str]:
+    msg = MIMEMultipart("alternative")
+    msg["From"] = f"{sender['name']} <{sender['email']}>"
+    msg["To"] = to_email
+    msg["Reply-To"] = REPLY_TO
+    msg["Subject"] = subject
+    msg_id = f"<{int(time.time())}.{random.randint(1000, 9999)}@{sender['email'].split('@')[1]}>"
+    msg["Message-ID"] = msg_id
+    msg.attach(MIMEText(body, "plain", "utf-8"))
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=25) as server:
+            server.starttls()
+            server.login(sender["email"], password)
+            server.sendmail(sender["email"], [to_email], msg.as_string())
+        return True, msg_id
+    except Exception as e:
+        log(f"SMTP Error from {sender['email']} to {to_email}: {e}")
+        return False, ""
+
+def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False):
+    mailboxes = load_mailboxes()
+    leads = load_leads()
+    crm_data = get_crm_status()
+    now_utc = datetime.now(timezone.utc)
+    today_str = datetime.now().strftime("%Y-%m-%d")
+
+    password = os.environ.get("IONOS_SMTP_PASSWORD", "").strip("\"'")
+
+    # Track usage today
+    history = []
+    if os.path.exists(HISTORY_FILE):
+        try:
+            history = json.load(open(HISTORY_FILE))
+        except Exception:
+            pass
+
+    mailbox_usage = {m["email"]: sum(1 for h in history if h.get("sender_email") == m["email"] and h.get("sent_date") == today_str) for m in mailboxes}
+    total_sent_today = sum(mailbox_usage.values())
+
+    log(f"=== Scheduler Heartbeat: {now_utc.strftime('%Y-%m-%d %H:%M:%S UTC')} ({now_utc.strftime('%A')}) ===")
+    log(f"Daily Sent Count: {total_sent_today}/{DAILY_SEND_CAP} across {len(mailboxes)} mailboxes.")
+
+    if total_sent_today >= DAILY_SEND_CAP:
+        log(f"Daily cap ({DAILY_SEND_CAP}) reached for today. Sleeping until tomorrow's window opens.")
+        return
+
+    # Check overall weekend gate (can be overridden with --now)
+    if not override_weekend and now_utc.weekday() in (5, 6):
+        log(f"⏸️  WEEKEND HOLDING PATTERN ACTIVE ({now_utc.strftime('%A')}).")
+        log("    Inboxes paused to protect open rates and deliverability. Next window opens Monday 08:30 UTC.")
+        log("    (Pass --now to dispatch human-reviewed leads immediately).")
+        return
+
+    # Build queue of eligible leads
+    queue = []
+    for l in leads:
+        d = l.get("domain")
+        email = l.get("contact_email", "").strip(".,;:'\"")
+        if not email or "@" not in email:
+            continue
+        if email.startswith("u003e") or len(email.split("@")[0]) < 2:
+            continue
+        prefix = email.split("@")[0].lower()
+        if prefix in ["legal", "privacy", "abuse", "dmca", "press", "media", "investor", "careers", "jobs", "compliance", "sms"] or prefix.endswith("-sms"):
+            continue
+
+        c_info = crm_data.get(d, {})
+        status = c_info.get("status") or l.get("status", "CANDIDATE")
+        step = c_info.get("current_sequence_step", 0)
+        client_won = c_info.get("client_won", 0)
+        last_str = c_info.get("last_contacted_at")
+
+        if client_won or status in ["CLIENT_WON", "SEQUENCE_COMPLETED", "COOLDOWN", "REPLIED", "REJECTED_FROM_CAMPAIGN"]:
+            continue
+
+        # Astra Fail-Closed Gate:
+        # In live mode, only dispatch 'HUMAN_APPROVED' leads.
+        allowed = ["HUMAN_APPROVED"] if live_mode else ["HUMAN_APPROVED", "READY", "CANDIDATE"]
+        if status not in allowed:
+            continue
+
+        # Enforce Shared Contact Policy Gate
+        if live_mode and evaluate_contact:
+            candidate = {
+                "contact_email": email,
+                "contact_name": c_info.get("contact_name") or l.get("contact_name", ""),
+                "contact_role": c_info.get("resolved_role") or "Founder",
+                "identity_status": c_info.get("identity_status") or ("FOUNDER_CONFIRMED" if (c_info.get("resolved_name") or l.get("contact_name")) else "UNCONFIRMED"),
+                "email_origin": c_info.get("email_origin") or ("PUBLIC_SITE" if c_info.get("contact_type") == "FOUNDER_RESOLVED" else "LEGACY_UNKNOWN"),
+                "mailbox_verification": "VALID" if c_info.get("contact_type") == "FOUNDER_RESOLVED" else ("ACCEPT_ALL" if "CATCH_ALL" in str(c_info.get("resolution_status", "")) else "UNCHECKED"),
+                "verification_time": c_info.get("resolved_at"),
+                "identity_evidence_time": c_info.get("resolved_at"),
+            }
+            campaign_state = {
+                "status": status,
+                "current_sequence_step": step,
+                "active_recipient": c_info.get("contact_email") or email,
+                "is_suppressed": False,
+                "quota_available": True
+            }
+            is_eligible, decision, reasons = evaluate_contact(candidate, campaign_state, now_utc)
+            if not is_eligible:
+                continue
+
+        # Suppression Check
+        if volume_controller:
+            suppressed, s_reason = volume_controller.is_recipient_suppressed(email)
+            if suppressed:
+                continue
+
+        # Timezone Window Gatekeeper
+        c_code = l.get("country_code", "US")
+        if not override_weekend:
+            is_open, window_reason = get_timezone_window_status(c_code, now_utc)
+            if not is_open:
+                continue
+
+        last_dt = None
+        if last_str:
+            try:
+                last_dt = datetime.fromisoformat(last_str.replace("Z", "+00:00"))
+            except Exception:
+                pass
+
+        if step == 0:
+            queue.append((l, 1, "TOUCH_1", status))
+        elif step == 1 and last_dt and (now_utc - last_dt) >= timedelta(days=3):
+            queue.append((l, 2, "TOUCH_2", status))
+        elif step == 2 and last_dt and (now_utc - last_dt) >= timedelta(days=5):
+            queue.append((l, 3, "TOUCH_3", status))
+
+    log(f"Eligible Leads in Currently Active Windows: {len(queue)}")
+
+    if not queue:
+        log("No eligible leads in open sending windows right now. Waiting for next window opening.")
+        return
+
+    # Process eligible leads
+    for lead, touch_step, touch_label, lead_status in queue:
+        if total_sent_today >= DAILY_SEND_CAP:
+            log("Reached daily send cap. Pausing.")
+            break
+
+        to_email = lead["contact_email"].strip(".,;:'\"")
+
+        # Suppression check
+        if volume_controller:
+            suppressed, s_reason = volume_controller.is_recipient_suppressed(to_email)
+            if suppressed:
+                log(f"  [SUPPRESSED] Skipping {to_email}: {s_reason}")
+                continue
+
+        sender = get_pinned_sender(lead.get("domain"), mailboxes, history, mailbox_usage)
+
+        # Volume Controller Reservation
+        if live_mode and volume_controller:
+            reserved, r_reason = volume_controller.reserve_quota(sender["email"], "campaign")
+            if not reserved:
+                log(f"  [QUOTA/HEALTH] Mailbox {sender['email']} unavailable: {r_reason}")
+                continue
+        elif mailbox_usage.get(sender["email"], 0) >= MAX_PER_MAILBOX_DAILY:
+            continue
+
+        subject, body = generate_copy(lead, sender, touch_step)
+        c_code = lead.get("country_code", "US")
+
+        if not live_mode:
+            log(f"[DRY-RUN] [{touch_label}] {sender['email']} -> {to_email} [{c_code}]")
+            log(f"  Subject: {subject}")
+            mailbox_usage[sender["email"]] = mailbox_usage.get(sender["email"], 0) + 1
+            total_sent_today += 1
+        else:
+            log(f"[LIVE DISPATCH] [{touch_label}] Sending from {sender['email']} -> {to_email} [{c_code}]...")
+            ok, msg_id = send_email(sender, password, to_email, subject, body)
+            if ok:
+                if volume_controller:
+                    volume_controller.record_campaign_message(
+                        message_id=msg_id,
+                        sender_email=sender["email"],
+                        recipient_email=to_email,
+                        prospect_domain=lead.get("domain", ""),
+                        campaign_touch=touch_step,
+                        subject=subject,
+                        smtp_success=True
+                    )
+                record = {
+                    "sender_email": sender["email"],
+                    "lead_email": to_email,
+                    "lead_domain": lead.get("domain"),
+                    "touch_number": touch_step,
+                    "subject": subject,
+                    "message_id": msg_id,
+                    "sent_date": today_str,
+                    "timestamp": datetime.now().isoformat()
+                }
+                history.append(record)
+                json.dump(history, open(HISTORY_FILE, "w"), indent=2)
+
+                if log_touch:
+                    try:
+                        log_touch(lead.get("domain"), to_email, sender["email"], step=touch_step, subject=subject)
+                    except Exception as e:
+                        pass
+
+                mailbox_usage[sender["email"]] = mailbox_usage.get(sender["email"], 0) + 1
+                total_sent_today += 1
+                log(f"  ✅ Delivered! Mailbox {sender['email']} (1/1 today). Total sent today: {total_sent_today}/{DAILY_SEND_CAP}.")
+
+                delay = random.uniform(45.0, 85.0)
+                log(f"  Pacing delay: resting {delay:.1f}s before next send...")
+                time.sleep(delay)
+            else:
+                log(f"  ❌ Failed delivery to {to_email}")
+                if volume_controller:
+                    volume_controller.rollback_quota(sender["email"], "campaign")
+                    volume_controller.record_campaign_message(
+                        message_id=msg_id or f"failed-{int(time.time())}",
+                        sender_email=sender["email"],
+                        recipient_email=to_email,
+                        prospect_domain=lead.get("domain", ""),
+                        campaign_touch=touch_step,
+                        subject=subject,
+                        smtp_success=False,
+                        error_msg="SMTP send failure"
+                    )
+
+def run_daemon(live_mode: bool = False, override_weekend: bool = False):
+    mode_str = "LIVE DISPATCH MODE" if live_mode else "DRY-RUN SIMULATION MODE"
+    log(f"Starting Mindmaxing Outbound Scheduler Daemon in {mode_str}...")
+    log("Checking timezone windows every 10 minutes.")
+    while True:
+        try:
+            run_scheduler_cycle(live_mode=live_mode, override_weekend=override_weekend)
+        except Exception as e:
+            log(f"Scheduler cycle error: {e}")
+        time.sleep(600)  # Check every 10 minutes
+
+if __name__ == "__main__":
+    is_live = "--live" in sys.argv
+    is_now = "--now" in sys.argv or "--override-weekend" in sys.argv
+
+    if is_now:
+        log("Executing immediate single reviewed dispatch cycle (--now flag detected)...")
+        run_scheduler_cycle(live_mode=is_live, override_weekend=True)
+    else:
+        run_daemon(live_mode=is_live, override_weekend=False)
