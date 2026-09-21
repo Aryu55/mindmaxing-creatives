@@ -303,24 +303,49 @@ def reserve_and_claim_job(
         c.execute("BEGIN IMMEDIATE")
 
         # 1. Lead validation
-        c.execute("SELECT id, status, contact_email, current_sequence_step FROM leads WHERE id = ?", (lead_id,))
-        lead_row = c.fetchone()
-        if not lead_row:
+        c.execute("PRAGMA table_info(leads)")
+        lead_cols = {col[1] for col in c.fetchall()}
+
+        select_cols = ["id", "status", "contact_email", "current_sequence_step"]
+        for opt_col in ("contact_type", "source", "signal_decision"):
+            if opt_col in lead_cols:
+                select_cols.append(opt_col)
+
+        c.execute(f"SELECT {', '.join(select_cols)} FROM leads WHERE id = ?", (lead_id,))
+        raw_lead = c.fetchone()
+        if not raw_lead:
             c.execute("ROLLBACK")
             conn.close()
             return False, f"Lead ID {lead_id} ({domain}) not found in leads table", None
 
-        lead_st = lead_row["status"]
+        lead_row = dict(raw_lead)
+        lead_st = lead_row.get("status")
         if lead_st in ("CLIENT_WON", "SEQUENCE_COMPLETED", "COOLDOWN", "REPLIED", "SUPPRESSED", "REJECTED_FROM_CAMPAIGN"):
             c.execute("ROLLBACK")
             conn.close()
             return False, f"Lead {domain} is in terminal status: {lead_st}", None
 
-        # Sequence recipient immutability
-        if (lead_row["current_sequence_step"] or 0) > 0 and lead_row["contact_email"] != recipient:
+        # Contact qualification guard: unverified contact cannot reach SMTP
+        c_type = (lead_row.get("contact_type") or "").strip().upper()
+        if c_type in ("UNVERIFIED", "INVALID"):
             c.execute("ROLLBACK")
             conn.close()
-            return False, f"Sequence recipient mismatch for {domain}: active recipient is {lead_row['contact_email']}", None
+            return False, f"Lead {domain} has unverified contact status: {c_type}", None
+
+        # Reddit signal qualification guard
+        src = (lead_row.get("source") or "").strip().lower()
+        sig_dec = (lead_row.get("signal_decision") or "").strip().upper()
+        if src == "reddit" or (campaign_name and campaign_name.strip().lower() == "reddit"):
+            if lead_st != "HUMAN_APPROVED" and sig_dec != "INCIDENT_CANDIDATE":
+                c.execute("ROLLBACK")
+                conn.close()
+                return False, f"Reddit lead {domain} lacks qualifying incident signal (decision={sig_dec})", None
+
+        # Sequence recipient immutability
+        if (lead_row.get("current_sequence_step") or 0) > 0 and lead_row.get("contact_email") != recipient:
+            c.execute("ROLLBACK")
+            conn.close()
+            return False, f"Sequence recipient mismatch for {domain}: active recipient is {lead_row.get('contact_email')}", None
 
         # 2. Daily decision lookup
         c.execute("""

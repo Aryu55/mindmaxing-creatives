@@ -30,6 +30,28 @@ except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from email_classifier import is_valid_founder_name, is_role_account
 
+try:
+    from reddit_signal_evaluator import (
+        evaluate_reddit_signal,
+        INCIDENT_CANDIDATE,
+        REVIEW_REQUIRED,
+        NO_MATCH,
+        STALE,
+        INVALID_SOURCE,
+        POLICY_VERSION
+    )
+except ImportError:
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from reddit_signal_evaluator import (
+        evaluate_reddit_signal,
+        INCIDENT_CANDIDATE,
+        REVIEW_REQUIRED,
+        NO_MATCH,
+        STALE,
+        INVALID_SOURCE,
+        POLICY_VERSION
+    )
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 ICP1_DIR = os.path.join(DATA_DIR, "icp1_shopify_dtc")
@@ -298,22 +320,22 @@ def save_lead(lead: dict) -> bool:
     if any(l.get("contact_email", "").lower().strip() == clean_em for l in existing_leads):
         return False
 
-    # Force status to CANDIDATE
-    lead["status"] = "CANDIDATE"
+    status = lead.get("status", "CANDIDATE")
     existing_leads.append(lead)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(existing_leads, f, indent=2)
 
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30.0)
         cur = conn.cursor()
         cur.execute("""
         INSERT OR IGNORE INTO leads (
             domain, company_name, contact_email, contact_type, contact_name,
             country_code, city, platform, pain_trigger, dominant_pattern,
             reviews_count, review_freshest_date, reviews_json, captured_at, status,
-            source, subreddit, post_title, post_url, post_author
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            source, subreddit, post_title, post_url, post_author,
+            signal_decision, signal_reasons, signal_evidence, signal_policy_version, evaluated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             lead.get("domain"),
             lead.get("company_name"),
@@ -324,17 +346,22 @@ def save_lead(lead: dict) -> bool:
             lead.get("city", ""),
             "Shopify",
             lead.get("pain_trigger", "checkout"),
-            lead.get("dominant_pattern", "Reddit Founder Distress"),
+            lead.get("dominant_pattern", "Reddit Incident Report"),
             lead.get("reviews_count", 1),
             lead.get("review_freshest_date"),
             json.dumps(lead.get("reviews_collection", [])),
             lead.get("captured_at"),
-            "CANDIDATE",
+            status,
             "reddit",
             lead.get("subreddit", ""),
             lead.get("post_title", ""),
             lead.get("post_url", ""),
-            lead.get("post_author", "")
+            lead.get("post_author", ""),
+            lead.get("signal_decision", INCIDENT_CANDIDATE),
+            json.dumps(lead.get("signal_reasons", [])),
+            json.dumps(lead.get("signal_evidence", {})),
+            lead.get("signal_policy_version", POLICY_VERSION),
+            lead.get("evaluated_at", datetime.now(timezone.utc).isoformat())
         ))
         conn.commit()
         conn.close()
@@ -342,6 +369,49 @@ def save_lead(lead: dict) -> bool:
         log(f"Database write warning: {e}")
 
     return True
+
+
+def attach_duplicate_reddit_evidence(existing_lead: dict, new_evidence: dict) -> dict:
+    """
+    Attaches newer duplicate post evidence to an existing business without
+    replacing its active recipient, status, or conversation sequence step.
+    """
+    lead = dict(existing_lead)
+    reviews = list(lead.get("reviews_collection") or [])
+    reviews.append(new_evidence)
+    lead["reviews_collection"] = reviews
+    lead["reviews_count"] = len(reviews)
+    lead["review_freshest_date"] = new_evidence.get("date") or lead.get("review_freshest_date")
+    return lead
+
+
+def record_duplicate_reddit_evidence(domain: str, new_evidence: dict):
+    """Updates database and file evidence for existing domain without resetting sequence step."""
+    try:
+        conn = sqlite3.connect(DB_PATH, timeout=30.0)
+        c = conn.cursor()
+        c.execute("SELECT id, reviews_count, reviews_json FROM leads WHERE domain = ?", (domain,))
+        row = c.fetchone()
+        if row:
+            lead_id, count, reviews_raw = row
+            reviews = []
+            if reviews_raw:
+                try:
+                    reviews = json.loads(reviews_raw)
+                except Exception:
+                    reviews = []
+            reviews.append(new_evidence)
+            c.execute("""
+                UPDATE leads
+                SET reviews_count = ?,
+                    reviews_json = ?,
+                    review_freshest_date = ?
+                WHERE id = ?
+            """, (len(reviews), json.dumps(reviews), new_evidence.get("date"), lead_id))
+            conn.commit()
+        conn.close()
+    except Exception as e:
+        log(f"Database duplicate update warning for {domain}: {e}")
 
 def verify_physical_shopify(domain: str) -> tuple[bool, str]:
     clean_domain = domain.replace("www.", "").strip()
@@ -478,40 +548,16 @@ def classify_trigger(text: str) -> str:
         return "discount"
     return "checkout"
 
-def post_passes_incident_evaluation(title: str, selftext: str) -> tuple[bool, str]:
-    """
-    Astra Evidence-Based Post Filter:
-    - Discards pure 'rate my store' / 'opinion' posts unless positive technical failure is documented.
-    """
-    combined = (title + " " + selftext).lower()
-
-    # Hard soft-negative check
-    soft_negatives = [
-        "rate my store", "review my store", "roast my website", "roast my store",
-        "feedback on my", "brand new store", "just launched", "first store",
-        "no sales yet", "creative fatigue", "messaging", "positioning",
-        "free advice", "what do you think of my store"
-    ]
-    is_soft_negative = any(sn in combined for sn in soft_negatives)
-
-    # Positive incident requirement
-    positive_incident_keywords = [
-        "not working", "unresponsive", "stopped working", "won't open", "resets",
-        "empties", "disappears", "stuck loading", "spinning", "blank page",
-        "cannot complete", "theme update", "installed an app", "updated the theme",
-        "lighthouse", "pagespeed", "theme.liquid", "add to cart button", "checkout button",
-        "reached checkout", "initiated checkout", "0 checkout", "zero checkout",
-        "people add to cart but", "traffic but no sales", "clicks but no sales"
-    ]
-    has_positive_incident = any(pk in combined for pk in positive_incident_keywords)
-
-    if is_soft_negative and not has_positive_incident:
-        return False, "Soft negative matched (opinion/review request without technical incident evidence)"
-
-    if not has_positive_incident:
-        return False, "No verified purchase-flow failure or technical breakdown symptom in text"
-
-    return True, "Positive incident symptom detected"
+def post_passes_incident_evaluation(title: str, selftext: str, created_utc: float = None, author: str = "") -> tuple[bool, str]:
+    """Bridge function delegating to evaluate_reddit_signal pure function."""
+    post = {
+        "title": title,
+        "selftext": selftext,
+        "created_utc": created_utc or time.time(),
+        "author": author or "Founder"
+    }
+    decision, reasons, _ = evaluate_reddit_signal(post, datetime.now(timezone.utc))
+    return (decision == INCIDENT_CANDIDATE), ", ".join(reasons)
 
 def run_reddit_harvester():
     os.makedirs(ICP1_DIR, exist_ok=True)
@@ -606,13 +652,17 @@ def run_reddit_harvester():
                 permalink = p.get("permalink", "")
                 created_utc = p.get("created_utc", time.time())
 
-                # Post-level evidence filter
-                passes_eval, eval_reason = post_passes_incident_evaluation(title, selftext)
-                if not passes_eval:
+                # Post-level evidence filter using pure evaluate_reddit_signal
+                decision, reason_codes, evidence = evaluate_reddit_signal(p, datetime.now(timezone.utc))
+                if decision in (NO_MATCH, STALE, INVALID_SOURCE):
                     continue
+
+                status = "CANDIDATE" if decision == INCIDENT_CANDIDATE else "REVIEW_REQUIRED"
 
                 post_blob = f"{title}\n{selftext}\n{url_field}"
                 extracted_domains = extract_store_domains_from_text(post_blob)
+                if not extracted_domains and evidence.get("domain"):
+                    extracted_domains = [evidence["domain"]]
                 if not extracted_domains:
                     continue
 
@@ -623,12 +673,23 @@ def run_reddit_harvester():
                     if clean_dom.endswith(".myshopify.com") or any(clean_dom.endswith(tld) for tld in BLOCKED_TLDS):
                         continue
 
-                    # Gate 2: Deduplication
+                    created_iso = datetime.fromtimestamp(created_utc, timezone.utc).isoformat()
+                    clean_body_snippet = re.sub(r"\s+", " ", selftext).strip()[:180]
+
+                    # Gate 2: Deduplication with conversation preservation
                     if clean_dom in known_domains:
+                        record_duplicate_reddit_evidence(clean_dom, {
+                            "author": author,
+                            "text": f"[r/{subreddit}] {title}: {clean_body_snippet}",
+                            "date": created_iso,
+                            "url": f"https://reddit.com{permalink}",
+                            "signal_decision": decision,
+                            "signal_reasons": reason_codes
+                        })
                         continue
                     known_domains.add(clean_dom)
 
-                    log(f"  [Incident Candidate r/{subreddit}] Inspecting: {clean_dom} (by /u/{author})")
+                    log(f"  [Incident Candidate ({decision}) r/{subreddit}] Inspecting: {clean_dom} (by /u/{author})")
 
                     # Gate 3: Physical Shopify DTC + Non-INR
                     is_valid, reason = verify_physical_shopify(clean_dom)
@@ -657,8 +718,6 @@ def run_reddit_harvester():
 
                     trigger = classify_trigger(title + " " + selftext)
                     company_display = clean_dom.split(".")[0].replace("-", " ").title()
-                    created_iso = datetime.fromtimestamp(created_utc, timezone.utc).isoformat()
-                    clean_body_snippet = re.sub(r"\s+", " ", selftext).strip()[:180]
 
                     lead_record = {
                         "domain": clean_dom,
@@ -686,7 +745,12 @@ def run_reddit_harvester():
                             "url": f"https://reddit.com{permalink}"
                         }],
                         "captured_at": datetime.now(timezone.utc).isoformat(),
-                        "status": "CANDIDATE" # Astra requirement: fail-closed, never auto-promote to READY
+                        "status": status,
+                        "signal_decision": decision,
+                        "signal_reasons": reason_codes,
+                        "signal_evidence": evidence,
+                        "signal_policy_version": POLICY_VERSION,
+                        "evaluated_at": datetime.now(timezone.utc).isoformat()
                     }
 
                     if save_lead(lead_record):

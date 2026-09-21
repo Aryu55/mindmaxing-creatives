@@ -21,11 +21,14 @@ All notable changes to the Mindmaxing Creatives platform, showcase portfolio, an
   - Terminated duplicate background tmux monitor daemon in favor of the unified production crontab schedule.
 
 ### Audited & Fixed
-- **Lead Sourcing Forensic Audit: The Reddit Post-Mortem vs Capital Qualification**:
-  - Full audit of all 9 Reddit leads in CRM (`mindmaxing_crm.db`): discovered the reservoir was contaminated with micro-budget beginners ($10–$20/day ad spend, e.g. `grilldogsapparel.com`), free disposable email addresses (`succesfull.store77@gmail.com`, `slumbrsupport@gmail.com`, `thepawsitivespace.com`), and hobby dropshippers asking for free feedback.
-  - Identified root cause: an **ICP Sourcing Error**, not a code bug. Scrapers querying `r/reviewmyshopify`, `r/dropshipping`, and `r/printondemand` capture non-buyers with negative unit economics, violating Invariant #1 (the $1,000/mo retainer).
-  - Enforced Invariant #6: Mandatory capital qualification requiring commercial custom domains, verified multi-ad Meta campaigns, and high-latency mobile bottlenecks (e.g. 58 Meta PageSpeed leads like `supergut.com`, `koio.co`, `supply.co`, `helmboots.com`).
-  - Quarantined all 9 Reddit beginner leads from the live dispatch queue.
+- **Reddit Lead Incident Qualification Repair (Astra Spec v2.2)**:
+  - Replaced keyword-only matching with pure evaluator `evaluate_reddit_signal(post, now)`: enforces component/malfunction sentence adjacency, strict 7-day source freshness, verified operator ownership, negation handling, hypothetical filtering, and explicit evidence capture.
+  - Implemented 5-tier signal taxonomy: `INCIDENT_CANDIDATE`, `REVIEW_REQUIRED`, `NO_MATCH`, `STALE`, `INVALID_SOURCE`.
+  - Added additive schema migration `migrate_signal_schema.py` (`signal_decision`, `signal_reasons`, `signal_evidence`, `signal_policy_version`, `evaluated_at`).
+  - Added duplicate post evidence preservation (`attach_duplicate_reddit_evidence`), preventing active conversations from resetting.
+  - Hardened `volume_controller.reserve_and_claim_job()` to fail-closed on unverified contacts and require `INCIDENT_CANDIDATE` for Reddit outreach.
+  - Re-evaluated all 9 existing Reddit leads factually with zero budget inferences: all 9 reclassified as `NO_MATCH` (general store feedback / ads queries without storefront code malfunction).
+  - Created comprehensive test suite `test_reddit_signal_evaluator.py` passing all 12 Astra fixtures and 4 architectural invariants.
 
 ---
 

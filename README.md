@@ -64,9 +64,10 @@
   - Unified atomic touch reservation (`volume_controller.reserve_and_claim_job()`) running health checks, recipient suppression, sequence immutability, and job claiming in one short SQLite transaction before SMTP dispatch.
   - Strictly read-only status reporting (`outbound_status.py report --today`).
   - Enabled SQLite Write-Ahead Logging (`PRAGMA journal_mode=WAL`) and 30s busy timeout for high-concurrency dispatch.
-- **Lead Quality Audit & Capital Pre-Qualification Invariant**:
-  - Audited all 9 Reddit leads: identified that scraping `r/reviewmyshopify`, `r/dropshipping`, and `r/printondemand` captures micro-budget beginners ($10–$20/day ad spend) with free disposable webmail (`@gmail.com`), violating the $1,000/mo retainer requirement.
-  - Established Invariant #6: Mandatory pre-qualification requiring commercial custom domains, verified multi-ad Meta campaigns, and high-latency mobile bottlenecks (e.g. 58 Meta PageSpeed brands like Supergut, Koio, Supply, Helm Boots).
+- **Reddit Signal Qualification Engine (v2.2 Astra Specification)**:
+  - Replaced keyword matching with pure evaluator `evaluate_reddit_signal()` enforcing 7-day source freshness, storefront component malfunction evidence (cart drawer, checkout button, liquid errors), operator ownership, and negation/hypothetical filtering.
+  - Implemented 5-tier taxonomy: `INCIDENT_CANDIDATE`, `REVIEW_REQUIRED`, `NO_MATCH`, `STALE`, `INVALID_SOURCE` with additive database schema migration.
+  - Reclassified all 9 legacy Reddit leads factually as `NO_MATCH` with zero speculative budget inferences.
 
 ### v1.8.0 (2026-09-19)
 - **ABX Engine Integration**: Featured the ABX Engine (Shopify Liquid A/B testing & CRO telemetry suite) as flagship Panel 02 on the homepage and added a dedicated case study card.
