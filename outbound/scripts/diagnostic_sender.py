@@ -13,6 +13,8 @@ import sys
 import json
 import uuid
 import smtplib
+import time
+import random
 from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -170,6 +172,10 @@ def run_diagnostic_rotation(limit: int = None):
         if ok:
             successful += 1
             print(f"  [OK] {m['email']} -> {target_gmail['email']}: {reason}")
+            # Pacing delay between sends to prevent bulk rate-limiting on test Gmail seeds
+            if idx < len(mailboxes) - 1 and (limit is None or idx < limit - 1):
+                delay = random.uniform(12, 20)
+                time.sleep(delay)
         elif "Quota skipped" in reason:
             skipped += 1
             print(f"  [SKIP] {m['email']}: {reason}")
