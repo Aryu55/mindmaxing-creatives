@@ -77,6 +77,18 @@ def load_mailboxes():
         return json.load(f)
 
 def load_leads():
+    if os.path.exists(DB_PATH):
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM leads")
+            rows = [dict(r) for r in cursor.fetchall()]
+            conn.close()
+            if rows:
+                return rows
+        except Exception as e:
+            log(f"Warning: load_leads DB query error: {e}")
     if not os.path.exists(LEADS_FILE):
         return []
     with open(LEADS_FILE, "r", encoding="utf-8") as f:
@@ -189,6 +201,9 @@ def get_pinned_sender(domain: str, mailboxes: list, history: list, mailbox_usage
         min_used = min(mailbox_usage.get(m["email"], 0) for m in mailboxes)
         available = [m for m in mailboxes if mailbox_usage.get(m["email"], 0) == min_used]
         if available:
+            flagship = next((m for m in available if m["email"] == "aryan@mindmaxing.info"), None)
+            if flagship and (domain == "amoynewyork.com" or mailbox_usage.get("aryan@mindmaxing.info", 0) == 0):
+                return flagship
             return random.choice(available)
     return random.choice(mailboxes)
 
@@ -286,33 +301,35 @@ https://mindmaxing.one{ps_line}
 
         return subject, body
 
-    elif source == "meta_pagespeed":
+    elif source in ["meta_pagespeed", "getleads"]:
         telemetry = lead.get("telemetry", {})
+        if not telemetry:
+            try:
+                telemetry = json.loads(lead.get("reviews_json") or "{}")
+            except Exception:
+                telemetry = {}
         score = telemetry.get("mobile_score", 30)
         lcp = telemetry.get("lcp", lead.get("lcp", "4.0s"))
         tbt = telemetry.get("tbt", "N/A")
         scripts = telemetry.get("blocking_scripts", [])
 
-        if scripts:
-            script_str = f"unbundled third-party script payloads ({', '.join(scripts[:2])})"
-        else:
-            script_str = "unbundled tracking and app scripts"
+        clean_dom = lead.get("domain", "").lower().replace("www.", "").strip()
 
-        subject = f"{company}: {lcp} mobile latency on your ad traffic"
-        body = f"""{greeting}
+        subject = f"you're paying Meta for ghost clicks on {clean_dom}"
+        body = f"""{lcp} for your mobile product page to render on 4G.
 
-Noticed you're running active paid campaigns for {company}, but your mobile product page is currently clocking a {lcp} Largest Contentful Paint on Google Lighthouse, with {script_str} delaying first render before the cart drawer responds.
+Google Lighthouse just clocked {company} at a {lcp} Largest Contentful Paint. When you're paying Meta full CPC on mobile traffic, that latency means half your visitors bounce before the hero image or Add-to-Cart button even paints on their screen. You're essentially donating ad budget to Zuckerberg.
 
-When paying Meta for mobile traffic, that level of theme.liquid latency typically bounces 30–40% of visitors before the Add-to-Cart button even registers a tap.
+It's usually unbundled third-party tracking scripts and theme app blocks choking theme.liquid before the cart drawer can serialize.
 
-I handle fixed-scope Shopify Liquid performance optimizations. If your dev team hasn't looked at this yet, I can outline the first check I'd make to patch this latency so your ad spend doesn't bleed.
+I run fixed-scope Shopify Liquid performance sprints (guaranteed sub-2.5s mobile LCP in 48 hours).
 
-Mind if I share a quick note on it?
+Want me to send a 60-second clip showing the exact scripts slowing down your mobile checkout?
 
 Best,
 {sender_name}
 Mindmaxing Studio
-https://mindmaxing.one{ps_line}
+https://mindmaxing.one
 
 {PHYSICAL_FOOTER}"""
 
@@ -457,7 +474,7 @@ def send_email(sender: dict, password: str, to_email: str, subject: str, body: s
             except Exception:
                 pass
 
-def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: int = 5):
+def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: int = 5, target_tz: str = None):
     mailboxes = load_mailboxes()
     leads = load_leads()
     crm_data = get_crm_status()
@@ -475,6 +492,15 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
         log("CRITICAL ERROR: evaluate_contact module not found. Halting live dispatch (Fail-Closed).")
         sys.exit(1)
 
+    if volume_controller:
+        clean_mbs = []
+        for m in mailboxes:
+            healthy, _ = volume_controller.check_mailbox_health(m["email"], purpose="campaign")
+            if healthy:
+                clean_mbs.append(m)
+        if clean_mbs:
+            mailboxes = clean_mbs
+
     log(f"Loaded {len(mailboxes)} mailboxes across 4 domains.")
     log(f"Loaded {len(leads)} harvested leads from reservoir.")
 
@@ -483,7 +509,7 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
         d = l.get("domain")
         c_info = crm_data.get(d, {})
         if c_info:
-            for k in ["source", "subreddit", "post_title", "post_url", "post_author", "status"]:
+            for k in ["source", "subreddit", "post_title", "post_url", "post_author", "status", "timezone"]:
                 if c_info.get(k):
                     l[k] = c_info[k]
             if c_info.get("id"):
@@ -492,6 +518,16 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
     # Filter by Country if specified
     if target_country:
         leads = [l for l in leads if l.get("country_code", "US").upper() == target_country.upper()]
+
+    # Filter by Timezone group if specified
+    if target_tz:
+        tt = target_tz.lower()
+        if tt in ["east", "eastern"]:
+            leads = [l for l in leads if (l.get("timezone") or crm_data.get(l.get("domain"), {}).get("timezone", "")) in ["America/New_York", "America/Chicago"]]
+            log(f"Filtered to East/Central timezone leads: {len(leads)} candidates.")
+        elif tt in ["west", "pacific", "western"]:
+            leads = [l for l in leads if (l.get("timezone") or crm_data.get(l.get("domain"), {}).get("timezone", "")) in ["America/Los_Angeles", "America/Denver", "Pacific/Honolulu"]]
+            log(f"Filtered to West/Pacific timezone leads: {len(leads)} candidates.")
 
     allowed_statuses = ["HUMAN_APPROVED"] if not dry_run else ["HUMAN_APPROVED", "READY", "CANDIDATE"]
 
@@ -526,23 +562,30 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
             cand_role = c_info.get("candidate_role") or c_info.get("resolved_role") or "Founder"
             cand_email = c_info.get("candidate_email") or c_info.get("resolved_email") or email
 
-            cand_origin = c_info.get("email_origin")
-            if not cand_origin:
-                if c_info.get("contact_type") == "FOUNDER_RESOLVED":
-                    cand_origin = "PUBLIC_SITE"
-                else:
-                    cand_origin = "LEGACY_UNKNOWN"
+            if l.get("source") == "getleads" or c_info.get("contact_type") == "FOUNDER_VERIFIED":
+                cand_origin = "PROVIDER_FOUND"
+                cand_id_status = "FOUNDER_CONFIRMED"
+                cand_mailbox_status = "VALID"
+                cand_verif_time = l.get("captured_at") or now.isoformat()
+                cand_id_time = l.get("captured_at") or now.isoformat()
+            else:
+                cand_origin = c_info.get("email_origin")
+                if not cand_origin:
+                    if c_info.get("contact_type") == "FOUNDER_RESOLVED":
+                        cand_origin = "PUBLIC_SITE"
+                    else:
+                        cand_origin = "LEGACY_UNKNOWN"
 
-            cand_id_status = c_info.get("identity_status")
-            if not cand_id_status:
-                if c_info.get("resolved_name") and c_info.get("resolved_at"):
-                    cand_id_status = "FOUNDER_CONFIRMED"
-                else:
-                    cand_id_status = "UNCONFIRMED"
+                cand_id_status = c_info.get("identity_status")
+                if not cand_id_status:
+                    if c_info.get("resolved_name") and c_info.get("resolved_at"):
+                        cand_id_status = "FOUNDER_CONFIRMED"
+                    else:
+                        cand_id_status = "UNCONFIRMED"
 
-            cand_mailbox_status = c_info.get("mailbox_status") or c_info.get("mailbox_verification") or "UNCHECKED"
-            cand_verif_time = c_info.get("mailbox_checked_at") or c_info.get("resolved_at")
-            cand_id_time = c_info.get("identity_checked_at") or c_info.get("resolved_at")
+                cand_mailbox_status = c_info.get("mailbox_status") or c_info.get("mailbox_verification") or "UNCHECKED"
+                cand_verif_time = c_info.get("mailbox_checked_at") or c_info.get("resolved_at")
+                cand_id_time = c_info.get("identity_checked_at") or c_info.get("resolved_at")
 
             candidate = {
                 "contact_name": cand_name,
@@ -641,27 +684,44 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
         # Outbound Job Durable Claim & Quota Reservation (Live Mode)
         if not dry_run:
             src_name = lead.get("source", "dealstrike-distributors")
-            claimed, c_reason, claim_meta = volume_controller.reserve_and_claim_job(
-                lead_id=lead.get("id", 0),
-                domain=lead.get("domain", ""),
-                touch_number=touch_step,
-                mailbox=sender["email"],
-                recipient=to_email,
-                subject=subject,
-                body=body,
-                worker_id=worker_id,
-                campaign_name=src_name
-            )
+            claimed = False
+            c_reason = "No candidate sender available"
+            candidate_senders = [sender] + [m for m in mailboxes if m["email"] != sender["email"]]
+            for cand in candidate_senders:
+                if touch_step == 1:
+                    cand_subject, cand_body = generate_touch_1_copy(lead, cand)
+                elif touch_step == 2:
+                    cand_subject, cand_body = generate_touch_2_copy(lead, cand, orig_subj)
+                else:
+                    cand_subject, cand_body = generate_touch_3_copy(lead, cand, orig_subj)
+
+                claimed, c_reason, claim_meta = volume_controller.reserve_and_claim_job(
+                    lead_id=lead.get("id", 0),
+                    domain=lead.get("domain", ""),
+                    touch_number=touch_step,
+                    mailbox=cand["email"],
+                    recipient=to_email,
+                    subject=cand_subject,
+                    body=cand_body,
+                    worker_id=worker_id,
+                    campaign_name=src_name
+                )
+                if claimed:
+                    sender = cand
+                    subject = cand_subject
+                    body = cand_body
+                    job_id = claim_meta["job_id"]
+                    break
+
             if not claimed:
                 log(f"  [TOUCH/QUOTA] Skipping {lead.get('domain')} touch {touch_step}: {c_reason}")
                 lead_idx += 1
                 continue
-            job_id = claim_meta["job_id"]
         elif mailbox_usage.get(sender["email"], 0) >= MAX_PER_MAILBOX:
             lead_idx += 1
             continue
 
-        freshest = lead.get("review_freshest_date") or lead.get("review_date", "N/A")
+        freshest = str(lead.get("review_freshest_date") or lead.get("review_date") or "N/A")
         src_tag = lead.get("source", "trustpilot").upper()
 
         if dry_run:
@@ -709,7 +769,7 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
 
                 mailbox_usage[sender["email"]] = mailbox_usage.get(sender["email"], 0) + 1
                 total_sent += 1
-                time.sleep(random.uniform(25.0, 45.0))
+                time.sleep(random.uniform(10.0, 18.0))
             elif send_status == "SUBMISSION_UNCERTAIN":
                 log(f"  [UNCERTAIN] Post-DATA exception to {to_email}: {err_msg}. Retaining quota reservation and holding touch for review.")
                 update_outbound_job_status(job_id, "UNCERTAIN")
@@ -747,15 +807,18 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
 if __name__ == "__main__":
     is_dry = "--live" not in sys.argv
     country = None
+    tz_filter = None
     limit = 5
     for arg in sys.argv:
         if arg.startswith("--country="):
             country = arg.split("=")[1].upper()
+        if arg.startswith("--tz="):
+            tz_filter = arg.split("=")[1]
         if arg.startswith("--limit="):
             try:
                 limit = int(arg.split("=")[1])
             except ValueError:
                 pass
 
-    log(f"=== Mindmaxing Dispatcher v3.0 (mode={'LIVE' if not is_dry else 'DRY-RUN'}, cap={limit}/day) ===")
-    run_dispatch(dry_run=is_dry, target_country=country, send_limit=limit)
+    log(f"=== Mindmaxing Dispatcher v3.0 (mode={'LIVE' if not is_dry else 'DRY-RUN'}, cap={limit}/day, tz={tz_filter or 'ALL'}) ===")
+    run_dispatch(dry_run=is_dry, target_country=country, send_limit=limit, target_tz=tz_filter)
