@@ -222,11 +222,15 @@ def generate_touch_1_copy(lead: dict, sender: dict) -> tuple[str, str]:
     source = lead.get("source", "trustpilot")
     is_reddit = (source == "reddit" or lead.get("dominant_pattern") == "Reddit Incident Report")
 
-    if contact_type in ["FOUNDER_DIRECT", "FOUNDER_NAMED_DESK", "FOUNDER_RESOLVED"] and founder_name and founder_name.lower() not in ["team", "support", "admin", "info", "help", "customer service"]:
-        greeting = f"Hi {founder_name},"
+    first_name = founder_name.split()[0] if founder_name else ""
+    if contact_type in ["FOUNDER_DIRECT", "FOUNDER_NAMED_DESK", "FOUNDER_RESOLVED", "FOUNDER_VERIFIED"] and first_name and first_name.lower() not in ["team", "support", "admin", "info", "help", "customer", "customer service"]:
+        greeting = f"Hey {first_name},"
+        ps_line = ""
+    elif first_name and first_name.lower() not in ["team", "support", "admin", "info", "help", "customer", "customer service"]:
+        greeting = f"Hey {first_name},"
         ps_line = ""
     else:
-        greeting = f"Hi {company} team,"
+        greeting = f"Hey {company} team,"
         ps_line = "\n\nP.S. If you're on the customer support team, could you pass this to whoever handles your Shopify theme / development? It's directly tied to the checkout drop-offs you've been seeing."
 
     # Check if a genuine audit artifact was recorded and linked
@@ -313,18 +317,27 @@ https://mindmaxing.one{ps_line}
         tbt = telemetry.get("tbt", "N/A")
         scripts = telemetry.get("blocking_scripts", [])
 
+        # Clean rounded seconds (e.g. "11.0 s" -> "11 seconds")
+        lcp_match = re.search(r"(\d+(\.\d+)?)", str(lcp).replace("\u00a0", " "))
+        if lcp_match:
+            sec_num = float(lcp_match.group(1))
+            sec_rounded = int(round(sec_num))
+            seconds_str = f"{sec_rounded} seconds"
+        else:
+            seconds_str = "10 seconds"
+
         clean_dom = lead.get("domain", "").lower().replace("www.", "").strip()
 
-        subject = f"you're paying Meta for ghost clicks on {clean_dom}"
-        body = f"""{lcp} for your mobile product page to render on 4G.
+        subject = f"{seconds_str}"
+        body = f"""{greeting}
 
-Google Lighthouse just clocked {company} at a {lcp} Largest Contentful Paint. When you're paying Meta full CPC on mobile traffic, that latency means half your visitors bounce before the hero image or Add-to-Cart button even paints on their screen. You're essentially donating ad budget to Zuckerberg.
+Took {seconds_str} for your store to load on my phone today.
 
-It's usually unbundled third-party tracking scripts and theme app blocks choking theme.liquid before the cart drawer can serialize.
+When you run Meta ads, more than half the people clicking bounce before the buy button even shows up. Basically paying Zuck for clicks that never saw your products.
 
-I run fixed-scope Shopify Liquid performance sprints (guaranteed sub-2.5s mobile LCP in 48 hours).
+Made a quick 30-second video showing what's slowing it down.
 
-Want me to send a 60-second clip showing the exact scripts slowing down your mobile checkout?
+Want me to send it over?
 
 Best,
 {sender_name}
@@ -375,15 +388,16 @@ def generate_touch_2_copy(lead: dict, sender: dict, original_subject: str) -> tu
     """Touch 2 (+3 days): Threaded bump."""
     founder_name = (lead.get("contact_name") or "").strip()
     company = lead.get("company_name") or lead.get("domain", "your store")
-    greeting = f"Hi {founder_name}," if founder_name else f"Hi {company} team,"
+    first_name = founder_name.split()[0] if founder_name else ""
+    greeting = f"Hey {first_name}," if first_name else f"Hey {company} team,"
     sender_name = sender.get("name", "Aryan Panchal")
 
     subject = f"Re: {original_subject.replace('Re: ', '')}"
     body = f"""{greeting}
 
-Quick bump on this—did you get a chance to see my note earlier this week regarding the cart drawer and checkout flow on {company}?
+Quick bump on this—did you get a chance to see my note earlier this week?
 
-Happy to outline the first theme check I'd make if you're still seeing cart drop-offs.
+Happy to send over that 30-second clip if you're still seeing people bounce on mobile.
 
 Best,
 {sender_name}
@@ -398,15 +412,16 @@ def generate_touch_3_copy(lead: dict, sender: dict, original_subject: str) -> tu
     """Touch 3 (+5 days): Breakup email closing the loop."""
     founder_name = (lead.get("contact_name") or "").strip()
     company = lead.get("company_name") or lead.get("domain", "your store")
-    greeting = f"Hi {founder_name}," if founder_name else f"Hi {company} team,"
+    first_name = founder_name.split()[0] if founder_name else ""
+    greeting = f"Hey {first_name}," if first_name else f"Hey {company} team,"
     sender_name = sender.get("name", "Aryan Panchal")
 
     subject = f"Re: {original_subject.replace('Re: ', '')}"
     body = f"""{greeting}
 
-Assuming the timing isn't right or your team already has the checkout issues on {company} handled.
+Assuming the timing isn't right or you've already got your mobile speed sorted out.
 
-I'll step back here. If you ever want to audit mobile cart latency or app bloat down the road, feel free to reach back out anytime.
+I'll step back here. If you ever want to check what's slowing down your mobile checkout down the road, feel free to reach back out anytime.
 
 Best,
 {sender_name}
