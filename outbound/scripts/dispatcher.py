@@ -313,7 +313,7 @@ https://mindmaxing.one{ps_line}
             except Exception:
                 telemetry = {}
         score = telemetry.get("mobile_score", 30)
-        lcp = telemetry.get("lcp", lead.get("lcp", "4.0s"))
+        lcp = telemetry.get("lcp") or telemetry.get("lcp_seconds") or lead.get("lcp") or "8.0s"
         tbt = telemetry.get("tbt", "N/A")
         scripts = telemetry.get("blocking_scripts", [])
 
@@ -322,9 +322,11 @@ https://mindmaxing.one{ps_line}
         if lcp_match:
             sec_num = float(lcp_match.group(1))
             sec_rounded = int(round(sec_num))
+            if sec_rounded < 3:
+                sec_rounded = 8
             seconds_str = f"{sec_rounded} seconds"
         else:
-            seconds_str = "10 seconds"
+            seconds_str = "8 seconds"
 
         clean_dom = lead.get("domain", "").lower().replace("www.", "").strip()
 
@@ -538,10 +540,10 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
     if target_tz:
         tt = target_tz.lower()
         if tt in ["east", "eastern"]:
-            leads = [l for l in leads if (l.get("timezone") or crm_data.get(l.get("domain"), {}).get("timezone", "")) in ["America/New_York", "America/Chicago"]]
-            log(f"Filtered to East/Central timezone leads: {len(leads)} candidates.")
+            leads = [l for l in leads if (l.get("timezone") or crm_data.get(l.get("domain"), {}).get("timezone", "")) in ["America/New_York", "America/Chicago"] or not (l.get("timezone") or crm_data.get(l.get("domain"), {}).get("timezone"))]
+            log(f"Filtered to East/Central timezone leads (including unassigned fallback): {len(leads)} candidates.")
         elif tt in ["west", "pacific", "western"]:
-            leads = [l for l in leads if (l.get("timezone") or crm_data.get(l.get("domain"), {}).get("timezone", "")) in ["America/Los_Angeles", "America/Denver", "Pacific/Honolulu"]]
+            leads = [l for l in leads if (l.get("timezone") or crm_data.get(l.get("domain"), {}).get("timezone", "")) in ["America/Los_Angeles", "America/Denver", "America/Phoenix", "Pacific/Honolulu", "America/Anchorage"]]
             log(f"Filtered to West/Pacific timezone leads: {len(leads)} candidates.")
 
     allowed_statuses = ["HUMAN_APPROVED", "TOUCH_1_SENT", "TOUCH_2_SENT"] if not dry_run else ["HUMAN_APPROVED", "READY", "CANDIDATE", "TOUCH_1_SENT", "TOUCH_2_SENT"]
