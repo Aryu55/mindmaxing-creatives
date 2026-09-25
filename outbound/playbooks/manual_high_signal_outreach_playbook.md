@@ -18,8 +18,12 @@ What actually closes a client is someone who demonstrates **forensic context bef
 2. **Intent-Signal Over Volume:** Only engage posts where founders state **explicit requirements** or **specific technical bottlenecks**.
 3. **Proof-Before-Pitch:** Walk in with a pre-analyzed solution, architecture diagram, or forensic precedent before pitching any service.
 4. **No Inferred Poverty:** Qualify by whether a real business/cash flow exists (e.g. active store, agency clients, revenue), not guessing from webmail.
+5. **The Hand-Raise Before Build Rule (No Spec-Work Before Qualification):** Never build, propose building, or send custom prototypes (Lovable apps, Figma wireframes, repos) until two criteria are met: (1) The lead is a commercially qualified, cash-flowing business capable of paying a $500–$1,000 sprint (NOT an early-stage freelancer, creator with 126 followers, or equity idea-guy), and (2) The prospect has explicitly *raised their hand* (replied to the initial message, asked for the preview, or asked how it works). Pre-emptive builds before a reply project desperation, destroy authority, and burn high-leverage engineering hours on zero-budget leads.
+6. **The Blink-Speed / 4th-Grade Copy Rule:** If a subject line or first sentence requires more than **one blink** to decode, rewrite it immediately. Keep subject lines to 2–4 words max, lowercase, and conversational (e.g., `quick question about trvfit`, `crm for your 3 reps`). Ban high-friction, intellectualized consultant jargon (e.g., "form fatigue", "enterprise clutter", "pipeline architecture", "unidirectional state flow") when pitching non-technical business owners (gyms, local service businesses, creators). Use plain street-level English at a 4th-grade reading level (Liz Wilcox / Pat Flynn style).
+7. **The Proactive Assistant Interlock (Mandatory Pushback):** The assistant must actively monitor Aryan's actions and **explicitly intervene to stop him** if he attempts to build unprompted prototypes for unvetted leads, chase non-responsive prospects, or double-message before a hand-raise. The assistant must immediately warn: *"Stop. Do not build this yet. They haven't qualified their budget, and they haven't raised their hand. Wait for the reply."*
 
 ---
+
 
 ## 2. Platform Discovery Logistics (How to Find Real Operators)
 
