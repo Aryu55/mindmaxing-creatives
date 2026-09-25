@@ -14,6 +14,8 @@ Enforces:
 """
 
 import os
+import re
+import uuid
 import sqlite3
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, Tuple
@@ -72,27 +74,109 @@ def check_mailbox_health(mailbox: str, purpose: str = "campaign") -> tuple[bool,
     c = conn.cursor()
     
     # 1. Check mailbox pause state
-    c.execute("SELECT domain, level, status, paused_reason FROM mailbox_levels WHERE mailbox = ?", (mailbox,))
+    c.execute("PRAGMA table_info(mailbox_levels)")
+    ml_cols = [r[1] for r in c.fetchall()]
+    q_paused = ", paused_reason" if "paused_reason" in ml_cols else ""
+    c.execute(f"SELECT domain, level, status{q_paused} FROM mailbox_levels WHERE mailbox = ?", (mailbox,))
     row = c.fetchone()
     if not row:
         conn.close()
         return False, f"Mailbox {mailbox} not initialized in mailbox_levels"
     
     domain = row["domain"]
-    if row["status"] == "paused":
-        reason = row["paused_reason"] or "Manually paused"
-        conn.close()
-        return False, f"Mailbox {mailbox} is PAUSED: {reason}"
+    paused_reason_val = row["paused_reason"] if "paused_reason" in row.keys() else None
+    now_dt = datetime.now(timezone.utc)
+    now_iso = now_dt.isoformat()
+
+    has_structured_hold = False
+    # 1. Check structured incident holds in mailbox_holds (Task C)
+    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='mailbox_holds'")
+    if c.fetchone():
+        # Domain-level contagion quarantine: if explicit DOMAIN_PAUSED or >=3 SEED_SPAM in last 48h
+        if purpose == "campaign":
+            c.execute("""
+                SELECT count(*) as cnt FROM mailbox_holds 
+                WHERE domain = ? AND (
+                    (hold_type = 'DOMAIN_PAUSED' AND resolved_at IS NULL)
+                    OR (hold_type = 'SEED_SPAM' AND opened_at >= datetime('now', '-48 hours') AND resolved_at IS NULL)
+                )
+            """, (domain,))
+            sc_row = c.fetchone()
+            if sc_row and sc_row["cnt"] >= 3:
+                conn.close()
+                return False, f"Campaign blocked: domain {domain} is quarantined ({sc_row['cnt']} active/recent spam incidents)"
+
+        c.execute("""
+            SELECT hold_id, hold_type, scope, opened_at, retry_after, remediation_ref
+            FROM mailbox_holds
+            WHERE (mailbox = ? OR (domain = ? AND scope = 'domain')) AND resolved_at IS NULL
+            ORDER BY opened_at DESC
+        """, (mailbox, domain))
+        holds = c.fetchall()
+        if holds:
+            has_structured_hold = True
+            for h in holds:
+                htype = h["hold_type"]
+                if purpose == "campaign":
+                    if htype in ("SEED_SPAM", "AWAITING_READINESS", "HOLD_DIAGNOSTIC_EXPIRED", "MANUAL_PAUSE", "DOMAIN_PAUSED", "HOLD_AUTH_FAILED", "PROVIDER_BLOCK", "MONITORING_ERROR", "MONITORING_STALE"):
+                        conn.close()
+                        return False, f"Campaign blocked by active hold ({htype}): {h['hold_id']}"
+                    if htype == "TEMP_FAILURE_BACKOFF":
+                        if h["retry_after"] and now_iso < h["retry_after"]:
+                            conn.close()
+                            return False, f"Campaign blocked: temporary backoff active until {h['retry_after']}"
+                elif purpose == "test":
+                    if htype == "MANUAL_PAUSE":
+                        conn.close()
+                        return False, f"Diagnostic blocked by manual stop: {h['hold_id']}"
+                    if htype == "DOMAIN_PAUSED":
+                        conn.close()
+                        return False, f"Diagnostic blocked by domain stop: {h['hold_id']}"
+                    if htype == "PROVIDER_BLOCK":
+                        conn.close()
+                        return False, f"Diagnostic blocked by provider block: {h['hold_id']}"
+                    if htype == "HOLD_AUTH_FAILED" and not h["remediation_ref"]:
+                        conn.close()
+                        return False, f"Diagnostic blocked: authentication failure requires recorded remediation reference"
+                    if htype == "TEMP_FAILURE_BACKOFF":
+                        if h["retry_after"] and now_iso < h["retry_after"]:
+                            conn.close()
+                            return False, f"Diagnostic blocked: temporary backoff active until {h['retry_after']}"
+                    if htype == "SEED_SPAM":
+                        try:
+                            dt_op = datetime.fromisoformat(h["opened_at"].replace("Z", "+00:00"))
+                            if dt_op.tzinfo is None:
+                                dt_op = dt_op.replace(tzinfo=timezone.utc)
+                            if now_dt < dt_op + timedelta(hours=24):
+                                conn.close()
+                                return False, f"Diagnostic blocked: 24h backoff active following SEED_SPAM until {(dt_op + timedelta(hours=24)).isoformat()}"
+                        except Exception:
+                            pass
+
+    # Legacy mailbox_levels pause check fallback
+    if not has_structured_hold and row["status"] == "paused":
+        reason = paused_reason_val or "Manually paused"
+        if purpose == "test":
+            is_manual = ("manual" in reason.lower())
+            is_auth = ("auth" in reason.lower() or "credential" in reason.lower())
+            is_transport = ("transport" in reason.lower())
+            if is_manual or is_auth or is_transport:
+                conn.close()
+                return False, f"Mailbox {mailbox} is PAUSED ({reason}): diagnostic recovery not permitted"
+        else:
+            conn.close()
+            return False, f"Mailbox {mailbox} is PAUSED: {reason}"
 
     # 2. Check if entire domain is paused
-    c.execute("SELECT mailbox, paused_reason FROM mailbox_levels WHERE domain = ? AND status = 'paused' AND paused_reason LIKE '%DOMAIN%'", (domain,))
-    domain_paused = c.fetchone()
-    if domain_paused:
-        conn.close()
-        return False, f"Domain {domain} is PAUSED: {domain_paused['paused_reason']}"
+    if "paused_reason" in ml_cols:
+        c.execute("SELECT mailbox, paused_reason FROM mailbox_levels WHERE domain = ? AND status = 'paused' AND paused_reason LIKE '%DOMAIN%'", (domain,))
+        domain_paused = c.fetchone()
+        if domain_paused:
+            conn.close()
+            return False, f"Domain {domain} is PAUSED: {domain_paused['paused_reason']}"
 
     # 3. Check collector freshness
-    one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    one_hour_ago = (now_dt - timedelta(hours=1)).isoformat()
     c.execute("SELECT last_scan_at, status, error_message FROM collector_health WHERE mailbox = ?", (mailbox,))
     health = c.fetchone()
 
@@ -108,21 +192,38 @@ def check_mailbox_health(mailbox: str, purpose: str = "campaign") -> tuple[bool,
             return False, f"Collector monitoring on {mailbox} is STALE (>1h ago: {health['last_scan_at']})"
     else:
         # Diagnostic sends: Only block if collector is reporting an explicit transport/auth error
-        if health and health["status"] == "error" and "transport" in str(health.get("error_message", "")).lower():
-            conn.close()
-            return False, f"Collector reporting transport ERROR on {mailbox}: {health['error_message']}"
+        if health and health["status"] == "error":
+            h_dict = dict(health)
+            err_str = str(h_dict.get("error_message") or "").lower()
+            if "transport" in err_str or "auth" in err_str:
+                conn.close()
+                return False, f"Collector reporting transport ERROR on {mailbox}: {h_dict.get('error_message')}"
 
-    # 4. Check temporary failure streak on this mailbox (3 consecutive pauses route)
-    c.execute("""
-    SELECT smtp_status FROM messages 
-    WHERE sender_email = ? 
-    ORDER BY sent_at DESC LIMIT 3
-    """, (mailbox,))
-    recent_smtp = [r["smtp_status"] for r in c.fetchall()]
-    if len(recent_smtp) == 3 and all(s == "temp_failure" for s in recent_smtp):
-        conn.close()
-        pause_mailbox(mailbox, "3 consecutive temporary SMTP delivery failures")
-        return False, f"Mailbox {mailbox} auto-paused: 3 consecutive temporary SMTP delivery failures"
+    # 4. Check temporary failure streak in last 24h (aligned with nightly planner)
+    twenty_four_hours_ago = (now_dt - timedelta(hours=24)).isoformat()
+    c.execute("PRAGMA table_info(messages)")
+    msg_cols = [r[1] for r in c.fetchall()]
+    if "smtp_status" in msg_cols and "sent_at" in msg_cols:
+        q_code = ", smtp_code" if "smtp_code" in msg_cols else ""
+        c.execute(f"""
+            SELECT smtp_status, sent_at{q_code}
+            FROM messages 
+            WHERE sender_email = ? AND sent_at >= ?
+            ORDER BY sent_at DESC LIMIT 3
+        """, (mailbox, twenty_four_hours_ago))
+        recent_sends = c.fetchall()
+        if len(recent_sends) == 3 and all(r["smtp_status"] == "temp_failure" and ("smtp_code" not in r.keys() or r["smtp_code"] is None or 400 <= r["smtp_code"] < 500) for r in recent_sends):
+            latest_fail_at = recent_sends[0]["sent_at"]
+            try:
+                dt_fail = datetime.fromisoformat(latest_fail_at.replace("Z", "+00:00"))
+                if dt_fail.tzinfo is None:
+                    dt_fail = dt_fail.replace(tzinfo=timezone.utc)
+                retry_after_dt = dt_fail + timedelta(hours=1)
+                if now_dt < retry_after_dt:
+                    conn.close()
+                    return False, f"Temporary failure backoff active until {retry_after_dt.isoformat()} (3 consecutive 4xx failures in 24h)"
+            except Exception:
+                pass
 
     conn.close()
     return True, "Healthy"
@@ -143,11 +244,7 @@ def get_current_period_id() -> str:
 def reserve_quota(mailbox: str, purpose: str = "campaign", period_id: str = None) -> tuple[bool, str]:
     """
     Transactionally reserves sending quota for the specified IST budget period (or current period).
-    Returns (True, 'Reserved') or (False, reason).
-    Enforces caps from mailbox_daily_decisions ledger:
-    - Campaign sends require an explicit, unheld daily decision for the budget period.
-    - Test sends are permitted under HOLD_DIAGNOSTIC_EXPIRED / HOLD_MONITORING_STALE
-      to allow diagnostic recovery, provided diagnostic cap > 0.
+    Returns (True, 'Reserved: token=...') or (False, reason).
     """
     healthy, reason = check_mailbox_health(mailbox, purpose=purpose)
     if not healthy:
@@ -163,19 +260,43 @@ def reserve_quota(mailbox: str, purpose: str = "campaign", period_id: str = None
     try:
         c.execute("BEGIN IMMEDIATE")
         
+        # Ensure period usage tables exist in DB
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS mailbox_period_usage (
+                mailbox TEXT NOT NULL,
+                period_id TEXT NOT NULL,
+                campaign_used INTEGER NOT NULL DEFAULT 0 CHECK(campaign_used >= 0),
+                diagnostic_used INTEGER NOT NULL DEFAULT 0 CHECK(diagnostic_used >= 0),
+                PRIMARY KEY (mailbox, period_id)
+            );
+        """)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS quota_reservations (
+                reservation_id TEXT PRIMARY KEY,
+                mailbox TEXT NOT NULL,
+                period_id TEXT NOT NULL,
+                purpose TEXT NOT NULL CHECK(purpose IN ('campaign','test')),
+                status TEXT NOT NULL CHECK(status IN ('RESERVED','ACCEPTED','UNCERTAIN','RELEASED')),
+                message_id TEXT,
+                job_id INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+        """)
+
         # Get level and caps
         c.execute("SELECT level FROM mailbox_levels WHERE mailbox = ?", (mailbox,))
         lvl_row = c.fetchone()
         level = lvl_row["level"] if lvl_row else 1
         base_caps = LEVEL_CAPS.get(level, LEVEL_CAPS[1])
 
-        # Check daily decision ledger: query by period_id first, fallback to decision_date_utc
+        # Exact decision lookup by period_id
         c.execute("""
             SELECT decision_id, effective_campaign_cap, effective_diagnostic_cap, decision_action, decision_reason
             FROM mailbox_daily_decisions
-            WHERE mailbox = ? AND (period_id = ? OR decision_date_utc = ?)
+            WHERE mailbox = ? AND period_id = ?
             ORDER BY revision DESC, id DESC LIMIT 1
-        """, (mailbox, period_id, utc_date))
+        """, (mailbox, period_id))
         d_row = c.fetchone()
 
         if d_row:
@@ -204,8 +325,8 @@ def reserve_quota(mailbox: str, purpose: str = "campaign", period_id: str = None
                     return False, f"Daily decision diagnostic cap is 0 for {mailbox}: {reason_str}"
 
                 # Hard blocks that strictly apply to diagnostics:
-                is_manual_pause = (action in ("PAUSED", "MANUAL_PAUSE") or "manually paused" in reason_str.lower() or "mailbox is paused" in reason_str.lower())
-                is_domain_pause = (action == "DOMAIN_PAUSED" or "domain" in action.lower() or ("domain" in reason_str.lower() and "paused" in reason_str.lower()))
+                is_manual_pause = (action in ("PAUSED", "MANUAL_PAUSE") or "manually paused" in reason_str.lower())
+                is_domain_pause = (action == "DOMAIN_PAUSED" or "domain is paused" in reason_str.lower())
                 is_transport_or_auth = (action in ("HOLD_TRANSPORT_ERROR", "HOLD_AUTH_FAILED") or "transport" in reason_str.lower() or "authentication failure" in reason_str.lower())
 
                 if is_manual_pause or is_domain_pause or is_transport_or_auth:
@@ -213,12 +334,32 @@ def reserve_quota(mailbox: str, purpose: str = "campaign", period_id: str = None
                     conn.close()
                     return False, f"Diagnostic blocked by hard stop ({action}): {reason_str}"
 
-                # Narrow exemption: allow test pings when awaiting readiness or expired diagnostic
+                # Exemptions: awaiting readiness, expired diagnostic, seed spam recovery, or active
                 is_awaiting_readiness = ("awaiting first clean diagnostic" in reason_str.lower())
                 is_diag_expired = ("hold_diagnostic_expired" in action.lower() or "older than 72 hours" in reason_str.lower() or "expired" in reason_str.lower())
+                is_seed_spam_recovery = ("spam" in reason_str.lower() or "seed_spam" in action.lower())
                 is_active_or_kept = (action in ("KEEP", "INCREASE", "DECREASE", "ACTIVE"))
 
-                if not (is_awaiting_readiness or is_diag_expired or is_active_or_kept):
+                # For seed spam recovery: enforce 24h backoff from latest spam incident
+                if is_seed_spam_recovery and not (is_awaiting_readiness or is_active_or_kept):
+                    c.execute("""
+                        SELECT de.detected_at FROM delivery_events de
+                        JOIN messages m ON de.message_id = m.message_id
+                        WHERE m.sender_email = ? AND de.folder = 'SPAM'
+                        ORDER BY de.detected_at DESC LIMIT 1
+                    """, (mailbox,))
+                    last_spam = c.fetchone()
+                    if last_spam and last_spam["detected_at"]:
+                        try:
+                            spam_dt = datetime.fromisoformat(last_spam["detected_at"].replace("Z", "+00:00"))
+                            if datetime.now(timezone.utc) - spam_dt < timedelta(hours=24):
+                                c.execute("COMMIT")
+                                conn.close()
+                                return False, f"Diagnostic recovery held: 24h backoff from seed spam incident required for {mailbox}"
+                        except Exception:
+                            pass
+
+                if not (is_awaiting_readiness or is_diag_expired or is_seed_spam_recovery or is_active_or_kept):
                     c.execute("COMMIT")
                     conn.close()
                     return False, f"Diagnostic send not permitted under decision ({action}): {reason_str}"
@@ -227,7 +368,6 @@ def reserve_quota(mailbox: str, purpose: str = "campaign", period_id: str = None
                 conn.close()
                 return False, f"Invalid message purpose: {purpose}"
         else:
-            # Fail closed for campaign sending if no daily decision exists
             if purpose == "campaign":
                 c.execute("COMMIT")
                 conn.close()
@@ -240,51 +380,64 @@ def reserve_quota(mailbox: str, purpose: str = "campaign", period_id: str = None
                 conn.close()
                 return False, f"Invalid message purpose: {purpose}"
 
-        # Unified period usage tracking
+        # Usage checking on mailbox_period_usage
         c.execute("""
-            SELECT SUM(campaign_sent) as camp_sent, SUM(diagnostic_sent) as diag_sent
-            FROM mailbox_quotas
-            WHERE mailbox = ? AND (period_id = ? OR (period_id IS NULL AND date_utc = ?))
-        """, (mailbox, period_id, period_id))
-        q_row = c.fetchone()
-        camp_sent = (q_row["camp_sent"] or 0) if q_row else 0
-        diag_sent = (q_row["diag_sent"] or 0) if q_row else 0
+            SELECT campaign_used, diagnostic_used
+            FROM mailbox_period_usage
+            WHERE mailbox = ? AND period_id = ?
+        """, (mailbox, period_id))
+        u_row = c.fetchone()
+        camp_used = u_row["campaign_used"] if u_row else 0
+        diag_used = u_row["diagnostic_used"] if u_row else 0
 
         if purpose == "campaign":
-            if camp_sent >= camp_cap:
+            if camp_used >= camp_cap:
                 c.execute("COMMIT")
                 conn.close()
-                return False, f"Campaign daily limit reached ({camp_sent}/{camp_cap} sends for {mailbox} at Level {level})"
+                return False, f"Campaign daily limit reached ({camp_used}/{camp_cap} sends for {mailbox} at Level {level})"
         elif purpose == "test":
-            if diag_sent >= diag_cap:
+            if diag_used >= diag_cap:
                 c.execute("COMMIT")
                 conn.close()
-                return False, f"Diagnostic daily limit reached ({diag_sent}/{diag_cap} sends for {mailbox})"
+                return False, f"Diagnostic daily limit reached ({diag_used}/{diag_cap} sends for {mailbox})"
 
-        # Check existing row for this date_utc
-        c.execute("SELECT 1 FROM mailbox_quotas WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
-        if not c.fetchone():
+        reservation_id = f"res_{uuid.uuid4().hex[:16]}"
+        now_iso = datetime.now(timezone.utc).isoformat()
+
+        c.execute("""
+            INSERT INTO mailbox_period_usage (mailbox, period_id, campaign_used, diagnostic_used)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(mailbox, period_id) DO UPDATE SET
+                campaign_used = campaign_used + excluded.campaign_used,
+                diagnostic_used = diagnostic_used + excluded.diagnostic_used
+        """, (mailbox, period_id, 1 if purpose == "campaign" else 0, 1 if purpose == "test" else 0))
+
+        c.execute("""
+            INSERT INTO quota_reservations (reservation_id, mailbox, period_id, purpose, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, 'RESERVED', ?, ?)
+        """, (reservation_id, mailbox, period_id, purpose, now_iso, now_iso))
+
+        # Safe update to legacy mailbox_quotas for backward compatibility
+        try:
             c.execute("""
                 INSERT INTO mailbox_quotas (mailbox, date_utc, period_id, campaign_sent, diagnostic_sent)
                 VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(mailbox, date_utc) DO UPDATE SET
+                    campaign_sent = campaign_sent + excluded.campaign_sent,
+                    diagnostic_sent = diagnostic_sent + excluded.diagnostic_sent,
+                    period_id = excluded.period_id
             """, (mailbox, utc_date, period_id, 1 if purpose == "campaign" else 0, 1 if purpose == "test" else 0))
-        else:
-            if purpose == "campaign":
-                c.execute("""
-                    UPDATE mailbox_quotas 
-                    SET campaign_sent = campaign_sent + 1, period_id = ?
-                    WHERE mailbox = ? AND date_utc = ?
-                """, (period_id, mailbox, utc_date))
-            elif purpose == "test":
-                c.execute("""
-                    UPDATE mailbox_quotas 
-                    SET diagnostic_sent = diagnostic_sent + 1, period_id = ?
-                    WHERE mailbox = ? AND date_utc = ?
-                """, (period_id, mailbox, utc_date))
+        except Exception:
+            pass
 
         c.execute("COMMIT")
         conn.close()
-        return True, f"Quota reserved ({purpose} under Level {level} limit)"
+        return True, f"Quota reserved ({purpose} under Level {level} limit): {reservation_id}"
+
+    except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
+        return False, f"Database error during quota reservation: {e}"
 
     except Exception as e:
         c.execute("ROLLBACK")
@@ -340,7 +493,7 @@ def reserve_and_claim_job(
         lead_cols = {col[1] for col in c.fetchall()}
 
         select_cols = ["id", "status", "contact_email", "current_sequence_step"]
-        for opt_col in ("contact_type", "source", "signal_decision"):
+        for opt_col in ("contact_type", "source", "signal_decision", "signal_evidence", "review_date", "captured_at", "timezone", "country_code"):
             if opt_col in lead_cols:
                 select_cols.append(opt_col)
 
@@ -358,27 +511,91 @@ def reserve_and_claim_job(
             conn.close()
             return False, f"Lead {domain} is in terminal status: {lead_st}", None
 
-        # Contact qualification guard: unverified contact cannot reach SMTP
-        c_type = (lead_row.get("contact_type") or "").strip().upper()
-        if c_type in ("UNVERIFIED", "INVALID"):
-            c.execute("ROLLBACK")
-            conn.close()
-            return False, f"Lead {domain} has unverified contact status: {c_type}", None
-
-        # Reddit signal qualification guard
-        src = (lead_row.get("source") or "").strip().lower()
-        sig_dec = (lead_row.get("signal_decision") or "").strip().upper()
-        if src == "reddit" or (campaign_name and campaign_name.strip().lower() == "reddit"):
-            if lead_st != "HUMAN_APPROVED" and sig_dec != "INCIDENT_CANDIDATE":
-                c.execute("ROLLBACK")
-                conn.close()
-                return False, f"Reddit lead {domain} lacks qualifying incident signal (decision={sig_dec})", None
-
         # Sequence recipient immutability
         if (lead_row.get("current_sequence_step") or 0) > 0 and lead_row.get("contact_email") != recipient:
             c.execute("ROLLBACK")
             conn.close()
             return False, f"Sequence recipient mismatch for {domain}: active recipient is {lead_row.get('contact_email')}", None
+
+        # Strict Conjunctive Pre-SMTP Eligibility Gate (Task F & Task G)
+        if purpose == "campaign":
+            # 1. Human Approval Gate: HUMAN_APPROVED is strictly required
+            if lead_st != "HUMAN_APPROVED":
+                c.execute("ROLLBACK")
+                conn.close()
+                return False, f"Campaign send blocked: Lead {domain} requires explicit human review and approval (status is not HUMAN_APPROVED: {lead_st})", None
+
+            # 2. Copy Gate: subject and body must not be empty
+            if not subject or not subject.strip():
+                c.execute("ROLLBACK")
+                conn.close()
+                return False, f"Campaign send blocked: Empty subject for {domain}", None
+            if not body or not body.strip():
+                c.execute("ROLLBACK")
+                conn.close()
+                return False, f"Campaign send blocked: Empty body for {domain}", None
+
+            # 3. Recipient Prefix Gate: no generic desk addresses (support@, info@, help@, etc.)
+            recip_prefix = recipient.split("@")[0].lower().strip()
+            generic_prefixes = {"support", "info", "help", "contact", "sales", "team", "hello", "orders", "care", "admin", "office", "service", "billing", "inquiry"}
+            if recip_prefix in generic_prefixes:
+                c.execute("ROLLBACK")
+                conn.close()
+                return False, f"Campaign send blocked: Recipient {recipient} is a generic desk address ({recip_prefix}@); verified founder address required", None
+
+            # 4. Contact Qualification Gate: unverified contact cannot reach SMTP
+            c_type = (lead_row.get("contact_type") or "").strip().upper()
+            if c_type in ("UNVERIFIED", "INVALID", "GENERIC_SUPPORT", "LEGACY_UNKNOWN"):
+                c.execute("ROLLBACK")
+                conn.close()
+                return False, f"Lead {domain} has unverified contact status: {c_type}", None
+
+            # 5. Qualifying Technical Incident Signal Gate: HUMAN_APPROVED must not act as an OR bypass
+            if "signal_decision" in lead_cols:
+                sig_dec = (lead_row.get("signal_decision") or "").strip().upper()
+                if sig_dec != "INCIDENT_CANDIDATE":
+                    c.execute("ROLLBACK")
+                    conn.close()
+                    return False, f"Lead {domain} lacks qualifying technical incident signal (decision={sig_dec})", None
+
+                # Freshness verification: incident evidence must be <= 7 days
+                ev_date_str = None
+                sig_ev = lead_row.get("signal_evidence")
+                if sig_ev:
+                    try:
+                        ev_data = json.loads(sig_ev) if isinstance(sig_ev, str) else sig_ev
+                        ev_date_str = ev_data.get("evidence_timestamp") or ev_data.get("review_date")
+                    except Exception:
+                        pass
+                if not ev_date_str:
+                    ev_date_str = lead_row.get("review_date") or lead_row.get("captured_at")
+
+                if ev_date_str:
+                    try:
+                        ev_dt = datetime.fromisoformat(ev_date_str.replace("Z", "+00:00"))
+                        if ev_dt.tzinfo is None:
+                            ev_dt = ev_dt.replace(tzinfo=timezone.utc)
+                        if datetime.now(timezone.utc) - ev_dt > timedelta(days=7):
+                            c.execute("ROLLBACK")
+                            conn.close()
+                            return False, f"Incident evidence for {domain} is older than 7 days ({ev_date_str})", None
+                    except Exception:
+                        pass
+
+            # 6. Timezone Gate: If timezone is known, recipient local business hours window must be open
+            recipient_tz = lead_row.get("timezone")
+            if recipient_tz:
+                try:
+                    from timezone_util import local_window_open
+                except ImportError:
+                    try:
+                        from outbound.scripts.timezone_util import local_window_open
+                    except ImportError:
+                        local_window_open = None
+                if local_window_open and not local_window_open(datetime.now(timezone.utc), recipient_tz):
+                    c.execute("ROLLBACK")
+                    conn.close()
+                    return False, f"Recipient local sending window closed in timezone {recipient_tz}", None
 
         # 2. Daily decision lookup
         c.execute("""
@@ -457,19 +674,29 @@ def reserve_and_claim_job(
         job_id = job_row["id"] if job_row else None
         attempt_count = job_row["attempt_count"] if job_row else 1
 
-        # Increment quota by period_id
-        c.execute("SELECT 1 FROM mailbox_quotas WHERE mailbox = ? AND date_utc = ?", (mailbox, utc_date))
+        # Increment quota by period_id in mailbox_period_usage and quota_reservations
+        c.execute("""
+            INSERT INTO mailbox_period_usage (mailbox, period_id, campaign_used, diagnostic_used)
+            VALUES (?, ?, 1, 0)
+            ON CONFLICT(mailbox, period_id) DO UPDATE SET
+                campaign_used = campaign_used + 1
+        """, (mailbox, period_id))
+
+        reservation_id = f"res_{uuid.uuid4().hex[:16]}"
+        c.execute("""
+            INSERT INTO quota_reservations (reservation_id, mailbox, period_id, purpose, status, job_id, created_at, updated_at)
+            VALUES (?, ?, ?, 'campaign', 'RESERVED', ?, ?, ?)
+        """, (reservation_id, mailbox, period_id, job_id, now_iso, now_iso))
+
+        # Safe update to legacy mailbox_quotas
+        c.execute("SELECT 1 FROM mailbox_quotas WHERE mailbox = ? AND period_id = ?", (mailbox, period_id))
         if not c.fetchone():
             c.execute("""
                 INSERT INTO mailbox_quotas (mailbox, date_utc, period_id, campaign_sent, diagnostic_sent)
                 VALUES (?, ?, ?, 1, 0)
             """, (mailbox, utc_date, period_id))
         else:
-            c.execute("""
-                UPDATE mailbox_quotas 
-                SET campaign_sent = campaign_sent + 1, period_id = ?
-                WHERE mailbox = ? AND date_utc = ?
-            """, (period_id, mailbox, utc_date))
+            c.execute("UPDATE mailbox_quotas SET campaign_sent = campaign_sent + 1 WHERE mailbox = ? AND period_id = ?", (mailbox, period_id))
 
         c.execute("COMMIT")
         conn.close()
@@ -478,7 +705,8 @@ def reserve_and_claim_job(
             "job_id": job_id,
             "decision_id": decision_id,
             "period_id": period_id,
-            "attempt_count": attempt_count
+            "attempt_count": attempt_count,
+            "reservation_id": reservation_id
         }
 
     except Exception as e:
@@ -499,30 +727,56 @@ def update_outbound_job_status(job_id: Optional[int], new_status: str, error_msg
     except Exception:
         pass
 
-def rollback_quota(mailbox: str, purpose: str = "campaign", period_id: str = None):
+def rollback_quota(mailbox: str, purpose: str = "campaign", period_id: str = None, reservation_id: str = None):
     """
     Rollback quota ONLY if SMTP failed completely before DATA submission.
     INVARIANT: Never rollback quota for post-DATA exceptions (e.g. QUIT errors or timeouts).
     """
     if not period_id:
         period_id = get_current_period_id()
-    utc_date = get_utc_date_str()
     conn = get_db_connection()
     c = conn.cursor()
+    now_iso = datetime.now(timezone.utc).isoformat()
     try:
         c.execute("BEGIN IMMEDIATE")
+        if reservation_id:
+            c.execute("""
+                SELECT status FROM quota_reservations
+                WHERE reservation_id = ? AND mailbox = ? AND period_id = ?
+            """, (reservation_id, mailbox, period_id))
+            r_row = c.fetchone()
+            if not r_row or r_row["status"] != "RESERVED":
+                c.execute("COMMIT")
+                conn.close()
+                return
+            c.execute("""
+                UPDATE quota_reservations
+                SET status = 'RELEASED', updated_at = ?
+                WHERE reservation_id = ?
+            """, (now_iso, reservation_id))
+
         if purpose == "campaign":
+            c.execute("""
+                UPDATE mailbox_period_usage
+                SET campaign_used = MAX(0, campaign_used - 1)
+                WHERE mailbox = ? AND period_id = ?
+            """, (mailbox, period_id))
             c.execute("""
                 UPDATE mailbox_quotas 
                 SET campaign_sent = MAX(0, campaign_sent - 1) 
-                WHERE mailbox = ? AND (period_id = ? OR (period_id IS NULL AND date_utc = ?))
-            """, (mailbox, period_id, utc_date))
+                WHERE mailbox = ? AND period_id = ?
+            """, (mailbox, period_id))
         elif purpose == "test":
+            c.execute("""
+                UPDATE mailbox_period_usage
+                SET diagnostic_used = MAX(0, diagnostic_used - 1)
+                WHERE mailbox = ? AND period_id = ?
+            """, (mailbox, period_id))
             c.execute("""
                 UPDATE mailbox_quotas 
                 SET diagnostic_sent = MAX(0, diagnostic_sent - 1) 
-                WHERE mailbox = ? AND (period_id = ? OR (period_id IS NULL AND date_utc = ?))
-            """, (mailbox, period_id, utc_date))
+                WHERE mailbox = ? AND period_id = ?
+            """, (mailbox, period_id))
         c.execute("COMMIT")
     except Exception:
         c.execute("ROLLBACK")
@@ -603,6 +857,77 @@ def record_campaign_message(
         conn.close()
         return False
 
+def open_hold(mailbox: str, hold_type: str, scope: str = 'mailbox', opening_event_id: str = None, retry_after: str = None, domain: str = None, conn = None) -> str:
+    close_conn = False
+    if conn is None:
+        conn = get_db_connection()
+        close_conn = True
+    c = conn.cursor()
+    if not domain:
+        domain = mailbox.split("@")[-1]
+    
+    # Check if this exact hold or an active hold of this type already exists
+    c.execute("""
+        SELECT hold_id, opened_at FROM mailbox_holds
+        WHERE mailbox = ? AND hold_type = ? AND resolved_at IS NULL
+    """, (mailbox, hold_type))
+    existing = c.fetchone()
+    now_iso = datetime.now(timezone.utc).isoformat()
+    if existing:
+        hold_id = existing["hold_id"]
+        if retry_after:
+            c.execute("UPDATE mailbox_holds SET retry_after = ? WHERE hold_id = ?", (retry_after, hold_id))
+    else:
+        hold_id = f"hold_{hold_type.lower()}_{mailbox}_{uuid.uuid4().hex[:6]}"
+        c.execute("""
+            INSERT INTO mailbox_holds (hold_id, mailbox, domain, hold_type, scope, opening_event_id, opened_at, retry_after)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (hold_id, mailbox, domain, hold_type, scope, opening_event_id, now_iso, retry_after))
+        
+    c.execute("""
+        UPDATE mailbox_levels
+        SET status = 'paused', paused_reason = COALESCE(paused_reason, ?), paused_at = COALESCE(paused_at, ?)
+        WHERE mailbox = ?
+    """, (f"Active hold: {hold_type}", now_iso, mailbox))
+    
+    if close_conn:
+        conn.commit()
+        conn.close()
+    return hold_id
+
+
+def resolve_hold(hold_id: str, resolution_evidence_ids: str = None, conn = None):
+    close_conn = False
+    if conn is None:
+        conn = get_db_connection()
+        close_conn = True
+    c = conn.cursor()
+    now_iso = datetime.now(timezone.utc).isoformat()
+    
+    c.execute("""
+        UPDATE mailbox_holds
+        SET resolved_at = ?, resolution_evidence_ids = ?
+        WHERE hold_id = ?
+    """, (now_iso, resolution_evidence_ids, hold_id))
+    
+    c.execute("SELECT mailbox FROM mailbox_holds WHERE hold_id = ?", (hold_id,))
+    row = c.fetchone()
+    if row:
+        mb = row["mailbox"]
+        c.execute("SELECT COUNT(*) FROM mailbox_holds WHERE mailbox = ? AND resolved_at IS NULL", (mb,))
+        remaining = c.fetchone()[0]
+        if remaining == 0:
+            c.execute("""
+                UPDATE mailbox_levels
+                SET status = 'active', paused_reason = NULL, paused_at = NULL
+                WHERE mailbox = ?
+            """, (mb,))
+            
+    if close_conn:
+        conn.commit()
+        conn.close()
+
+
 def pause_mailbox(mailbox: str, reason: str):
     conn = get_db_connection()
     c = conn.cursor()
@@ -611,6 +936,27 @@ def pause_mailbox(mailbox: str, reason: str):
     UPDATE mailbox_levels SET status = 'paused', paused_reason = ?, paused_at = ?
     WHERE mailbox = ?
     """, (reason, now_iso, mailbox))
+    
+    # Also record structured hold in mailbox_holds
+    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='mailbox_holds'")
+    if c.fetchone():
+        r_lower = reason.lower()
+        if "spam" in r_lower:
+            htype = "SEED_SPAM"
+        elif "transport" in r_lower:
+            htype = "HOLD_TRANSPORT_ERROR"
+        elif "auth" in r_lower:
+            htype = "HOLD_AUTH_FAILED"
+        elif "temporary" in r_lower or "4xx" in r_lower:
+            htype = "TEMP_FAILURE_BACKOFF"
+        else:
+            htype = "MANUAL_PAUSE"
+            
+        m_match = re.search(r"<([^>]+)>", reason)
+        op_event = m_match.group(0) if m_match else "pause_event"
+        open_hold(mailbox, htype, scope="mailbox", opening_event_id=op_event, conn=conn)
+
+    conn.commit()
     conn.close()
 
 def pause_domain(domain: str, reason: str):
@@ -621,16 +967,39 @@ def pause_domain(domain: str, reason: str):
     UPDATE mailbox_levels SET status = 'paused', paused_reason = ? || ' [DOMAIN LEVEL]', paused_at = ?
     WHERE domain = ?
     """, (reason, now_iso, domain))
+    
+    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='mailbox_holds'")
+    if c.fetchone():
+        r_lower = reason.lower()
+        htype = "HOLD_AUTH_FAILED" if "auth" in r_lower else "DOMAIN_PAUSED"
+        m_match = re.search(r"<([^>]+)>", reason)
+        op_event = m_match.group(0) if m_match else "domain_pause_event"
+        # Open domain-scoped hold
+        hold_id = f"hold_{htype.lower()}_dom_{domain}_{uuid.uuid4().hex[:6]}"
+        c.execute("""
+            INSERT OR IGNORE INTO mailbox_holds (hold_id, mailbox, domain, hold_type, scope, opening_event_id, opened_at)
+            VALUES (?, ?, ?, ?, 'domain', ?, ?)
+        """, (hold_id, f"@{domain}", domain, htype, op_event, now_iso))
+
+    conn.commit()
     conn.close()
 
 def resume_mailbox(mailbox: str):
     """Requires manual operator invocation with documented resolution."""
     conn = get_db_connection()
     c = conn.cursor()
+    now_iso = datetime.now(timezone.utc).isoformat()
     c.execute("""
     UPDATE mailbox_levels SET status = 'active', paused_reason = NULL, paused_at = NULL
     WHERE mailbox = ?
     """, (mailbox,))
+    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='mailbox_holds'")
+    if c.fetchone():
+        c.execute("""
+            UPDATE mailbox_holds SET resolved_at = ?, resolution_evidence_ids = 'manual_admin_resumption'
+            WHERE mailbox = ? AND resolved_at IS NULL
+        """, (now_iso, mailbox))
+    conn.commit()
     conn.close()
 
 def evaluate_mailbox_promotion(mailbox: str) -> tuple[bool, str]:

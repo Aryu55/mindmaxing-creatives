@@ -198,13 +198,35 @@ def plan_day(
 
         active_holds = []
         if has_holds_table:
+            # Check domain-level quarantine: explicit DOMAIN_PAUSED hold OR >=3 SEED_SPAM in 48h
             c.execute("""
-                SELECT hold_id, mailbox, domain, hold_type, scope, opening_event_id, opened_at, retry_after, remediation_ref
-                FROM mailbox_holds
-                WHERE (mailbox = ? OR (domain = ? AND scope = 'domain')) AND resolved_at IS NULL
-                ORDER BY opened_at DESC
-            """, (email_addr, domain))
-            active_holds = c.fetchall()
+                SELECT count(*) FROM mailbox_holds 
+                WHERE domain = ? AND hold_type = 'DOMAIN_PAUSED' AND resolved_at IS NULL
+            """, (domain,))
+            is_dom_paused = c.fetchone()[0] > 0
+
+            c.execute("""
+                SELECT count(*) FROM mailbox_holds 
+                WHERE domain = ? AND hold_type = 'SEED_SPAM' AND opened_at >= datetime('now', '-48 hours') AND resolved_at IS NULL
+            """, (domain,))
+            recent_domain_spam = c.fetchone()[0]
+
+            if is_dom_paused or recent_domain_spam >= 3:
+                mb_status = "paused"
+                action = "PAUSE"
+                effective_camp_cap = 0
+                effective_diag_cap = 1
+                reason = f"DOMAIN_QUARANTINE: domain {domain} is quarantined (paused={is_dom_paused}, recent_spam={recent_domain_spam})"
+                scope = "domain"
+                active_holds = [{"hold_type": "DOMAIN_PAUSED", "hold_id": f"contagion_{domain}"}]
+            else:
+                c.execute("""
+                    SELECT hold_id, mailbox, domain, hold_type, scope, opening_event_id, opened_at, retry_after, remediation_ref
+                    FROM mailbox_holds
+                    WHERE (mailbox = ? OR (domain = ? AND scope = 'domain')) AND resolved_at IS NULL
+                    ORDER BY opened_at DESC
+                """, (email_addr, domain))
+                active_holds = c.fetchall()
 
         if active_holds:
             for hold in active_holds:
