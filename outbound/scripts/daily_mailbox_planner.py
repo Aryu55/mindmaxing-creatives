@@ -15,6 +15,7 @@ import json
 import os
 import sqlite3
 import sys
+import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -34,9 +35,9 @@ POLICY_VERSION = "v2.1-revised"
 IST_TZ = timezone(timedelta(hours=5, minutes=30))
 
 LEVEL_BASE_CAPS = {
-    1: {"campaign": 1, "diagnostic": 1},
-    2: {"campaign": 2, "diagnostic": 1},
-    3: {"campaign": 3, "diagnostic": 1}
+    1: {"campaign": 2, "diagnostic": 1},
+    2: {"campaign": 3, "diagnostic": 1},
+    3: {"campaign": 4, "diagnostic": 1}
 }
 
 
@@ -127,7 +128,11 @@ def plan_day(
         and seed_health_rows.get(s["email"], {}).get("last_scan_at") >= one_hour_ago_iso
     )
 
-    epoch_days = int(now.timestamp() // 86400)
+    try:
+        dt_period = datetime.strptime(date_label, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        epoch_days = int(dt_period.timestamp() // 86400)
+    except Exception:
+        epoch_days = int(now.timestamp() // 86400)
     decisions: List[Dict[str, Any]] = []
 
     for idx, mb in enumerate(mailboxes):
@@ -175,10 +180,141 @@ def plan_day(
         assigned_seed = seeds[(idx + epoch_days) % len(seeds)]["email"] if seeds else None
         evidence_summary["assigned_seed"] = assigned_seed
 
+        # --- EVIDENCE COLLECTION FOR RULES ---
+        c.execute("PRAGMA table_info(collector_health)")
+        ch_cols = [col[1] for col in c.fetchall()]
+        has_consec = "consecutive_successes" in ch_cols
+        query_consec = ", consecutive_successes" if has_consec else ""
+        c.execute(f"SELECT status, last_scan_at, error_message{query_consec} FROM collector_health WHERE mailbox = ?", (email_addr,))
+        raw_health = c.fetchone()
+        health = dict(raw_health) if raw_health else None
+        evidence_summary["collector_health"] = health
+
         # --- EVALUATION RULES IN PRIORITY ORDER ---
 
-        # Rule 1: Manual or Circuit-Breaker Pause on Mailbox
-        if mb_status == "paused":
+        # Rule 0: Structured Incident Holds (Task C)
+        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='mailbox_holds'")
+        has_holds_table = bool(c.fetchone())
+
+        active_holds = []
+        if has_holds_table:
+            c.execute("""
+                SELECT hold_id, mailbox, domain, hold_type, scope, opening_event_id, opened_at, retry_after, remediation_ref
+                FROM mailbox_holds
+                WHERE (mailbox = ? OR (domain = ? AND scope = 'domain')) AND resolved_at IS NULL
+                ORDER BY opened_at DESC
+            """, (email_addr, domain))
+            active_holds = c.fetchall()
+
+        if active_holds:
+            for hold in active_holds:
+                htype = hold["hold_type"]
+                if htype == "SEED_SPAM":
+                    # Check SEED_SPAM recovery:
+                    # Require two distinct registered diagnostic messages, outside Spam,
+                    # trusted SPF/DKIM/DMARC pass, on two separate dates and two distinct seeds,
+                    # sent AFTER the latest incident, plus fresh sender monitoring.
+                    c.execute("""
+                        SELECT m.message_id, m.sent_at, m.recipient_email, m.period_id
+                        FROM messages m
+                        WHERE m.sender_email = ? AND m.purpose = 'test'
+                          AND m.delivery_state IN ('inbox', 'promotions')
+                          AND m.auth_spf = 'pass' AND m.auth_dkim = 'pass' AND m.auth_dmarc = 'pass'
+                          AND m.sent_at > ?
+                        ORDER BY m.sent_at ASC
+                    """, (email_addr, hold["opened_at"]))
+                    recovery_msgs = c.fetchall()
+
+                    distinct_dates = set(r["sent_at"][:10] for r in recovery_msgs)
+                    distinct_seeds = set(r["recipient_email"] for r in recovery_msgs)
+                    monitoring_fresh = (
+                        health and health["status"] == "healthy"
+                        and health["last_scan_at"] >= one_hour_ago_iso
+                        and (not has_consec or (health.get("consecutive_successes") or 0) >= 2)
+                    )
+
+                    if len(recovery_msgs) >= 2 and len(distinct_dates) >= 2 and len(distinct_seeds) >= 2 and monitoring_fresh:
+                        res_ev = ",".join(r["message_id"] for r in recovery_msgs)
+                        if not shadow:
+                            c.execute("""
+                                UPDATE mailbox_holds SET resolved_at = ?, resolution_evidence_ids = ? WHERE hold_id = ?
+                            """, (now_iso, res_ev, hold["hold_id"]))
+                            c.execute("""
+                                UPDATE mailbox_levels SET status = 'active', paused_reason = NULL, paused_at = NULL, level = 1 WHERE mailbox = ?
+                            """, (email_addr,))
+                        current_level = 1
+                        mb_status = "active"
+                        action = "KEEP"
+                        effective_camp_cap = LEVEL_BASE_CAPS[1]["campaign"]
+                        effective_diag_cap = base_diag_cap
+                        reason = "SEED_SPAM recovery completed with 2 clean diagnostics across separate dates and seeds; baseline resumed at Level 1"
+                        evidence_ids.extend([r["message_id"] for r in recovery_msgs])
+                        evidence_summary["seed_spam_recovery"] = {
+                            "messages": [r["message_id"] for r in recovery_msgs],
+                            "dates": list(distinct_dates),
+                            "seeds": list(distinct_seeds)
+                        }
+                        break
+                    else:
+                        action = "PAUSE"
+                        reason = f"HOLD_SEED_SPAM: Diagnostic test observed in SPAM folder on {hold['opened_at']}"
+                        scope = "mailbox"
+                        recovery_condition = "Two clean recovery diagnostics on separate days and different seeds. Resumes at baseline 1."
+                        effective_camp_cap = 0
+                        try:
+                            dt_op = datetime.fromisoformat(hold["opened_at"].replace("Z", "+00:00"))
+                            if dt_op.tzinfo is None:
+                                dt_op = dt_op.replace(tzinfo=timezone.utc)
+                            effective_diag_cap = 1 if now >= dt_op + timedelta(hours=24) else 0
+                        except Exception:
+                            effective_diag_cap = 1
+                        if hold["opening_event_id"]:
+                            evidence_ids.append(hold["opening_event_id"])
+                        evidence_summary["seed_spam_hold"] = dict(hold)
+                        break
+
+                elif htype == "MANUAL_PAUSE":
+                    action = "PAUSE"
+                    reason = f"Mailbox manually paused: {paused_reason}"
+                    scope = "mailbox"
+                    recovery_condition = "Manual intervention or recorded administrative resumption"
+                    effective_camp_cap = 0
+                    effective_diag_cap = 0
+                    break
+
+                elif htype == "DOMAIN_PAUSED":
+                    action = "PAUSE"
+                    reason = f"Domain {domain} is paused"
+                    scope = "domain"
+                    recovery_condition = "Recorded domain resolution and clean diagnostic"
+                    effective_camp_cap = 0
+                    effective_diag_cap = 0
+                    break
+
+                elif htype == "HOLD_AUTH_FAILED":
+                    action = "PAUSE"
+                    reason = f"Confirmed authentication failure on domain {domain}"
+                    scope = "domain"
+                    recovery_condition = "Recorded DNS/auth configuration resolution and clean diagnostic"
+                    effective_camp_cap = 0
+                    effective_diag_cap = 1 if hold["remediation_ref"] else 0
+                    break
+
+                elif htype == "TEMP_FAILURE_BACKOFF":
+                    if hold["retry_after"] and now_iso < hold["retry_after"]:
+                        action = "PAUSE"
+                        reason = f"Temporary failure backoff active until {hold['retry_after']}"
+                        scope = "mailbox"
+                        recovery_condition = "1 hour backoff elapsed and clean subsequent send"
+                        effective_camp_cap = 0
+                        effective_diag_cap = 0
+                        break
+                    else:
+                        if not shadow:
+                            c.execute("UPDATE mailbox_holds SET resolved_at = ? WHERE hold_id = ?", (now_iso, hold["hold_id"]))
+
+        # Rule 1: Fallback Manual or Circuit-Breaker Pause on Mailbox
+        if action != "PAUSE" and mb_status == "paused":
             effective_camp_cap = 0
             action = "PAUSE"
             reason = f"Mailbox is paused: {paused_reason}"
@@ -231,18 +367,44 @@ def plan_day(
             """, (email_addr, seven_days_ago_iso))
             spam_event = c.fetchone()
             if spam_event:
-                effective_camp_cap = 0
-                action = "PAUSE"
-                reason = f"Diagnostic test observed in SPAM folder on {spam_event['detected_at']}"
-                scope = "mailbox"
-                recovery_condition = "Two clean recovery diagnostics on separate days and different seeds. Resumes at baseline 1."
-                evidence_ids.append(spam_event["message_id"])
-                evidence_summary["spam_event"] = dict(spam_event)
+                already_resolved = False
+                if has_holds_table:
+                    c.execute("""
+                        SELECT hold_id FROM mailbox_holds 
+                        WHERE opening_event_id = ? AND resolved_at IS NOT NULL
+                    """, (spam_event["message_id"],))
+                    already_resolved = bool(c.fetchone())
 
-        # Rule 5: Sender Reply/Bounce Monitoring Freshness (Scan within 60m)
-        c.execute("SELECT status, last_scan_at, error_message FROM collector_health WHERE mailbox = ?", (email_addr,))
-        health = c.fetchone()
-        evidence_summary["collector_health"] = dict(health) if health else None
+                if not already_resolved:
+                    effective_camp_cap = 0
+                    action = "PAUSE"
+                    reason = f"Diagnostic test observed in SPAM folder on {spam_event['detected_at']}"
+                    scope = "mailbox"
+                    recovery_condition = "Two clean recovery diagnostics on separate days and different seeds. Resumes at baseline 1."
+                    evidence_ids.append(spam_event["message_id"])
+                    evidence_summary["spam_event"] = dict(spam_event)
+
+                    if has_holds_table and not shadow:
+                        hold_id = f"hold_spam_{email_addr}_{uuid.uuid4().hex[:6]}"
+                        c.execute("""
+                            INSERT OR IGNORE INTO mailbox_holds 
+                            (hold_id, mailbox, domain, hold_type, scope, opening_event_id, opened_at)
+                            VALUES (?, ?, ?, 'SEED_SPAM', 'mailbox', ?, ?)
+                        """, (hold_id, email_addr, domain, spam_event["message_id"], spam_event["detected_at"]))
+                        c.execute("""
+                            UPDATE mailbox_levels SET status = 'paused', paused_reason = ?, paused_at = ?
+                            WHERE mailbox = ?
+                        """, (reason, spam_event["detected_at"], email_addr))
+
+                    try:
+                        dt_spam = datetime.fromisoformat(spam_event["detected_at"].replace("Z", "+00:00"))
+                        if dt_spam.tzinfo is None:
+                            dt_spam = dt_spam.replace(tzinfo=timezone.utc)
+                        effective_diag_cap = 1 if now >= dt_spam + timedelta(hours=24) else 0
+                    except Exception:
+                        effective_diag_cap = 1
+
+        # Rule 5: Sender Reply/Bounce Monitoring Freshness (Scan within 60m and >= 2 consecutive healthy scans)
 
         if action != "PAUSE":
             if not health or not health["last_scan_at"]:
@@ -255,6 +417,12 @@ def plan_day(
                 effective_camp_cap = 0
                 action = "PAUSE"
                 reason = f"Monitoring collector reporting error: {health['error_message']}"
+                scope = "mailbox"
+                recovery_condition = "Two complete scans without error and qualifying diagnostic <= 72h"
+            elif has_consec and (health["consecutive_successes"] or 0) < 2:
+                effective_camp_cap = 0
+                action = "PAUSE"
+                reason = f"Monitoring recovery incomplete: {health['consecutive_successes'] or 0}/2 healthy scans completed"
                 scope = "mailbox"
                 recovery_condition = "Two complete scans without error and qualifying diagnostic <= 72h"
             elif health["last_scan_at"] < one_hour_ago_iso:
@@ -319,15 +487,7 @@ def plan_day(
         """, (email_addr, twenty_four_hours_ago_iso))
         recent_24h_sends = c.fetchall()
         if len(recent_24h_sends) == 3 and all(r["smtp_status"] == "temp_failure" for r in recent_24h_sends):
-            # Pre-acceptance 4xx failures: reduce baseline by 1 (min 1)
             new_level = max(1, current_level - 1)
-            effective_camp_cap = LEVEL_BASE_CAPS[new_level]["campaign"]
-            action = "DECREASE"
-            reason = "Three consecutive pre-acceptance 4xx failures in 24h: 1h backoff and baseline reduced by 1"
-            scope = "mailbox"
-            recovery_condition = "1 hour backoff elapsed and clean subsequent send"
-            for r in recent_24h_sends:
-                evidence_ids.append(r["message_id"])
             if not shadow and new_level != current_level:
                 c.execute("""
                     UPDATE mailbox_levels
@@ -335,6 +495,14 @@ def plan_day(
                     WHERE mailbox = ?
                 """, (new_level, now_iso, email_addr))
                 current_level = new_level
+            if action != "PAUSE":
+                effective_camp_cap = LEVEL_BASE_CAPS[new_level]["campaign"]
+                action = "DECREASE"
+                reason = "Three consecutive pre-acceptance 4xx failures in 24h: 1h backoff and baseline reduced by 1"
+                scope = "mailbox"
+                recovery_condition = "1 hour backoff elapsed and clean subsequent send"
+            for r in recent_24h_sends:
+                evidence_ids.append(r["message_id"])
 
         # Rule 9: Promotion Eligibility Check (INCREASE: +1, max 3)
         # Conditions: 7 days at level, 5 accepted sends >= 48h, 3 clean tests across >= 2 seeds in 7d, latest <= 72h
@@ -561,9 +729,21 @@ def main():
         sys.exit(1)
 
     try:
+        from service_heartbeats import record_heartbeat_start, record_heartbeat_success, record_heartbeat_failure
+    except ImportError:
+        try:
+            from outbound.scripts.service_heartbeats import record_heartbeat_start, record_heartbeat_success, record_heartbeat_failure
+        except ImportError:
+            record_heartbeat_start = lambda s, **kw: None
+            record_heartbeat_success = lambda s, **kw: None
+            record_heartbeat_failure = lambda s, **kw: None
+
+    record_heartbeat_start("daily_mailbox_planner", db_path=DB_PATH)
+    try:
         conn = sqlite3.connect(DB_PATH, timeout=30.0)
         res = plan_day(conn, period_id=period_arg, shadow=is_shadow)
         conn.close()
+        record_heartbeat_success("daily_mailbox_planner", items_processed=res.get("total_mailboxes", 25), db_path=DB_PATH)
 
         if is_json:
             print(json.dumps(res, indent=2))
@@ -575,6 +755,9 @@ def main():
             if res.get("report_md"):
                 print(f"Markdown report: {res['report_md']}")
                 print(f"JSON summary: {res['report_json']}")
+    except Exception as e:
+        record_heartbeat_failure("daily_mailbox_planner", str(e), db_path=DB_PATH)
+        raise e
     finally:
         try:
             fcntl.flock(lock_fd, fcntl.LOCK_UN)

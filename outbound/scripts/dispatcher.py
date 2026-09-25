@@ -544,7 +544,7 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
             leads = [l for l in leads if (l.get("timezone") or crm_data.get(l.get("domain"), {}).get("timezone", "")) in ["America/Los_Angeles", "America/Denver", "Pacific/Honolulu"]]
             log(f"Filtered to West/Pacific timezone leads: {len(leads)} candidates.")
 
-    allowed_statuses = ["HUMAN_APPROVED"] if not dry_run else ["HUMAN_APPROVED", "READY", "CANDIDATE"]
+    allowed_statuses = ["HUMAN_APPROVED", "TOUCH_1_SENT", "TOUCH_2_SENT"] if not dry_run else ["HUMAN_APPROVED", "READY", "CANDIDATE", "TOUCH_1_SENT", "TOUCH_2_SENT"]
 
     queue = []
     now = datetime.now(timezone.utc)
@@ -628,6 +628,8 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
         if last_str:
             try:
                 last_dt = datetime.fromisoformat(last_str.replace("Z", "+00:00"))
+                if last_dt.tzinfo is None:
+                    last_dt = last_dt.replace(tzinfo=timezone.utc)
             except Exception:
                 pass
 
