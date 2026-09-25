@@ -458,9 +458,15 @@ def send_email(sender: dict, password: str, to_email: str, subject: str, body: s
     server = None
     data_accepted = False
     try:
-        server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=25)
-        server.starttls()
-        server.login(sender["email"], password)
+        try:
+            server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=25)
+            server.starttls()
+            server.login(sender["email"], password)
+        except Exception as e587:
+            # Fallback to port 465 SSL
+            server = smtplib.SMTP_SSL(SMTP_HOST, 465, timeout=25)
+            server.login(sender["email"], password)
+
         refused = server.sendmail(sender["email"], [to_email], msg.as_string())
         if refused:
             try:
@@ -657,6 +663,7 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
     lead_idx = 0
     total_sent = 0
     worker_id = f"dispatcher_{os.getpid()}_{int(time.time())}"
+    run_failed_mailboxes = set()
 
     while lead_idx < len(queue) and total_sent < send_limit:
         lead, touch_step, touch_label, orig_subj, lead_status = queue[lead_idx]
@@ -705,7 +712,7 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
             src_name = lead.get("source", "dealstrike-distributors")
             claimed = False
             c_reason = "No candidate sender available"
-            candidate_senders = [sender] + [m for m in mailboxes if m["email"] != sender["email"]]
+            candidate_senders = [m for m in ([sender] + [m for m in mailboxes if m["email"] != sender["email"]]) if m["email"] not in run_failed_mailboxes]
             for cand in candidate_senders:
                 if touch_step == 1:
                     cand_subject, cand_body = generate_touch_1_copy(lead, cand)
@@ -805,6 +812,7 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
                     )
             else:
                 log(f"  Failed sending to {to_email}: {err_msg}")
+                run_failed_mailboxes.add(sender["email"])
                 update_outbound_job_status(job_id, "FAILED")
                 if volume_controller:
                     volume_controller.rollback_quota(sender["email"], "campaign")
