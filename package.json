@@ -5,11 +5,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npx serve -l 3000 .",
-    "build": "echo 'Build step complete. Serving static assets.'",
-    "deploy": "wrangler pages deploy . --project-name mindmaxing-creatives --commit-dirty=true",
+    "dev": "npm run build && node scripts/preview-site.mjs",
+    "build": "node scripts/build-site.mjs",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name mindmaxing-creatives",
     "logs": "ssh root@72.62.230.37 'tail -f /root/outbound/data/harvester.log'",
-    "leads": "ssh root@72.62.230.37 'cat /root/outbound/data/leads_250.json'"
+    "leads": "ssh root@72.62.230.37 'cat /root/outbound/data/leads_250.json'",
+    "x:source": "ssh root@72.62.230.37 'python3 /root/outbound/scripts/twitter_signal_scraper.py' && scp root@72.62.230.37:/root/outbound/reports/twitter_sourced_leads.* outbound/reports/",
+    "x:leads": "cat outbound/reports/twitter_sourced_leads.md",
+    "test": "node --test tests/*.test.js",
+    "test:browser": "npm run build && node tests/site-browser.cjs",
+    "media:render": "node scripts/render-site-media.cjs"
   },
   "keywords": [
     "mindmaxing",
@@ -24,6 +29,8 @@
   "license": "MIT",
   "devDependencies": {
     "serve": "^14.2.4",
-    "wrangler": "^3.90.0"
+    "wrangler": "^3.90.0",
+    "playwright": "^1.62.1",
+    "sharp": "^0.35.4"
   }
 }
