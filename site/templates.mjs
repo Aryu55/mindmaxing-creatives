@@ -32,7 +32,7 @@ export function page({ title, description, path = '/', body, active = '', image 
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080a0d"><meta name="color-scheme" content="dark"><meta name="project-slugs" content="${projects.map(p => p.slug).join(',')}"><title>${esc(title)} · Mindmaxing Studio</title><meta name="description" content="${esc(description)}"><link rel="canonical" href="https://mindmaxing.one${path}"><meta property="og:type" content="website"><meta property="og:title" content="${esc(title)} · Mindmaxing Studio"><meta property="og:description" content="${esc(description)}"><meta property="og:url" content="https://mindmaxing.one${path}"><meta property="og:image" content="https://mindmaxing.one${image}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link rel="icon" href="/favicon.png"><link rel="preload" href="/assets/fonts/instrument-sans.woff2" as="font" type="font/woff2" crossorigin><link rel="stylesheet" href="/assets/studio.css"><script src="/assets/studio.js" type="module"></script>${path === '/' ? '<script src="/assets/hero-preview.js" type="module"></script>' : ''}</head><body class="${path === '/' ? 'home-page' : ''}">${header(active)}<main id="main">${body}</main>${footer()}<div class="toast" role="status" aria-live="polite"></div></body></html>`;
 }
 
-export const workRow = p => `<a class="work-row" href="${url(p)}" data-project-link style="--project-accent:${p.accent}" data-category="${p.category}" data-search="${esc([p.title, p.summary, p.contribution, p.disciplines].join(' ').toLowerCase())}"><div class="work-thumb">${media(p)}<span class="thumb-corner">${p.number}</span></div><div class="work-info"><span class="label">${categories[p.category]}</span><h3>${esc(p.title)}</h3><p>${esc(p.summary)}</p><span class="contribution">${esc(p.contribution)}</span></div><div class="work-action"><span class="demo-indicator"><i></i>${p.showcaseMode || 'Interactive demo'}</span><span class="round-arrow">↗</span></div></a>`;
+export const workRow = p => `<a class="work-row" href="${url(p)}" data-project-link style="--project-accent:${p.accent}" data-category="${p.category}" data-lead="${p.lead}" data-search="${esc([p.title, p.summary, p.contribution, p.disciplines, p.leadName].join(' ').toLowerCase())}"><div class="work-thumb">${media(p)}<span class="thumb-corner">${p.number}</span></div><div class="work-info"><div class="work-meta-row"><span class="label">${categories[p.category]}</span><span class="lead-badge" data-lead="${p.lead}"><img src="${p.leadAvatar}" alt="" class="lead-mini-thumb" width="16" height="16" loading="lazy"><span>${esc(p.leadName)}</span></span></div><h3>${esc(p.title)}</h3><p>${esc(p.summary)}</p><span class="contribution">${esc(p.contribution)}</span></div><div class="work-action"><span class="demo-indicator"><i></i>${p.showcaseMode || 'Interactive demo'}</span><span class="round-arrow">↗</span></div></a>`;
 
 export function contact() {
   return `<section class="contact-section shell" id="contact"><div class="contact-copy"><span class="section-kicker">An idea, a problem, a possibility.</span><h2>Tell us what you want to<br>build or grow<span class="warm">.</span></h2><p>Bring the complicated part.<br>We’ll figure out a considered way through it.</p><a class="text-link" href="mailto:mindmaxxxing@gmail.com">mindmaxxxing@gmail.com ${arrow}</a></div><form id="contact-form" class="contact-form" method="post" action="/api/contact"><p class="project-context" hidden></p><input name="project" type="hidden"><div class="field-pair"><label>Your name<input name="name" autocomplete="name" required maxlength="120" placeholder="Alex"></label><label>Email address<input name="email" type="email" autocomplete="email" required maxlength="320" placeholder="alex@company.com"></label></div><div class="field-pair"><label>Budget <span>(optional)</span><select name="budget"><option value="">Let’s scope it together</option><option>$500–$1,000</option><option>$1,000–$3,000</option><option>$3,000–$5,000</option><option>$5,000+</option></select></label><label>Phone <span>(optional)</span><input name="phone" type="tel" autocomplete="tel" maxlength="80" placeholder="Country code + number"></label></div><label>A little about the project<textarea name="details" rows="3" required minlength="12" maxlength="10000" placeholder="What are you trying to make or grow? What needs to work differently?"></textarea></label><div class="form-bottom"><span>Direct to the people building it.</span><button type="submit" class="button button-light">Send your brief ${arrow}</button></div><p class="form-status" role="status" aria-live="polite"></p></form></section>`;
@@ -192,7 +192,7 @@ export function home() {
       <span class="section-kicker">Selected marketing & creative work</span>
       <h2>Campaigns that bring people in.</h2>
     </div>
-    <p>Paid search architecture, feed optimization, and high-retention creative.<br>Strategy grounded in demonstrable thinking.</p>
+    <p>Paid search architecture, feed optimization, and high-retention creative.<br>Led by partner Rahul Saranya.</p>
   </div>
   <div class="work-list">
     ${featuredMarketing.map(workRow).join('')}
@@ -230,13 +230,13 @@ export function home() {
   <a href="/case-studies?category=motion">
     <span>04</span>
     <h3>3D motion & animation</h3>
-    <p>Commercial 3D spots, TVC end slates, photorealistic product rendering, and broadcast animation.</p>
+    <p>Commercial 3D spots, TVC end slates, photorealistic product rendering, and broadcast animation. Led by partner Rahul Saranya.</p>
     ${arrow}
   </a>
   <a href="/case-studies?category=growth">
     <span>05</span>
     <h3>Marketing & creative</h3>
-    <p>Paid search and Meta campaigns, product feed architecture, direct-response copy, and campaign landing pages.</p>
+    <p>Paid search and Meta campaigns, product feed architecture, direct-response copy, and campaign landing pages. Led by partner Rahul Saranya.</p>
     ${arrow}
   </a>
 </section>
@@ -268,15 +268,15 @@ export function home() {
         <img class="founder-portrait" src="/assets/rahul.jpg" alt="Rahul Saranya - Partner & Motion Graphics Lead" width="700" height="700" loading="lazy" decoding="async">
       </div>
       <div class="founder-copy">
-        <span class="founder-kicker">Partner & Motion Graphics Lead</span>
+        <span class="founder-kicker">Partner & Motion Graphics Lead · Creative Growth</span>
         <h2>Rahul Saranya</h2>
         <div class="founder-bio">
-          <p>I direct 3D animation, commercial motion graphics and visual brand assets. From national TVC end slates to digital campaign reels, I focus on motion that stops the scroll.</p>
-          <p>Commercial portfolio includes animation across Fevicol, Britannia, Fiama, Cuticura, and MotoGP. At Mindmaxing, I lead 3D visual direction and motion craft.</p>
+          <p>I direct commercial 3D animation, broadcast motion design, and high-converting marketing campaigns. From national TVC end slates to digital campaign reels and acquisition strategy, I focus on creative that commands attention and drives revenue.</p>
+          <p>Commercial portfolio spans 3D motion and campaign creative across Fevicol, Britannia, Fiama, Cuticura, Zupee, and MotoGP. At Mindmaxing, I lead visual direction, 3D motion, and creative growth.</p>
         </div>
         <div class="founder-actions">
-          <a class="button button-light" href="/case-studies?category=motion">View motion works ${arrow}</a>
-          <a class="text-link" href="#contact">Discuss motion project ${arrow}</a>
+          <a class="button button-light" href="/case-studies?lead=rahul">Explore creative work (24) ${arrow}</a>
+          <a class="text-link" href="#contact">Discuss creative brief ${arrow}</a>
         </div>
       </div>
     </div>
@@ -288,12 +288,14 @@ ${contact()}`
 }
 
 export function archive() {
+  const aryanWorks = projects.filter(p => p.lead === 'aryan').length;
+  const rahulWorks = projects.filter(p => p.lead === 'rahul').length;
   return page({
     title: 'Selected work',
-    description: `Explore ${projects.length} project records, interactive demonstrations, and creative campaigns by Mindmaxing Studio.`,
+    description: `Explore ${projects.length} project records, interactive demonstrations, and creative campaigns by Mindmaxing Studio. Led by Aryan Panchal and Rahul Saranya.`,
     path: '/case-studies',
     active: 'work',
-    body: `<section class="archive-intro shell"><span class="section-kicker">The collection</span><h1>Work you can<br><span>get your hands on.</span></h1><p>Storefronts, useful software and experiences with a point of view.<br>Every project opens up. Every detail has a reason.</p></section><section class="shell archive-section"><div class="archive-controls"><div class="filters" role="group" aria-label="Project category"><button data-filter="all" aria-pressed="true">All work <span>${projects.length}</span></button>${Object.entries(categories).map(([id, label]) => `<button data-filter="${id}" aria-pressed="false">${label} <span>${projects.filter(p => p.category === id).length}</span></button>`).join('')}</div><label class="search"><span class="sr-only">Search projects</span><input id="project-search" type="search" placeholder="Find a project…" autocomplete="off"><span aria-hidden="true">⌕</span></label></div><p id="result-count" class="result-count" role="status">${projects.length} projects</p><div class="work-list" id="work-list">${projects.map(workRow).join('')}</div><div class="empty-state" hidden><h2>No projects found.</h2><p>Try another search or explore all work.</p><button class="button" data-clear-filters>Clear filters</button></div></section>`
+    body: `<section class="archive-intro shell"><span class="section-kicker">The collection</span><h1>Work you can<br><span>get your hands on.</span></h1><p>Storefronts, useful software, 3D motion and creative campaigns.<br>Every project opens up. Led by practitioners with distinct disciplines.</p></section><section class="authorship-strip shell" aria-label="Studio practice leads"><div class="authorship-card" data-lead-card="aryan"><div class="authorship-avatar-wrap"><img src="/assets/aryan-perfect.jpg" alt="Aryan Panchal - Founder & Engineering Lead" width="84" height="84" class="authorship-avatar" loading="lazy"></div><div class="authorship-body"><div class="authorship-meta"><span class="authorship-kicker">Founder & Technical Lead</span><span class="authorship-tag">${aryanWorks} works</span></div><h3>Aryan Panchal</h3><p class="authorship-desc">Headless storefronts, software systems, interactive WebGL, and automation engines.</p><div class="authorship-footer"><span class="authorship-scope">Commerce (7) · Software (24) · Interactive (3)</span><button type="button" class="authorship-btn" data-filter-lead="aryan">Show Aryan’s work <span aria-hidden="true">→</span></button></div></div></div><div class="authorship-card" data-lead-card="rahul"><div class="authorship-avatar-wrap"><img src="/assets/rahul.jpg" alt="Rahul Saranya - Partner & Creative Growth Lead" width="84" height="84" class="authorship-avatar" loading="lazy"></div><div class="authorship-body"><div class="authorship-meta"><span class="authorship-kicker">Partner & Creative Growth Lead</span><span class="authorship-tag">${rahulWorks} works</span></div><h3>Rahul Saranya</h3><p class="authorship-desc">Commercial 3D motion, TVC broadcast slates, visual brand direction, and marketing campaigns.</p><div class="authorship-footer"><span class="authorship-scope">3D Motion (16) · Marketing & Growth (8)</span><button type="button" class="authorship-btn" data-filter-lead="rahul">Show Rahul’s work <span aria-hidden="true">→</span></button></div></div></div></section><section class="shell archive-section"><div class="archive-controls"><div class="filters" role="group" aria-label="Project category"><button data-filter="all" aria-pressed="true">All work <span>${projects.length}</span></button>${Object.entries(categories).map(([id, label]) => `<button data-filter="${id}" aria-pressed="false">${label} <span>${projects.filter(p => p.category === id).length}</span></button>`).join('')}</div><label class="search"><span class="sr-only">Search projects</span><input id="project-search" type="search" placeholder="Find a project…" autocomplete="off"><span aria-hidden="true">⌕</span></label></div><div class="lead-active-bar" id="lead-active-bar" hidden><span id="lead-active-text">Showing Aryan’s work</span><button type="button" id="lead-clear-btn" class="text-link">Show all 58 projects ✕</button></div><p id="result-count" class="result-count" role="status">${projects.length} projects</p><div class="work-list" id="work-list">${projects.map(workRow).join('')}</div><div class="empty-state" hidden><h2>No projects found.</h2><p>Try another search or explore all work.</p><button class="button" data-clear-filters>Clear filters</button></div></section>`
   });
 }
 
@@ -322,6 +324,10 @@ export function project(p) {
     <p>${esc(p.summary)}</p>
   </div>
   <dl class="project-facts">
+    <div>
+      <dt>Project lead</dt>
+      <dd class="project-lead-val"><img src="${p.leadAvatar}" alt="" class="lead-tiny-avatar" width="20" height="20" loading="lazy"><span><strong>${esc(p.leadName)}</strong> · ${esc(p.leadRole)}</span></dd>
+    </div>
     <div>
       <dt>Contribution</dt>
       <dd>${esc(p.contribution)}</dd>
@@ -404,7 +410,7 @@ ${isMotion ? `
     <p class="demo-error" role="status" hidden>The demonstration couldn’t load. You can still explore the project below. <button data-demo-retry>Try again</button></p>
     <div class="demo-foot">
       <span>${p.showcaseMode}</span>
-      <span>No account needed. Nothing is sent.</span>
+      <span>${isMarketing ? 'Strategy: Rahul Saranya · Mindmaxing Studio' : 'Engineering: Aryan Panchal · Mindmaxing Studio'}</span>
     </div>
   </div>
 
@@ -509,44 +515,50 @@ export function about() {
     body: `<section class="about-hero shell">
   <span class="section-kicker">Mindmaxing Studio / Mumbai</span>
   <h1>Curiosity starts it.<br><span>Craft carries it through.</span></h1>
-  <p>We are an independent studio working across engineering, design, and marketing. We build custom storefronts, interactive experiences, software, and targeted campaigns that bring customers to them.</p>
+  <p>We are an independent studio working across engineering, design, and marketing. Led by Aryan Panchal (Engineering & Systems) and Rahul Saranya (3D Motion & Growth Campaigns), Mindmaxing brings technical engineering and commercial creative direction together under one roof.</p>
 </section>
 
 <section class="founder-section shell about-founder-section" id="team">
-  <span class="section-kicker">Leadership</span>
+  <div class="about-leadership-head">
+    <span class="section-kicker">Leadership</span>
+    <h2>Two partners. Two disciplines.</h2>
+    <p>Aryan leads engineering systems, storefronts, and software. Rahul directs 3D motion, commercial visuals, and growth campaigns.<br>Direct collaboration with the practitioners doing the work.</p>
+  </div>
   <div class="leadership-grid" style="display:flex;flex-direction:column;gap:64px;">
-    <div class="founder-container">
+    <div class="founder-container" data-partner="aryan">
       <div class="founder-portrait-wrap">
         <img class="founder-portrait" src="/assets/aryan-perfect.jpg" alt="Aryan Panchal - Founder & Engineering Lead" width="700" height="700" loading="lazy" decoding="async">
       </div>
       <div class="founder-copy">
         <span class="founder-kicker">Founder & Engineering Lead</span>
         <h2>Aryan Panchal</h2>
+        <span class="founder-scope-tag">34 works · Storefronts, Software & Interactive Systems</span>
         <div class="founder-bio">
-          <p>I build web products, Android apps and automation systems. I care about the difficult parts underneath - and how simple the finished experience feels.</p>
-          <p>Mindmaxing brings that engineering approach together with design, campaign strategy and creative production. Every system we build is designed to be explored, tested, and relied upon.</p>
+          <p>I build web products, Android apps and automation systems. I care about the difficult parts underneath - robust state models, low-latency APIs, and how simple the finished experience feels.</p>
+          <p>Mindmaxing brings that engineering approach together with design, campaign strategy and creative production. Every system we build is designed to be explored, tested, and relied upon under real-world load.</p>
         </div>
         <div class="founder-actions">
-          <a class="button button-light" href="/#contact">Talk to Aryan ${arrow}</a>
-          <a class="text-link" href="/case-studies">Explore all work ${arrow}</a>
+          <a class="button button-light" href="/case-studies?lead=aryan">Explore engineering work (34) ${arrow}</a>
+          <a class="text-link" href="/#contact">Talk to Aryan ${arrow}</a>
         </div>
       </div>
     </div>
 
-    <div class="founder-container">
+    <div class="founder-container" data-partner="rahul">
       <div class="founder-portrait-wrap">
         <img class="founder-portrait" src="/assets/rahul.jpg" alt="Rahul Saranya - Partner & Motion Graphics Lead" width="700" height="700" loading="lazy" decoding="async">
       </div>
       <div class="founder-copy">
-        <span class="founder-kicker">Partner & Motion Graphics Lead</span>
+        <span class="founder-kicker">Partner & Motion Graphics Lead · Creative Growth</span>
         <h2>Rahul Saranya</h2>
+        <span class="founder-scope-tag">24 works · 3D Motion, Visuals & Marketing Campaigns</span>
         <div class="founder-bio">
-          <p>I direct 3D animation, commercial motion graphics and visual brand assets. From TVC end slates to digital campaign spots, I focus on motion that commands attention.</p>
-          <p>Portfolio includes commercial motion design and animation across Fevicol, Britannia, Fiama, Cuticura, and MotoGP. At Mindmaxing, I lead 3D visual direction and motion graphics.</p>
+          <p>I direct commercial 3D animation, broadcast motion graphics, and high-converting marketing campaigns. From national TVC end slates to digital campaign reels, I focus on creative that commands attention and drives revenue.</p>
+          <p>Commercial portfolio spans 3D motion, visual direction, and growth campaigns across Fevicol, Britannia, Fiama, Cuticura, Zupee, and MotoGP. At Mindmaxing, I lead visual direction, commercial animation, and creative growth.</p>
         </div>
         <div class="founder-actions">
-          <a class="button button-light" href="/#contact">Discuss motion project ${arrow}</a>
-          <a class="text-link" href="/case-studies">View portfolio ${arrow}</a>
+          <a class="button button-light" href="/case-studies?lead=rahul">Explore creative work (24) ${arrow}</a>
+          <a class="text-link" href="/#contact">Discuss creative brief ${arrow}</a>
         </div>
       </div>
     </div>
@@ -558,7 +570,7 @@ export function about() {
   <h2>Engineering, 3D motion<br>and <span>visual direction.</span></h2>
   <div>
     <p>How it looks. How it moves. How it responds under load. These are the same conversation.</p>
-    <p>Led by Aryan Panchal (Engineering) and Rahul Saranya (3D Motion & Visual Direction), Mindmaxing brings technical systems and commercial motion graphics together under one roof.</p>
+    <p>Aryan leads technical architecture, systems engineering, and interactive web software. Rahul directs 3D motion, broadcast animation, and creative growth campaigns.</p>
   </div>
 </section>
 

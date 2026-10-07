@@ -207,7 +207,7 @@ export const rawProjects = [
     category: 'growth',
     heading: 'Make the product feed legible.',
     summary: 'A guided look at product-feed review and Shopping campaign structure.',
-    contribution: 'Google Shopping feed architecture & campaign strategy',
+    contribution: 'Rahul Saranya · Shopping Feed Architecture & Campaign Strategy',
     instruction: 'Inspect a sample feed entry.',
     problem: 'Incomplete product specifications and unstructured titles trigger Google Merchant Center disapprovals and drain Shopping ad efficiency.',
     approach: 'Restructure variant attributes, standardise titles, and segment product feeds by margin and inventory velocity.',
@@ -228,7 +228,7 @@ export const rawProjects = [
     category: 'growth',
     heading: 'Different intent. Different message.',
     summary: 'A comparison of product messaging for distinct buying situations.',
-    contribution: 'Google Ads search architecture & copy strategy',
+    contribution: 'Rahul Saranya · Search Architecture & Conversion Copy',
     instruction: 'Switch the buying occasion.',
     problem: 'A collector seeking rare bottles and a corporate procurement officer purchasing bulk gifts require completely distinct value propositions.',
     approach: 'Pair each search intent with tailored ad copy, dedicated landing pages, and targeted conversion actions.',
@@ -249,7 +249,7 @@ export const rawProjects = [
     category: 'growth',
     heading: 'Make the idea worth stopping for.',
     summary: 'An interactive breakdown of short-form content approaches.',
-    contribution: 'Social creative strategy & campaign production',
+    contribution: 'Rahul Saranya · Social Creative Strategy & Campaign Production',
     instruction: 'Compare two content treatments.',
     problem: 'Product announcements often fail to engage audiences unless anchored to relatable cultural references and tight opening hooks.',
     approach: 'Develop high-retention short-form scripts, meme formats, and character-driven gaming scenarios for mobile feeds.',
@@ -270,7 +270,7 @@ export const rawProjects = [
     category: 'growth',
     heading: 'One product. Several ways in.',
     summary: 'Creative approaches organised by the question a customer is asking.',
-    contribution: 'Creative testing matrix & performance copy',
+    contribution: 'Rahul Saranya · Creative Testing Matrix & Performance Copy',
     instruction: 'Choose a creative angle.',
     problem: 'Highlighting product specifications alone fails to convert customers across varied fitness levels and living spaces.',
     approach: 'Systematically test pain-point hooks against routine-based messaging and visual teardowns.',
@@ -291,7 +291,7 @@ export const rawProjects = [
     category: 'growth',
     heading: 'Make the calculation tangible.',
     summary: 'An illustrative savings calculator inside a lead journey.',
-    contribution: 'Meta campaign strategy & lead qualification funnel',
+    contribution: 'Rahul Saranya · Meta Campaign Strategy & Lead Funnel',
     instruction: 'Adjust the sample inputs.',
     problem: 'High-ticket residential solar purchases stall when homeowners find savings estimates opaque or confusing.',
     approach: 'Build an interactive estimation flow directly into the ad destination to qualify homeowner roof viability and power consumption.',
@@ -312,7 +312,7 @@ export const rawProjects = [
     category: 'growth',
     heading: 'A more relevant first conversation.',
     summary: 'A persona-led message builder for a meal-service journey.',
-    contribution: 'Persona segmentation & WhatsApp onboarding copy',
+    contribution: 'Rahul Saranya · Persona Segmentation & Onboarding Strategy',
     instruction: 'Choose a meal preference.',
     problem: 'Meal subscription services experience high drop-off when prospective subscribers receive generic dietary menus.',
     approach: 'Route incoming inquiries to persona-specific meal previews based on dietary restrictions and delivery frequency.',
@@ -333,7 +333,7 @@ export const rawProjects = [
     category: 'growth',
     heading: 'Turn a teardown into a useful lesson.',
     summary: 'An interactive walkthrough of a storefront education concept.',
-    contribution: 'Content design & technical teardown publishing',
+    contribution: 'Rahul Saranya · Content Direction & Editorial Teardowns',
     instruction: 'Step through the teardown.',
     problem: 'E-commerce merchants tune out theoretical design advice unless observations are tied to concrete storefront details.',
     approach: 'Produce annotated visual teardowns breaking down checkout friction, mobile ergonomics, and cart velocity.',
@@ -354,7 +354,7 @@ export const rawProjects = [
     category: 'growth',
     heading: 'Understand it through movement.',
     summary: 'A product explanation for a friction-lock belt.',
-    contribution: 'Product storytelling & launch campaign creative',
+    contribution: 'Rahul Saranya · Product Storytelling & Launch Creative',
     instruction: 'Explore the product mechanism.',
     problem: 'An unfamiliar mechanical belt closure is hard to explain through static photos alone without customer confusion.',
     approach: 'Combine interactive tension schematics with product narrative to highlight durability and effortless adjustment.',
@@ -1294,13 +1294,24 @@ export const rawProjects = [
   }
 ];
 
-export const projects = rawProjects.map((p, i) => ({
-  ...p,
-  number: String(i + 1).padStart(2, '0'),
-  publicationStatus: 'published',
-  demo: `/demos/index.html?project=${p.slug}`,
-  socialImage: p.caseStudyType === 'motion' ? p.poster : `/assets/social/${p.slug}.jpg`
-}));
+export const projects = rawProjects.map((p, i) => {
+  const isRahul = p.category === 'motion' || p.category === 'growth' || p.lead === 'rahul';
+  const lead = isRahul ? 'rahul' : 'aryan';
+  const leadName = isRahul ? 'Rahul Saranya' : 'Aryan Panchal';
+  const leadRole = isRahul ? 'Partner · 3D Motion & Creative Growth' : 'Founder · Technical Lead';
+  const leadAvatar = isRahul ? '/assets/rahul.jpg' : '/assets/aryan-perfect.jpg';
+  return {
+    ...p,
+    lead,
+    leadName,
+    leadRole,
+    leadAvatar,
+    number: String(i + 1).padStart(2, '0'),
+    publicationStatus: 'published',
+    demo: `/demos/index.html?project=${p.slug}`,
+    socialImage: p.caseStudyType === 'motion' ? p.poster : `/assets/social/${p.slug}.jpg`
+  };
+});
 
 // Engineering showcase row for the homepage
 export const featuredEngineering = ['dealstrike', 'billfetch', 'knittire-3d'].map(slug =>

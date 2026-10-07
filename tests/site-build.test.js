@@ -69,6 +69,22 @@ test('build produces 58 standalone project pages and an isolated public release'
   }
 
   assert.ok(existsSync('dist/case-studies/index.html'));
+  const archiveHtml = readFileSync('dist/case-studies/index.html', 'utf8');
+  assert.match(archiveHtml, /authorship-card/);
+  assert.match(archiveHtml, /34 works/);
+  assert.match(archiveHtml, /24 works/);
+  assert.match(archiveHtml, /data-lead="aryan"/);
+  assert.match(archiveHtml, /data-lead="rahul"/);
+
+  // Verify lead attribution on sample project pages
+  const zupeeHtml = readFileSync('dist/case-studies/zupee/index.html', 'utf8');
+  assert.match(zupeeHtml, /Rahul Saranya/);
+  assert.match(zupeeHtml, /Strategy: Rahul Saranya/);
+
+  const dealstrikeHtml = readFileSync('dist/case-studies/dealstrike/index.html', 'utf8');
+  assert.match(dealstrikeHtml, /Aryan Panchal/);
+  assert.match(dealstrikeHtml, /Engineering: Aryan Panchal/);
+
   assert.ok(existsSync('dist/about/index.html'));
   assert.ok(existsSync('dist/404.html'));
   assert.ok(existsSync('dist/_redirects'));
