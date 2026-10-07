@@ -39,7 +39,10 @@ def get_dynamic_search_terms(days_back=14):
     terms = [
         f'("looking for a developer" OR "looking for a dev" OR "need a dev to build" OR "need a shopify dev") since:{since_date} -intern -unpaid -equity -jobboard',
         f'("need a dev partner" OR "agency looking for a developer" OR "overflow dev") since:{since_date} -intern -unpaid -equity',
-        f'("anyone know a good" OR "can someone recommend a") ("shopify developer" OR "react developer" OR "full stack developer") since:{since_date} -course -job'
+        f'("anyone know a good" OR "can someone recommend a") ("shopify developer" OR "react developer" OR "full stack developer") since:{since_date} -course -job',
+        f'("looking for a full stack" OR "looking for a frontend dev" OR "hiring a contractor") ("sprint" OR "mvp" OR "build" OR "app") since:{since_date} -intern -unpaid -equity',
+        f'("need a shopify expert" OR "looking for a shopify dev" OR "custom shopify theme") since:{since_date} -course -intern',
+        f'("recommend a dev" OR "recommend a web developer" OR "looking for a web developer") ("agency" OR "client" OR "project") since:{since_date} -intern -unpaid'
     ]
     return terms
 

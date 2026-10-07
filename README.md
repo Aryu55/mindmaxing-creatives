@@ -1,4 +1,14 @@
-# 🚀 Mindmaxing Creatives — Product Studio Portfolio
+# Mindmaxing Studio — current website
+
+The September 2026 implementation is in **`site/`**. Run `npm run dev` for the local website and `npm run build` for the website-only `dist/` output. Cloudflare Pages now publishes `dist/`, not the repository root.
+
+The site includes `/case-studies` and 24 individual project routes with local interactive reconstructions. See [site/README.md](site/README.md) for authoring, tests, demo boundaries and release instructions, and [site/media-audit.md](site/media-audit.md) for source corrections.
+
+The root HTML and `public/` files are retained legacy material. The historical notes below do not define the new design or establish the outcome claims they contain.
+
+---
+
+# Historical project notes
 
 > **"We notice problems and then go build the thing."**
 

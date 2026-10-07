@@ -154,7 +154,7 @@ def evaluate_contact(
 
     # 7. Campaign State Gate
     camp_status = campaign_state.get("status", "CANDIDATE")
-    if camp_status != "HUMAN_APPROVED":
+    if camp_status not in ("HUMAN_APPROVED", "TOUCH_1_SENT", "TOUCH_2_SENT"):
         reasons.append(f"CAMPAIGN_STATUS_NOT_APPROVED_{camp_status}")
 
     # 8. Active Sequence Recipient Immutability

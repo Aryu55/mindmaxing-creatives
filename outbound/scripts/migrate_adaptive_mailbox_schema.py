@@ -9,9 +9,10 @@ Creates:
 """
 
 import os
+import re
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.environ.get("MINDMAXING_BASE_DIR") or (
@@ -170,6 +171,119 @@ def run_migration(db_path: str = DB_PATH) -> bool:
         if "period_id" not in quota_cols:
             c.execute("ALTER TABLE mailbox_quotas ADD COLUMN period_id TEXT;")
         c.execute("CREATE INDEX IF NOT EXISTS idx_mb_quotas_period ON mailbox_quotas (mailbox, period_id);")
+
+        # 7. mailbox_period_usage (Period-keyed quota ledger - Task B)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS mailbox_period_usage (
+                mailbox TEXT NOT NULL,
+                period_id TEXT NOT NULL,
+                campaign_used INTEGER NOT NULL DEFAULT 0 CHECK(campaign_used >= 0),
+                diagnostic_used INTEGER NOT NULL DEFAULT 0 CHECK(diagnostic_used >= 0),
+                PRIMARY KEY (mailbox, period_id)
+            );
+        """)
+
+        # 8. quota_reservations (Atomic tokenized reservation ledger - Task B)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS quota_reservations (
+                reservation_id TEXT PRIMARY KEY,
+                mailbox TEXT NOT NULL,
+                period_id TEXT NOT NULL,
+                purpose TEXT NOT NULL CHECK(purpose IN ('campaign','test')),
+                status TEXT NOT NULL CHECK(status IN ('RESERVED','ACCEPTED','UNCERTAIN','RELEASED')),
+                message_id TEXT,
+                job_id INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+        """)
+        c.execute("CREATE INDEX IF NOT EXISTS idx_quota_res_mb_period ON quota_reservations (mailbox, period_id);")
+
+        # 9. mailbox_holds (Structured incident holds and recovery ledger - Task C)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS mailbox_holds (
+                hold_id TEXT PRIMARY KEY,
+                mailbox TEXT NOT NULL,
+                domain TEXT NOT NULL,
+                hold_type TEXT NOT NULL,
+                scope TEXT NOT NULL CHECK(scope IN ('mailbox', 'domain')),
+                opening_event_id TEXT,
+                opened_at TEXT NOT NULL,
+                retry_after TEXT,
+                remediation_ref TEXT,
+                resolved_at TEXT,
+                resolution_evidence_ids TEXT
+            );
+        """)
+        c.execute("CREATE INDEX IF NOT EXISTS idx_holds_mb_active ON mailbox_holds (mailbox, resolved_at);")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_holds_domain_active ON mailbox_holds (domain, resolved_at);")
+
+        # Migrate existing paused mailboxes to structured holds (Task C)
+        c.execute("PRAGMA table_info(mailbox_levels)")
+        ml_cols = [r[1] for r in c.fetchall()]
+        if "status" in ml_cols and "paused_reason" in ml_cols:
+            c.execute("SELECT mailbox, domain, status, paused_reason, paused_at FROM mailbox_levels WHERE status = 'paused'")
+            paused_rows = c.fetchall()
+            now_iso = datetime.now(timezone.utc).isoformat()
+            for r in paused_rows:
+                mb = r[0]
+                dom = r[1] or mb.split("@")[-1]
+                p_reason = r[3] or ""
+                p_at = r[4] or now_iso
+                
+                # Identify hold type from reason
+                p_reason_lower = p_reason.lower()
+                if "spam" in p_reason_lower:
+                    h_type = "SEED_SPAM"
+                    m_match = re.search(r"<([^>]+)>", p_reason)
+                    op_event = m_match.group(0) if m_match else "historical_spam"
+                    hold_id = f"hold_spam_{mb}"
+                elif "transport" in p_reason_lower:
+                    h_type = "HOLD_TRANSPORT_ERROR"
+                    op_event = "transport_err"
+                    hold_id = f"hold_trans_{mb}"
+                elif "auth" in p_reason_lower:
+                    h_type = "HOLD_AUTH_FAILED"
+                    op_event = "auth_fail"
+                    hold_id = f"hold_auth_{mb}"
+                elif "temporary" in p_reason_lower or "4xx" in p_reason_lower:
+                    h_type = "TEMP_FAILURE_BACKOFF"
+                    op_event = "temp_fail"
+                    hold_id = f"hold_temp_{mb}"
+                else:
+                    h_type = "MANUAL_PAUSE"
+                    op_event = "manual_admin"
+                    hold_id = f"hold_manual_{mb}"
+
+                c.execute("""
+                    INSERT OR IGNORE INTO mailbox_holds 
+                    (hold_id, mailbox, domain, hold_type, scope, opening_event_id, opened_at)
+                    VALUES (?, ?, ?, ?, 'mailbox', ?, ?)
+                """, (hold_id, mb, dom, h_type, op_event, p_at))
+
+        # 10. service_heartbeats (Worker supervision and heartbeat tracking - Task D)
+        c.execute("""
+            CREATE TABLE IF NOT EXISTS service_heartbeats (
+                service_name TEXT PRIMARY KEY,
+                status TEXT NOT NULL CHECK(status IN ('IDLE', 'RUNNING', 'SUCCESS', 'FAILED')),
+                started_at TEXT,
+                completed_at TEXT,
+                last_success_at TEXT,
+                items_processed INTEGER DEFAULT 0,
+                items_failed INTEGER DEFAULT 0,
+                error_message TEXT,
+                updated_at TEXT NOT NULL
+            );
+        """)
+
+        # 11. leads timezone columns (IANA timezone tracking - Task G)
+        c.execute("PRAGMA table_info(leads)")
+        lead_cols = [r[1] for r in c.fetchall()]
+        if "id" in lead_cols:
+            if "timezone" not in lead_cols:
+                c.execute("ALTER TABLE leads ADD COLUMN timezone TEXT;")
+            if "timezone_evidence" not in lead_cols:
+                c.execute("ALTER TABLE leads ADD COLUMN timezone_evidence TEXT;")
 
         conn.commit()
         print("[+] Adaptive mailbox migration successfully applied.")

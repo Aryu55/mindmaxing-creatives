@@ -55,15 +55,31 @@ def claim_next_job(
 
     c.execute("BEGIN IMMEDIATE;")
     try:
-        # Find pending job or expired lease
-        row = c.execute("""
-            SELECT id, lead_id, domain, attempt_count, status
-            FROM contact_jobs
-            WHERE (status = 'PENDING' AND (next_attempt_at IS NULL OR next_attempt_at <= :now_iso))
-               OR (status = 'RUNNING' AND lease_expires_at IS NOT NULL AND lease_expires_at < :now_iso)
-            ORDER BY id ASC
-            LIMIT 1;
-        """, {"now_iso": now_iso}).fetchone()
+        # Check if leads has signal_decision column to prioritize incident candidates
+        c.execute("PRAGMA table_info(leads)")
+        lead_cols = [col[1] for col in c.fetchall()]
+        has_signal = "signal_decision" in lead_cols
+
+        if has_signal:
+            row = c.execute("""
+                SELECT j.id, j.lead_id, j.domain, j.attempt_count, j.status
+                FROM contact_jobs j
+                JOIN leads l ON j.lead_id = l.id
+                WHERE ((j.status = 'PENDING' AND (j.next_attempt_at IS NULL OR j.next_attempt_at <= :now_iso))
+                   OR (j.status = 'RUNNING' AND j.lease_expires_at IS NOT NULL AND j.lease_expires_at < :now_iso))
+                  AND (l.signal_decision = 'INCIDENT_CANDIDATE' OR l.status = 'HELD_FOR_REVIEW')
+                ORDER BY j.id ASC
+                LIMIT 1;
+            """, {"now_iso": now_iso}).fetchone()
+        else:
+            row = c.execute("""
+                SELECT id, lead_id, domain, attempt_count, status
+                FROM contact_jobs
+                WHERE (status = 'PENDING' AND (next_attempt_at IS NULL OR next_attempt_at <= :now_iso))
+                   OR (status = 'RUNNING' AND lease_expires_at IS NOT NULL AND lease_expires_at < :now_iso)
+                ORDER BY id ASC
+                LIMIT 1;
+            """, {"now_iso": now_iso}).fetchone()
 
         if not row:
             conn.commit()

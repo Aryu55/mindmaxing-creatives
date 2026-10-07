@@ -17,3 +17,11 @@ outbound/config/
 *.sqlite
 __pycache__/
 *.pyc
+scratch/
+tmp/
+*.zip
+My portfolio /
+.arena/
+.android_blueprint_build/
+.android_deck_review/
+public/assets/motion/

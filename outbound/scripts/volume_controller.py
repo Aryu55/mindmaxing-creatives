@@ -519,11 +519,12 @@ def reserve_and_claim_job(
 
         # Strict Conjunctive Pre-SMTP Eligibility Gate (Task F & Task G)
         if purpose == "campaign":
-            # 1. Human Approval Gate: HUMAN_APPROVED is strictly required
-            if lead_st != "HUMAN_APPROVED":
+            # 1. Human Approval Gate: HUMAN_APPROVED required for Touch 1; TOUCH_1_SENT/TOUCH_2_SENT for follow-ups
+            allowed_lead_statuses = {"HUMAN_APPROVED", "TOUCH_1_SENT", "TOUCH_2_SENT"}
+            if lead_st not in allowed_lead_statuses:
                 c.execute("ROLLBACK")
                 conn.close()
-                return False, f"Campaign send blocked: Lead {domain} requires explicit human review and approval (status is not HUMAN_APPROVED: {lead_st})", None
+                return False, f"Campaign send blocked: Lead {domain} requires explicit human review and approval (status is not in {allowed_lead_statuses}: {lead_st})", None
 
             # 2. Copy Gate: subject and body must not be empty
             if not subject or not subject.strip():
@@ -568,7 +569,9 @@ def reserve_and_claim_job(
                     except Exception:
                         pass
                 if not ev_date_str:
-                    ev_date_str = lead_row.get("review_date") or lead_row.get("captured_at")
+                    # Only use review_date (actual signal observation time).
+                    # captured_at is scrape time and should NOT gate evidence freshness.
+                    ev_date_str = lead_row.get("review_date")
 
                 if ev_date_str:
                     try:

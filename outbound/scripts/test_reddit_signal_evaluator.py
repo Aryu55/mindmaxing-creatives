@@ -324,9 +324,9 @@ class TestArchitecturalInvariants(unittest.TestCase):
             c.execute("CREATE TABLE collector_health (mailbox TEXT PRIMARY KEY, status TEXT, last_scan_at TEXT, error_message TEXT)")
             c.execute("CREATE TABLE mailbox_levels (mailbox TEXT PRIMARY KEY, domain TEXT, level INTEGER, status TEXT, paused_reason TEXT)")
 
-            now_iso = self.fixed_now.isoformat()
+            fresh_now_iso = datetime.now(timezone.utc).isoformat()
             c.execute("INSERT INTO mailbox_levels VALUES ('aryan@mindmaxing.info', 'mindmaxing.info', 1, 'active', NULL)")
-            c.execute("INSERT INTO collector_health VALUES ('aryan@mindmaxing.info', 'healthy', ?, NULL)", (now_iso,))
+            c.execute("INSERT INTO collector_health VALUES ('aryan@mindmaxing.info', 'healthy', ?, NULL)", (fresh_now_iso,))
             c.execute("INSERT INTO mailbox_daily_decisions VALUES (1, 'aryan@mindmaxing.info', '2026-09-22-IST', '2026-09-22', 'KEEP', 'ok', 1, 1, 1, 'v2.1-revised')")
 
             # Insert lead with INCIDENT_CANDIDATE but unverified contact status

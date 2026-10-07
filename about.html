@@ -1,180 +1,80 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>About Us :  Mindmaxing Creatives | Independent Product Studio</title>
-<meta name="description" content="Mindmaxing Creatives is an independent product studio in India building software for real-world problems. Learn about our story, principles, and team.">
-<link rel="icon" type="image/x-icon" href="./favicon.ico?v=3">
-<link rel="icon" type="image/png" href="./favicon.png?v=3">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png?v=3">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
-<style>
-  :root { --mm-accent: #ff5a1f; --mm-bg: #08090a; --mm-card: #0f1013; --mm-text: #f8fafc; --mm-sub: #cbd5e1; }
-  * { box-sizing: border-box; }
-  html { background: var(--mm-bg); color: var(--mm-text); font-family: "Instrument Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
-  body { margin: 0; padding: 0; background: var(--mm-bg); min-height: 100vh; display: flex; flex-direction: column; }
-  a { color: var(--mm-text); text-decoration: none; transition: color 0.2s; }
-  a:hover { color: var(--mm-accent); }
-  
-  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 40; height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 clamp(16px, 3.5vw, 40px); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); background: rgba(8,9,10,0.85); border-bottom: 1px solid rgba(255,255,255,0.08); }
-  
-  .nav-links { display: flex; align-items: center; gap: clamp(14px, 2vw, 24px); }
-  .nav-link { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #e2e8f0; font-weight: 500; }
-  .btn-primary { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 18px; border-radius: 999px; background: var(--mm-accent); color: #08090a; font-weight: 600; border: none; cursor: pointer; transition: transform 0.2s; }
-  .btn-primary:hover { transform: scale(1.03); }
-
-  main { flex: 1; padding: 120px clamp(16px, 4vw, 40px) 80px; max-width: 1120px; margin: 0 auto; width: 100%; }
-
-  .hero-tag { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mm-accent); margin-bottom: 16px; }
-  h1 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: clamp(38px, 6vw, 76px); line-height: 0.96; letter-spacing: -0.04em; margin: 0 0 24px; color: #ffffff; }
-  .lead-p { font-size: clamp(18px, 2vw, 24px); line-height: 1.5; color: #f1f5f9; font-weight: 450; max-width: 44ch; margin-bottom: 48px; }
-
-  .content-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-bottom: 64px; }
-  .glass-card { background: var(--mm-card); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-  .glass-card h3 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 700; color: #ffffff; margin: 0 0 14px; letter-spacing: -0.02em; }
-  .glass-card p { font-size: 16px; line-height: 1.65; color: #cbd5e1; margin: 0; }
-
-  .list-check { display: flex; flex-direction: column; gap: 14px; margin-top: 20px; }
-  .check-item { display: flex; align-items: flex-start; gap: 12px; font-size: 15.5px; line-height: 1.5; color: #e2e8f0; font-weight: 500; }
-  .check-icon { width: 22px; height: 22px; border-radius: 999px; background: rgba(255,90,31,0.15); border: 1px solid var(--mm-accent); color: var(--mm-accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0; margin-top: 2px; }
-
-  footer { padding: 32px clamp(16px, 3.5vw, 40px); border-top: 1px solid rgba(255,255,255,0.08); max-width: 1560px; margin: 0 auto; width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
-  .footer-text { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #94a3b8; }
-
-  @media (max-width: 768px) {
-    nav { height: 60px !important; padding: 0 16px !important; }
-    .nav-links .nav-link { display: none !important; }
-    main { padding-top: 96px !important; padding-bottom: 60px !important; padding-left: 16px !important; padding-right: 16px !important; }
-    h1 { font-size: clamp(32px, 8vw, 48px) !important; margin-bottom: 16px !important; }
-    .lead-p { font-size: 15px !important; line-height: 1.6 !important; margin-bottom: 36px !important; }
-    .content-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
-    .glass-card { padding: 22px 18px !important; border-radius: 18px !important; }
-  }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050608">
+  <title>The Studio · Mindmaxing</title>
+  <meta name="description" content="Mindmaxing is an independent creative engineering and motion design studio based in Mumbai, led by Aryan Panchal and Rahul Saranya.">
+  <link rel="canonical" href="https://mindmaxing.one/about.html">
+  <link rel="icon" href="./favicon.png?v=4" type="image/png">
+  <link rel="stylesheet" href="./studio.css">
+  <script type="module" src="./studio.js"></script>
 </head>
 <body>
-
-<nav>
-  <a href="./index.html" style="display: flex; align-items: center; gap: 11px; white-space: nowrap;">
-    <span style="width: 11px; height: 11px; border-radius: 999px; background: #ff5a1f; box-shadow: 0 0 20px #ff5a1f; display: block;"></span>
-    <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 600; font-size: 15px; color: #ffffff;">Mindmaxing Creatives</span>
-  </a>
-  <div class="nav-links">
-    <a href="./index.html#work" class="nav-link">Work</a>
-    <a href="./about.html" class="nav-link" style="color: var(--mm-accent);">About</a>
-    <a href="./case-studies.html" class="nav-link">Case Studies</a>
-    <a href="./index.html#process" class="nav-link">Process</a>
-    <a href="./privacy.html" class="nav-link">Privacy</a>
-    <a href="./terms.html" class="nav-link">Terms</a>
-    <a href="./index.html#contact" class="btn-primary">Start a project</a>
-  </div>
-</nav>
-
-<main>
-  <div class="hero-tag">About Mindmaxing Creatives</div>
-  <h1>Rapid MVP engineering and paid acquisition under one roof.</h1>
-  <p class="lead-p">Most businesses fail for two reasons: poor software architecture or weak ad distribution. We fix both.</p>
-
-  <div class="content-grid">
-    <div class="glass-card">
-      <h3>The Studio Story</h3>
-      <p>Mindmaxing Creatives is an independent product & growth studio based in India. Founded by Aryan (Engineering & Software) and Himanshu (Creative Strategy & Performance Marketing), we pair relentless software development speed with hard-hitting direct-response growth engines.</p>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="brand" href="./index.html" aria-label="Mindmaxing Studio home"><span class="brand-mark" aria-hidden="true">m/</span><span><span class="brand-name">MINDMAXING</span><span class="brand-sub">CREATIVE ENGINEERING · MUMBAI</span></span></a>
+      <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-navigation"><span class="nav-toggle-lines" aria-hidden="true"></span></button>
+      <nav class="nav-links" id="primary-navigation" aria-label="Primary navigation">
+        <a class="nav-link" href="./index.html#studio-vault">Selected work</a><a class="nav-link" href="./index.html#capabilities">Capabilities</a><a class="nav-link" href="./about.html" aria-current="page">The studio</a><a class="button nav-cta" href="./index.html#contact">Discuss a project <span class="button-arrow" aria-hidden="true">↗</span></a>
+      </nav>
     </div>
-    <div class="glass-card">
-      <h3>What We Don't Do</h3>
-      <p>We do not build bloated decks or bill vague retainer hours. We build focused, high-impact products in 3 to 6 weeks, then scale them with high-converting Meta/Google ad funnels, headless Shopify stores, and viral distribution.</p>
-    </div>
-  </div>
-
-  <div class="glass-card" style="margin-bottom: 48px;">
-    <h3>The Partners</h3>
-    <div class="content-grid" style="margin-bottom: 0; margin-top: 24px; gap: 28px;">
-      
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; gap: 20px;">
-        <div>
-          <div style="width: 100%; height: 280px; border-radius: 16px; overflow: hidden; background: #141518; margin-bottom: 18px; border: 1px solid rgba(255,255,255,0.1);">
-            <img src="./aryan-perfect.jpg?v=10" alt="Aryan Panchal" style="width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block;" />
+  </header>
+  <main class="shell" id="main">
+    <section class="about-hero">
+      <p class="eyebrow">The studio / Mumbai</p>
+      <h1>Built for the<br>work that needs<br><span>a point of view.</span></h1>
+      <p class="about-lead">Mindmaxing is an independent creative engineering and motion design studio led by Aryan Panchal and Rahul Saranya. We work where digital product, storefront engineering and commercial visual direction meet.</p>
+    </section>
+    <section class="about-detail" aria-labelledby="approach-title">
+      <h2 id="approach-title">Good taste is not a handoff.</h2>
+      <p>It belongs in the decisions: what the interface asks of someone, how the system behaves under pressure, what should be removed, and where a little strangeness makes the experience more memorable. We keep those questions attached to the build from the first sketch through the final handoff.</p>
+    </section>
+    <section class="about-detail about-partners" aria-labelledby="partners-title">
+      <h2 id="partners-title">The studio leadership.</h2>
+      <div class="partners-grid">
+        <article class="partner-card">
+          <div class="partner-header">
+            <div class="partner-avatar">
+              <img src="./aryan.jpg" alt="Aryan Panchal" width="168" height="168" loading="lazy">
+            </div>
+            <div class="partner-title-wrap">
+              <h3 class="partner-name">Aryan Panchal</h3>
+              <p class="partner-role">Founder · Systems, Creative Engineering & Storefront Architecture</p>
+            </div>
           </div>
-          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Aryan Panchal</div>
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--mm-accent); text-transform: uppercase; margin-bottom: 14px; letter-spacing: 0.1em; font-weight: bold;">Co-Founder • MVP & AI Lead</div>
-          <p style="font-size: 14.5px; line-height: 1.6; color: #cbd5e1; margin: 0;">Architects high-speed web engines, headless e-commerce storefronts, AI verification workflows, and full-stack software products. 14 commercial products shipped.</p>
-        </div>
-      </div>
-      
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; gap: 20px;">
-        <div>
-          <div style="width: 100%; height: 280px; border-radius: 16px; overflow: hidden; background: #141518; margin-bottom: 18px; border: 1px solid rgba(255,255,255,0.1);">
-            <img src="./himanshu-perfect.jpg?v=10" alt="Himanshu Agrawal" style="width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block;" />
+          <p class="partner-bio">Architects bespoke storefront systems, headless commerce engines, and high-concurrency software products. 14 live commercial systems and web engines shipped.</p>
+        </article>
+
+        <article class="partner-card">
+          <div class="partner-header">
+            <div class="partner-avatar">
+              <img src="./rahul.jpg" alt="Rahul Saranya" width="168" height="168" loading="lazy">
+            </div>
+            <div class="partner-title-wrap">
+              <h3 class="partner-name">Rahul Saranya</h3>
+              <p class="partner-role">Partner · 3D Animation, Motion Graphics & Visual Direction</p>
+            </div>
           </div>
-          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800; color: #ffffff; margin-bottom: 4px;">Himanshu Agrawal</div>
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--mm-accent); text-transform: uppercase; margin-bottom: 14px; letter-spacing: 0.1em; font-weight: bold;">Co-Founder • Creative & Performance Lead</div>
-          <p style="font-size: 14.5px; line-height: 1.6; color: #cbd5e1; margin: 0;">Leads direct-response ad creative, Meta & Google Performance Max scaling, conversion rate optimization (CRO), and viral organic distribution. Proven 9X ROAS & 183k follower growth records.</p>
-        </div>
+          <p class="partner-bio">Directs commercial 3D animation, motion graphics, and visual design. Commercial portfolio includes animation campaigns across Fevicol, Britannia TVC, Fiama, Cuticura, and MotoGP.</p>
+        </article>
       </div>
-
-    </div>
-
-    <div style="margin-top: 36px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 28px;">
-      <h4 style="font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mm-accent); margin: 0 0 20px;">Our Core Production Team</h4>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px;">
-        
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px;">
-          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 2px;">Harsh</div>
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px;">Lead Video Editor & Motion</div>
-          <p style="font-size: 13.5px; line-height: 1.55; color: #cbd5e1; margin: 0;">High-retention short-form video pacing, viral reels, sound design, and direct-response video creative for YouTube, TikTok & Reels.</p>
-        </div>
-
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px;">
-          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 2px;">Ananya</div>
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px;">Senior Brand & UI/UX Designer</div>
-          <p style="font-size: 13.5px; line-height: 1.55; color: #cbd5e1; margin: 0;">Crafts editorial visual identities, bespoke Shopify design systems, luxury packaging, and high-conversion landing page interfaces.</p>
-        </div>
-
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px;">
-          <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 2px;">Rohan</div>
-          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px;">Paid Media & Growth Strategist</div>
-          <p style="font-size: 13.5px; line-height: 1.55; color: #cbd5e1; margin: 0;">Manages multi-channel media buying across Meta, Google Performance Max, and TikTok. Architect of high-ROAS e-commerce scaling funnels.</p>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <div class="glass-card" style="margin-bottom: 64px;">
-    <h3>Our Core Operating Rules</h3>
-    <div class="list-check">
-      <div class="check-item">
-        <div class="check-icon">•</div>
-        <div><strong>Active Execution:</strong> We ship functional software and launch active ad campaigns in weeks, not quarters.</div>
-      </div>
-      <div class="check-item">
-        <div class="check-icon">•</div>
-        <div><strong>Metric-Driven Accountability:</strong> Hard numbers only :  CAC reduction, ROAS growth, verified conversion value.</div>
-      </div>
-      <div class="check-item">
-        <div class="check-icon">•</div>
-        <div><strong>High Contrast Clarity:</strong> Clean design, zero jargon, and straightforward pricing.</div>
-      </div>
-    </div>
-  </div>
-
-  <div style="text-align: center; background: radial-gradient(circle at center, rgba(255,90,31,0.12) 0%, transparent 70%); padding: 48px 24px; border-radius: 24px; border: 1px solid rgba(255,90,31,0.25);">
-    <h2 style="font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(28px, 4vw, 42px); color: #ffffff; margin: 0 0 16px; font-weight: 800;">Have a brand or product to build?</h2>
-    <p style="font-size: 16.5px; color: #e2e8f0; max-width: 42ch; margin: 0 auto 28px; line-height: 1.5;">Tell us what you want to launch or scale. We'll respond within 24 hours.</p>
-    <a href="./index.html#contact" class="btn-primary" style="display: inline-block; padding: 16px 36px; font-size: 13px;">Start a project &rarr;</a>
-  </div>
-</main>
-
-<footer>
-  <span class="footer-text">&copy; 2026 Mindmaxing Creatives. All rights reserved.</span>
-  <div style="display: flex; gap: 20px;">
-    <a href="./privacy.html" class="footer-text">Privacy Policy</a>
-    <a href="./terms.html" class="footer-text">Terms of Service</a>
-  </div>
-</footer>
-
+    </section>
+    <section class="about-detail" aria-labelledby="direct-title">
+      <h2 id="direct-title">No relay race.</h2>
+      <p>You speak directly with the people shaping and building the work. We agree the edges before production, share the decisions as they happen, and leave behind a result the next person can understand.</p>
+    </section>
+    <section class="about-detail" aria-labelledby="work-title">
+      <h2 id="work-title">See the systems in context.</h2>
+      <p>Browse the studio archive for storefronts, experiments, software and internal tools. Project figures are labeled as reported notes until their evidence and permission are reviewed.</p>
+      <a class="button" href="./case-studies.html">Open the Studio Vault <span class="button-arrow" aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+  <footer class="shell site-footer">
+    <div class="footer-meta">© 2026 Mindmaxing Studio<br>Creative engineering · Mumbai</div>
+    <div class="footer-links"><a href="./index.html">Studio home</a><a href="./case-studies.html">Project vault</a><a href="./privacy.html">Privacy</a><a href="./terms.html">Terms</a></div>
+  </footer>
 </body>
 </html>

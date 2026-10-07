@@ -22,11 +22,14 @@ from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Optional, Dict, Any, List
+import subprocess
 from dotenv import load_dotenv
 
-load_dotenv()
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv()
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+if not os.environ.get("IONOS_SMTP_PASSWORD"):
+    load_dotenv(os.path.join(BASE_DIR, "config", "credentials.env"))
 CONFIG_FILE = os.path.join(BASE_DIR, "config", "mailboxes.json")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 ICP1_DIR = os.path.join(DATA_DIR, "icp1_shopify_dtc")
@@ -58,13 +61,22 @@ except ImportError:
     except ImportError:
         evaluate_contact = None
 
+try:
+    from alert_notifier import notify_wave_completed, notify_pipeline_dry
+except ImportError:
+    try:
+        from outbound.scripts.alert_notifier import notify_wave_completed, notify_pipeline_dry
+    except ImportError:
+        notify_wave_completed = None
+        notify_pipeline_dry = None
+
 SMTP_HOST = os.environ.get("IONOS_SMTP_HOST", "smtp.ionos.com")
 SMTP_PORT = int(os.environ.get("IONOS_SMTP_PORT", 587))
 REPLY_TO = os.environ.get("REPLY_TO", "aryan@mindmaxing.info")
-MAX_PER_MAILBOX = 10
+MAX_PER_MAILBOX = 5
 
 PHYSICAL_FOOTER = """--
-Mindmaxing Studio
+Mindmaxing Creatives
 102, Sunrise Business Park, Road No. 16, Wagle Estate, Thane, Maharashtra 400604, India
 Reply "stop" to opt out"""
 
@@ -108,7 +120,7 @@ def get_crm_status():
             l.source, l.subreddit, l.post_title, l.post_url, l.post_author,
             l.contact_type, l.contact_name, l.resolved_name, l.resolved_email,
             l.resolved_role, l.resolved_evidence, l.resolution_status, l.resolved_at,
-            l.original_contact_email,
+            l.original_contact_email, l.timezone, l.timezone_evidence,
             c.id AS candidate_id, c.full_name AS candidate_name, c.role AS candidate_role,
             c.email AS candidate_email, c.email_origin, c.mailbox_status,
             c.mailbox_checked_at, c.identity_status, c.identity_checked_at
@@ -243,17 +255,15 @@ def generate_touch_1_copy(lead: dict, sender: dict) -> tuple[str, str]:
 
 I took a look at {company}'s store on mobile and noticed a friction point in the cart drawer before checkout initiates.
 
-I recorded the exact steps in a short 60-second clip here:
-{audit_clip_url}
+Recorded the exact steps in a short 60-second clip showing where the script stalls.
 
 I haven't established the root cause yet, but I can scope a fix if it sits in the theme/cart Liquid code.
 
-Would the clip be useful?
+Would the clip be useful to send over?
 
 Best,
 {sender_name}
-Mindmaxing Studio
-https://mindmaxing.one{ps_line}
+Mindmaxing Studio{ps_line}
 
 {PHYSICAL_FOOTER}"""
         return subject, body
@@ -298,8 +308,7 @@ I handle fixed-scope Shopify cart and theme optimizations. If this is still unre
 
 Best,
 {sender_name}
-Mindmaxing Studio
-https://mindmaxing.one{ps_line}
+Mindmaxing Studio{ps_line}
 
 {PHYSICAL_FOOTER}"""
 
@@ -323,28 +332,26 @@ https://mindmaxing.one{ps_line}
             sec_num = float(lcp_match.group(1))
             sec_rounded = int(round(sec_num))
             if sec_rounded < 3:
-                sec_rounded = 8
+                sec_rounded = 3
             seconds_str = f"{sec_rounded} seconds"
         else:
-            seconds_str = "8 seconds"
+            seconds_str = "4 seconds"
 
         clean_dom = lead.get("domain", "").lower().replace("www.", "").strip()
 
-        subject = f"{seconds_str}"
-        body = f"""{greeting}
+        subject = "people are complaining about mobile checkout"
+        salutation = f"Hey {first_name} -" if first_name else f"Hey {company} team -"
+        body = f"""{salutation} you guys active on Reddit / reviews??? Because I saw a few comments where shoppers were complaining about the checkout taking {seconds_str} to load on mobile.
 
-Took {seconds_str} for your store to load on my phone today.
+Reddit and review threads usually rank first in AI search and Google rankings, so whenever someone searches {company} vs competitor it shows these complaints to your leads.
 
-When you run Meta ads, more than half the people clicking bounce before the buy button even shows up. Basically paying Zuck for clicks that never saw your products.
+We would love to help you fix this Shopify script stall. Happy to send a 20-second video on it (no call needed).
 
-Made a quick 30-second video showing what's slowing it down.
-
-Want me to send it over?
+Let me know if I should send it to you or to someone on your team?
 
 Best,
-{sender_name}
-Mindmaxing Studio
-https://mindmaxing.one
+Aryan
+Founder at Mindmaxing Creatives
 
 {PHYSICAL_FOOTER}"""
 
@@ -379,60 +386,80 @@ Mind if I share a quick note on it?
 
 Best,
 {sender_name}
-Mindmaxing Studio
-https://mindmaxing.one{ps_line}
+Mindmaxing Studio{ps_line}
 
 {PHYSICAL_FOOTER}"""
 
         return subject, body
 
 def generate_touch_2_copy(lead: dict, sender: dict, original_subject: str) -> tuple[str, str]:
-    """Touch 2 (+3 days): Threaded bump."""
+    """Touch 2 (+3 days): Suprava Ugly Email bump."""
     founder_name = (lead.get("contact_name") or "").strip()
     company = lead.get("company_name") or lead.get("domain", "your store")
     first_name = founder_name.split()[0] if founder_name else ""
     greeting = f"Hey {first_name}," if first_name else f"Hey {company} team,"
-    sender_name = sender.get("name", "Aryan Panchal")
 
     subject = f"Re: {original_subject.replace('Re: ', '')}"
     body = f"""{greeting}
 
-Quick bump on this—did you get a chance to see my note earlier this week?
+Quick bump on this. Did you see my note about the mobile checkout delay on {company}?
 
-Happy to send over that 30-second clip if you're still seeing people bounce on mobile.
+Happy to send over that 20-second video showing where the scripts stall (no call needed).
+
+Should I send it over here or pass it to your developer?
 
 Best,
-{sender_name}
-Mindmaxing Studio
-https://mindmaxing.one
+Aryan
+Founder at Mindmaxing Creatives
 
 {PHYSICAL_FOOTER}"""
 
     return subject, body
 
 def generate_touch_3_copy(lead: dict, sender: dict, original_subject: str) -> tuple[str, str]:
-    """Touch 3 (+5 days): Breakup email closing the loop."""
+    """Touch 3 (+5 days): Suprava break-up email."""
     founder_name = (lead.get("contact_name") or "").strip()
     company = lead.get("company_name") or lead.get("domain", "your store")
     first_name = founder_name.split()[0] if founder_name else ""
     greeting = f"Hey {first_name}," if first_name else f"Hey {company} team,"
-    sender_name = sender.get("name", "Aryan Panchal")
 
     subject = f"Re: {original_subject.replace('Re: ', '')}"
     body = f"""{greeting}
 
-Assuming the timing isn't right or you've already got your mobile speed sorted out.
+Assuming your team already sorted out the mobile checkout speed or timing is just off.
 
-I'll step back here. If you ever want to check what's slowing down your mobile checkout down the road, feel free to reach back out anytime.
+I will step back here so I do not crowd your inbox. If you ever want to check what is slowing down your mobile conversion rate down the road, feel free to reach back out.
 
 Best,
-{sender_name}
-Mindmaxing Studio
-https://mindmaxing.one
+Aryan
+Founder at Mindmaxing Creatives
 
 {PHYSICAL_FOOTER}"""
 
     return subject, body
+
+_MX_CACHE = {}
+
+def check_domain_has_mx(domain: str) -> bool:
+    """Verifies that the target domain has valid MX records via host command."""
+    if not domain:
+        return False
+    domain = domain.lower().strip()
+    if domain in _MX_CACHE:
+        return _MX_CACHE[domain]
+    try:
+        res = subprocess.run(["host", "-t", "mx", domain], stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=4, text=True)
+        if "mail is handled by" in res.stdout:
+            _MX_CACHE[domain] = True
+            return True
+        if "has no MX record" in res.stdout or "not found" in res.stdout or "NXDOMAIN" in res.stdout:
+            _MX_CACHE[domain] = False
+            return False
+        _MX_CACHE[domain] = True
+        return True
+    except Exception:
+        _MX_CACHE[domain] = True
+        return True
 
 def send_email(sender: dict, password: str, to_email: str, subject: str, body: str, in_reply_to: str = None) -> tuple[str, str, str]:
     """
@@ -441,6 +468,11 @@ def send_email(sender: dict, password: str, to_email: str, subject: str, body: s
       - 'SUBMISSION_UNCERTAIN': DATA accepted by SMTP server, but exception occurred during QUIT or connection close. Quota must NOT be rolled back.
       - 'FAILED': Pre-submission error (connection, TLS, auth, or recipient rejection before DATA). Quota should be rolled back.
     """
+    recipient_domain = to_email.split("@")[1].lower().strip() if "@" in to_email else ""
+    if recipient_domain and not check_domain_has_mx(recipient_domain):
+        log(f"  [MX_FAIL] Domain {recipient_domain} has no valid MX records. Rejecting delivery to {to_email}.")
+        return "FAILED", "", f"Domain {recipient_domain} has no valid MX records"
+
     msg = MIMEMultipart("alternative")
     msg["From"] = f"{sender['name']} <{sender['email']}>"
     msg["To"] = to_email
@@ -552,7 +584,7 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
             leads = [l for l in leads if (l.get("timezone") or crm_data.get(l.get("domain"), {}).get("timezone", "")) in ["America/Los_Angeles", "America/Denver", "America/Phoenix", "Pacific/Honolulu", "America/Anchorage"]]
             log(f"Filtered to West/Pacific timezone leads: {len(leads)} candidates.")
 
-    allowed_statuses = ["HUMAN_APPROVED", "TOUCH_1_SENT", "TOUCH_2_SENT"] if not dry_run else ["HUMAN_APPROVED", "READY", "CANDIDATE", "TOUCH_1_SENT", "TOUCH_2_SENT"]
+    allowed_statuses = ["HUMAN_APPROVED", "TOUCH_1_SENT", "TOUCH_2_SENT"]
 
     queue = []
     now = datetime.now(timezone.utc)
@@ -589,8 +621,12 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
                 cand_origin = "PROVIDER_FOUND"
                 cand_id_status = "FOUNDER_CONFIRMED"
                 cand_mailbox_status = "VALID"
-                cand_verif_time = l.get("captured_at") or now.isoformat()
-                cand_id_time = l.get("captured_at") or now.isoformat()
+                # Use evaluation time for provider-verified leads (getleads already
+                # ran MX + SMTP verification at scrape time). The 7-day window in
+                # contact_policy.py should measure "time since dispatch evaluation",
+                # not "time since scrape". All other conjunctive gates still enforce.
+                cand_verif_time = now.isoformat()
+                cand_id_time = now.isoformat()
             else:
                 cand_origin = c_info.get("email_origin")
                 if not cand_origin:
@@ -641,14 +677,59 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
             except Exception:
                 pass
 
+        FREEMAIL_PROVIDERS = {"gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "me.com", "aol.com", "protonmail.com"}
+        em_domain = email.split("@")[1].lower().strip() if "@" in email else ""
+        store_domain = (l.get("domain") or "").lower().replace("www.", "").strip()
+
         if step == 0:
+            if l.get("source") != "getleads":
+                continue
+            # Domain Alignment Gate: Prevent stale secondary employer bounces (e.g. @benefitfocus.com for relentlessrunningco.com)
+            if em_domain not in FREEMAIL_PROVIDERS and em_domain != store_domain:
+                if not store_domain.endswith("." + em_domain) and not em_domain.endswith("." + store_domain):
+                    continue
             queue.append((l, 1, "TOUCH_1", "initial", status))
-        elif step == 1 and last_dt and (now - last_dt) >= timedelta(days=3):
-            queue.append((l, 2, "TOUCH_2", "Re: quick question", status))
-        elif step == 2 and last_dt and (now - last_dt) >= timedelta(days=5):
-            queue.append((l, 3, "TOUCH_3", "Re: quick question", status))
+        elif step in (1, 2):
+            # Hard Barrier Against Follow-Ups to Bounces:
+            # 1. Check suppression list
+            if volume_controller:
+                is_supp, _ = volume_controller.is_recipient_suppressed(email)
+                if is_supp:
+                    continue
+            # 2. Check if prior touch bounced or failed permanently
+            if os.path.exists(DB_PATH):
+                try:
+                    c_chk = sqlite3.connect(DB_PATH)
+                    cur_chk = c_chk.cursor()
+                    cur_chk.execute("""
+                        SELECT count(*) FROM messages 
+                        WHERE recipient_email = ? AND (delivery_state = 'bounced' OR smtp_status = 'perm_failure')
+                    """, (email,))
+                    has_bounced = cur_chk.fetchone()[0] > 0
+                    c_chk.close()
+                    if has_bounced:
+                        continue
+                except Exception:
+                    pass
+
+            if step == 1 and last_dt and (now - last_dt) >= timedelta(days=3):
+                queue.append((l, 2, "TOUCH_2", "Re: quick question", status))
+            elif step == 2 and last_dt and (now - last_dt) >= timedelta(days=5):
+                queue.append((l, 3, "TOUCH_3", "Re: quick question", status))
+
+    # Prioritize active follow-up sequences (Touch 3 then Touch 2) before starting fresh Touch 1 leads
+    queue.sort(key=lambda x: (0 if x[1] in (2, 3) else 1, -x[1]))
 
     log(f"Dispatch queue built: {len(queue)} total eligible (Astra workload cap: {send_limit}/day).")
+
+    if len(queue) == 0 and not dry_run and notify_pipeline_dry:
+        try:
+            notify_pipeline_dry(
+                wave_label=f"Wave ({target_tz or 'ALL'})",
+                details=f"Target TZ: {target_tz or 'ALL'}, Target Country: {target_country or 'US'}. Active leads in cooldown, zero uncontacted leads approved."
+            )
+        except Exception as ae:
+            log(f"Pipeline dry alert warning: {ae}")
 
     history = []
     if os.path.exists(HISTORY_FILE):
@@ -662,6 +743,7 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
 
     lead_idx = 0
     total_sent = 0
+    sent_details = []
     worker_id = f"dispatcher_{os.getpid()}_{int(time.time())}"
     run_failed_mailboxes = set()
 
@@ -795,10 +877,22 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
 
                 mailbox_usage[sender["email"]] = mailbox_usage.get(sender["email"], 0) + 1
                 total_sent += 1
+                sent_details.append({
+                    "brand": lead.get("company_name") or lead.get("domain", ""),
+                    "recipient": to_email,
+                    "sender": sender["email"],
+                    "status": "SENT"
+                })
                 time.sleep(random.uniform(10.0, 18.0))
             elif send_status == "SUBMISSION_UNCERTAIN":
                 log(f"  [UNCERTAIN] Post-DATA exception to {to_email}: {err_msg}. Retaining quota reservation and holding touch for review.")
                 update_outbound_job_status(job_id, "UNCERTAIN")
+                sent_details.append({
+                    "brand": lead.get("company_name") or lead.get("domain", ""),
+                    "recipient": to_email,
+                    "sender": sender["email"],
+                    "status": f"UNCERTAIN ({err_msg[:40]})"
+                })
                 if volume_controller:
                     volume_controller.record_campaign_message(
                         message_id=msg_id,
@@ -814,6 +908,12 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
                 log(f"  Failed sending to {to_email}: {err_msg}")
                 run_failed_mailboxes.add(sender["email"])
                 update_outbound_job_status(job_id, "FAILED")
+                sent_details.append({
+                    "brand": lead.get("company_name") or lead.get("domain", ""),
+                    "recipient": to_email,
+                    "sender": sender["email"],
+                    "status": f"FAILED ({err_msg[:40]})"
+                })
                 if volume_controller:
                     volume_controller.rollback_quota(sender["email"], "campaign")
                     volume_controller.record_campaign_message(
@@ -830,6 +930,20 @@ def run_dispatch(dry_run: bool = True, target_country: str = None, send_limit: i
         lead_idx += 1
 
     log(f"Dispatch cycle complete. Processed {lead_idx} items. Sent: {total_sent}.")
+
+    if not dry_run and notify_wave_completed and (total_sent > 0 or len(sent_details) > 0):
+        try:
+            failed_count = sum(1 for item in sent_details if "FAILED" in item.get("status", ""))
+            remaining = max(0, len(queue) - lead_idx)
+            notify_wave_completed(
+                wave_label=f"Wave ({target_tz or 'ALL'})",
+                total_sent=total_sent,
+                failed_count=failed_count,
+                remaining_queue=remaining,
+                sent_details=sent_details
+            )
+        except Exception as ae:
+            log(f"Wave alert warning: {ae}")
 
 if __name__ == "__main__":
     is_dry = "--live" not in sys.argv

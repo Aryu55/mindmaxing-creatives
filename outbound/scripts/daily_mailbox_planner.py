@@ -35,9 +35,9 @@ POLICY_VERSION = "v2.1-revised"
 IST_TZ = timezone(timedelta(hours=5, minutes=30))
 
 LEVEL_BASE_CAPS = {
-    1: {"campaign": 2, "diagnostic": 1},
-    2: {"campaign": 3, "diagnostic": 1},
-    3: {"campaign": 4, "diagnostic": 1}
+    1: {"campaign": 5, "diagnostic": 1},
+    2: {"campaign": 5, "diagnostic": 1},
+    3: {"campaign": 6, "diagnostic": 1}
 }
 
 
@@ -474,26 +474,30 @@ def plan_day(
             scope = "mailbox"
             recovery_condition = "Observe 1 registered diagnostic outside Spam with passing SPF/DKIM/DMARC and active monitoring"
         elif ever_clean and action != "PAUSE":
-            # Mailbox passed readiness historically! Check recency (<72h)
+            # Mailbox passed readiness historically! Check recency (<7 days)
+            # Either a clean diagnostic ping OR an accepted campaign send satisfies active liveness
+            seven_days_ago_iso = (now - timedelta(days=7)).isoformat()
             c.execute("""
                 SELECT message_id, sent_at, delivery_state, auth_spf, auth_dkim, auth_dmarc
                 FROM messages
-                WHERE sender_email = ? AND purpose = 'test'
-                  AND delivery_state IN ('inbox', 'promotions')
-                  AND auth_spf = 'pass' AND auth_dkim = 'pass' AND auth_dmarc = 'pass'
+                WHERE sender_email = ?
+                  AND (
+                    (purpose = 'test' AND delivery_state IN ('inbox', 'promotions') AND auth_spf = 'pass' AND auth_dkim = 'pass' AND auth_dmarc = 'pass')
+                    OR (purpose = 'campaign' AND delivery_state IN ('accepted', 'replied'))
+                  )
                   AND sent_at >= ?
                 ORDER BY sent_at DESC LIMIT 1
-            """, (email_addr, seventy_two_hours_ago_iso))
+            """, (email_addr, seven_days_ago_iso))
             recent_clean = c.fetchone()
             if not recent_clean:
                 effective_camp_cap = 0
                 action = "PAUSE"
-                reason = "HOLD_DIAGNOSTIC_EXPIRED: Last qualifying diagnostic older than 72 hours"
+                reason = "HOLD_ACTIVITY_EXPIRED: No qualifying campaign or diagnostic activity in last 7 days"
                 scope = "mailbox"
-                recovery_condition = "Observe clean diagnostic outside Spam with passing SPF/DKIM/DMARC"
+                recovery_condition = "Observe clean diagnostic outside Spam or active accepted campaign send"
             else:
                 evidence_ids.append(recent_clean["message_id"])
-                evidence_summary["recent_clean_diag"] = dict(recent_clean)
+                evidence_summary["recent_clean_activity"] = dict(recent_clean)
 
         # Rule 7: Seed Visibility Loss Grace Period
         # If seeds unavailable, freeze increases (action=KEEP), but allow baseline if diagnostic <= 72h

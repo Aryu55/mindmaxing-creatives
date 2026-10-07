@@ -126,9 +126,11 @@ def is_role_account(email: Optional[str]) -> bool:
     if re.match(r"^(info|support|sales|order|orders|contact|care|service|services|help)(us|usa|uk|eu|ca|au|de|fr|it|es|in)$", local_part):
         return True
 
-    # Check if local_part is identical to domain root (e.g. ourosjewels@gmail.com or memarinedivesupply@gmail.com)
-    domain_root = em.split("@")[1].split(".")[0].lower()
-    if local_part == domain_root and len(local_part) > 3:
+    # Check if local_part is identical to domain root for free webmail providers (e.g. ourosjewels@gmail.com or memarinedivesupply@gmail.com)
+    domain_full = em.split("@")[1].lower()
+    domain_root = domain_full.split(".")[0].lower()
+    free_webmails = {"gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "proton.me", "protonmail.com"}
+    if domain_full in free_webmails and local_part == domain_root and len(local_part) > 3:
         return True
 
     # Check ticketing bot patterns in the domain or local-part

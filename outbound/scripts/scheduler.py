@@ -89,74 +89,62 @@ def log(msg: str):
     except Exception:
         pass
 
-def get_timezone_window_status(country_code: str, now_utc: datetime = None, state: str = None, city: str = None) -> tuple[bool, str]:
+try:
+    from timezone_util import local_window_open, resolve_iana_timezone
+except ImportError:
+    from outbound.scripts.timezone_util import local_window_open, resolve_iana_timezone
+
+try:
+    from service_heartbeats import record_heartbeat_start, record_heartbeat_success, record_heartbeat_failure
+except ImportError:
+    try:
+        from outbound.scripts.service_heartbeats import record_heartbeat_start, record_heartbeat_success, record_heartbeat_failure
+    except ImportError:
+        record_heartbeat_start = lambda s, **kw: None
+        record_heartbeat_success = lambda s, **kw: None
+        record_heartbeat_failure = lambda s, **kw: None
+
+
+def get_timezone_window_status(
+    country_code: str,
+    now_utc: datetime = None,
+    state: str = None,
+    city: str = None,
+    explicit_timezone: str = None
+) -> tuple[bool, str]:
     """
     Evaluates whether the lead's location is currently inside the B2B Golden Sending Window:
     - Monday through Friday in recipient's LOCAL timezone ONLY (Weekend = PAUSE).
-    - Local Business Hours: 09:00 to 16:30 local time.
+    - Local Business Hours: 09:00 to 16:30 local time (half-open interval).
+    - Exact IANA ZoneInfo calculations; unresolved multi-zone locations stay explicitly unresolved.
     """
     if now_utc is None:
         now_utc = datetime.now(timezone.utc)
+    elif now_utc.tzinfo is None:
+        now_utc = now_utc.replace(tzinfo=timezone.utc)
 
-    cc = (country_code or "US").upper()
-    hour_utc = now_utc.hour + (now_utc.minute / 60.0)
+    tz_name = explicit_timezone
+    ev_source = "explicit_recipient_timezone"
+    if not tz_name:
+        tz_name, ev_source = resolve_iana_timezone(country_code, state=state, city=city)
 
-    # Determine approximate local UTC offset (hours)
-    # Offsets during Daylight Saving Time (September)
-    local_offset = 0.0
+    if not tz_name:
+        return False, f"Timezone Unresolved: {ev_source}. Requires explicit region/timezone before dispatch."
 
-    if cc in ("GB", "UK", "IE"):
-        # BST / Irish Standard Time (IST): UTC+1
-        local_offset = 1.0
-    elif cc in ("DE", "NL", "FR", "IT", "ES", "SE", "DK", "NO", "FI", "EU", "PL", "AT", "CH", "BE"):
-        # CEST: UTC+2
-        local_offset = 2.0
-    elif cc in ("AU", "NZ"):
-        # AEST: UTC+10
-        local_offset = 10.0
-    elif cc in ("US", "CA"):
-        st = (state or "").upper().strip()
-        eastern_states = {"ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "DE", "MD", "DC", "VA", "WV", "NC", "SC", "GA", "FL", "OH", "MI"}
-        central_states = {"IL", "WI", "MN", "IA", "MO", "ND", "SD", "NE", "KS", "OK", "TX", "LA", "AR", "MS", "AL", "TN"}
-        mountain_states = {"MT", "WY", "UT", "CO", "NM", "AZ"}
-        pacific_states = {"WA", "OR", "CA", "NV"}
+    from zoneinfo import ZoneInfo
+    try:
+        is_open = local_window_open(now_utc, tz_name)
+    except Exception as e:
+        return False, f"Timezone Evaluation Error ({tz_name}): {e}"
 
-        if st in eastern_states:
-            local_offset = -4.0  # EDT
-        elif st in central_states:
-            local_offset = -5.0  # CDT
-        elif st in mountain_states:
-            local_offset = -6.0  # MDT / MST
-        elif st in pacific_states:
-            local_offset = -7.0  # PDT
-        else:
-            # Conservative nationwide default: guaranteed business hours across all US zones
-            # 16:00 UTC = 09:00 PDT / 12:00 EDT; 20:30 UTC = 13:30 PDT / 16:30 EDT
-            local_dt = now_utc - timedelta(hours=7)  # check Pacific for local day
-            weekday = local_dt.weekday()
-            day_name = local_dt.strftime("%A")
-            if weekday in (5, 6):
-                return False, f"Weekend Holding Pattern in recipient local time ({day_name}). Outbound paused."
-            if 16.0 <= hour_utc <= 20.5:
-                return True, f"US/CA Nationwide Overlap Window OPEN ({hour_utc:.1f} UTC / 09:00 PDT - 16:30 EDT)"
-            return False, f"US/CA Nationwide Overlap Window CLOSED ({hour_utc:.1f} UTC - outside 16:00-20:30 UTC)"
-    else:
-        local_offset = -4.0
-
-    # Calculate exact local datetime with determined offset
-    local_dt = now_utc + timedelta(hours=local_offset)
-    local_weekday = local_dt.weekday()
+    local_dt = now_utc.astimezone(ZoneInfo(tz_name))
     day_name = local_dt.strftime("%A")
+    time_str = local_dt.strftime("%H:%M")
 
-    if local_weekday in (5, 6):
-        return False, f"Weekend Holding Pattern in recipient local time ({day_name}). Outbound paused."
-
-    local_hour = local_dt.hour + (local_dt.minute / 60.0)
-
-    # Standard B2B business window: 09:00 to 16:30 local time
-    if 9.0 <= local_hour <= 16.5:
-        return True, f"Local Business Window OPEN ({local_hour:.1f} local / {local_dt.strftime('%H:%M')} {day_name})"
-    return False, f"Local Business Window CLOSED ({local_hour:.1f} local - outside 09:00-16:30 {day_name})"
+    if is_open:
+        return True, f"Local Business Window OPEN ({time_str} {day_name} in {tz_name} [{ev_source}])"
+    else:
+        return False, f"Local Business Window CLOSED ({time_str} {day_name} in {tz_name} [{ev_source}] - outside 09:00-16:30)"
 
 def load_mailboxes():
     if not os.path.exists(CONFIG_FILE):
@@ -303,15 +291,11 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
         log(f"Daily cap ({DAILY_SEND_CAP}) reached for today. Sleeping until tomorrow's window opens.")
         return
 
-    # Check overall weekend gate (can be overridden with --now)
-    if not override_weekend and now_utc.weekday() in (5, 6):
-        log(f"⏸️  WEEKEND HOLDING PATTERN ACTIVE ({now_utc.strftime('%A')}).")
-        log("    Inboxes paused to protect open rates and deliverability. Next window opens Monday 08:30 UTC.")
-        log("    (Pass --now to dispatch human-reviewed leads immediately).")
-        return
+    record_heartbeat_start("scheduler")
 
     if live_mode and not volume_controller:
         log("CRITICAL ERROR: volume_controller missing in live mode. Halting scheduler (Fail-Closed).")
+        record_heartbeat_failure("scheduler", "volume_controller missing in live mode")
         return
 
     # Build queue of eligible leads
@@ -397,10 +381,16 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
             if suppressed:
                 continue
 
-        # Timezone Window Gatekeeper
+        # Timezone Window Gatekeeper (Task G: IANA zones)
         c_code = l.get("country_code", "US")
         if not override_weekend:
-            is_open, window_reason = get_timezone_window_status(c_code, now_utc)
+            is_open, window_reason = get_timezone_window_status(
+                c_code,
+                now_utc,
+                state=l.get("state"),
+                city=l.get("city") or c_info.get("city"),
+                explicit_timezone=l.get("timezone") or c_info.get("timezone")
+            )
             if not is_open:
                 continue
 
@@ -453,7 +443,24 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
                 continue
 
         sender = get_pinned_sender(lead.get("domain"), mailboxes, history, mailbox_usage)
-        subject, body = generate_copy(lead, sender, touch_step)
+        
+        # Check if pre-approved copy exists in outbound_jobs table
+        subject, body = None, None
+        if volume_controller:
+            try:
+                conn_j = volume_controller.get_db_connection()
+                cj = conn_j.cursor()
+                cj.execute("SELECT subject, body FROM outbound_jobs WHERE domain = ? AND touch_number = ?", (lead.get("domain"), touch_step))
+                pre_job = cj.fetchone()
+                if pre_job and pre_job["subject"] and pre_job["body"]:
+                    subject, body = pre_job["subject"], pre_job["body"]
+                conn_j.close()
+            except Exception:
+                pass
+
+        if not subject or not body:
+            subject, body = generate_copy(lead, sender, touch_step)
+
         c_code = lead.get("country_code", "US")
 
         job_id = None
@@ -577,6 +584,8 @@ def run_scheduler_cycle(live_mode: bool = False, override_weekend: bool = False)
                         smtp_success=False,
                         error_msg=f"SMTP send failure: {err_msg}"
                     )
+
+    record_heartbeat_success("scheduler", items_processed=total_sent_today)
 
 def run_daemon(live_mode: bool = False, override_weekend: bool = False):
     mode_str = "LIVE DISPATCH MODE" if live_mode else "DRY-RUN SIMULATION MODE"

@@ -1,0 +1,814 @@
+[
+  {
+    "id": 1004,
+    "domain": "getlanera.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "FULFILLMENT_OR_COURIER_ISSUE"
+    ],
+    "evidence_snippet": "never received",
+    "evidence_date": "2026-09-20T17:36:42+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@getlanera.com"
+  },
+  {
+    "id": 1005,
+    "domain": "arrtle.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "You are all going to jail, FBI IC3 complaint filed\nI\u2019m so sick of their apologie and \u201cWe take this seriously\u201d.  This is just a complete sham",
+    "evidence_date": "2026-09-20T16:21:59+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "servic@arrtle.com"
+  },
+  {
+    "id": 1006,
+    "domain": "clarifion.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-11T23:02:34+00:00 is 10 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@clarifion.com"
+  },
+  {
+    "id": 1007,
+    "domain": "www.shopsmythe.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-07-23T03:04:12+00:00 is 61 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "customerservice@shopsmythe.com"
+  },
+  {
+    "id": 1008,
+    "domain": "vitaecharm.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-11T14:30:17+00:00 is 10 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "info@vitaecharm.com"
+  },
+  {
+    "id": 1009,
+    "domain": "daisysilk.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-01T13:40:11+00:00 is 20 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@daisysilk.com"
+  },
+  {
+    "id": 1010,
+    "domain": "geckocustom.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-28T00:02:42+00:00 is 25 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "help@geckocustom.com"
+  },
+  {
+    "id": 1011,
+    "domain": "galartsy.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-11T15:37:57+00:00 is 41 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "contact@galartsy.com"
+  },
+  {
+    "id": 1012,
+    "domain": "www.valuepetsupplies.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-04T13:02:16+00:00 is 17 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@valuepetsupplies.com"
+  },
+  {
+    "id": 1013,
+    "domain": "popilush.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "Went through registering and everything\u2026\nWent through registering and everything only to find the actually product I wanted was listed as 20",
+    "evidence_date": "2026-09-20T15:50:40+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "service@popilushsupport.com"
+  },
+  {
+    "id": 1014,
+    "domain": "gunnar.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-06-25T00:14:18+00:00 is 89 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@gunnars.com"
+  },
+  {
+    "id": 1015,
+    "domain": "brickellmensproducts.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-05T15:50:18+00:00 is 16 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@brickellmensproducts.com"
+  },
+  {
+    "id": 1016,
+    "domain": "freethesheep.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-04T20:40:47+00:00 is 48 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "info@freethesheepco.com"
+  },
+  {
+    "id": 1017,
+    "domain": "getaurapets.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-03T18:37:50+00:00 is 18 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@getaurapets"
+  },
+  {
+    "id": 1018,
+    "domain": "rockstaroriginal.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "Very disappointed with my experience\nVery disappointed with my experience. I paid an additional fee for the 4-hour fulfillment service, but ",
+    "evidence_date": "2026-09-20T00:17:49+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "customercare@rockstaroriginal.com"
+  },
+  {
+    "id": 1019,
+    "domain": "customizeaf.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-01T15:28:20+00:00 is 20 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@customizeaf.com"
+  },
+  {
+    "id": 1020,
+    "domain": "tacvasen.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "FULFILLMENT_OR_COURIER_ISSUE"
+    ],
+    "evidence_snippet": "Never received",
+    "evidence_date": "2026-09-20T18:47:47+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "service@tacvasen.com"
+  },
+  {
+    "id": 1021,
+    "domain": "petbelong.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-25T15:43:14+00:00 is 27 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@petbelong.com"
+  },
+  {
+    "id": 1022,
+    "domain": "karmaitems.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-21T18:53:21+00:00 is 31 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@karmaitems.com"
+  },
+  {
+    "id": 1023,
+    "domain": "selfieleslie.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-11T14:37:11+00:00 is 10 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@selfieleslie.com"
+  },
+  {
+    "id": 1024,
+    "domain": "charmlry.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-07-16T15:55:54+00:00 is 67 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "info@charmlry.com"
+  },
+  {
+    "id": 1025,
+    "domain": "lilyease.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-10T07:23:28+00:00 is 12 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "service@lilyease.com"
+  },
+  {
+    "id": 1026,
+    "domain": "hbdjewellery.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-08T13:01:48+00:00 is 13 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "hello@hbdjewellery.com"
+  },
+  {
+    "id": 1027,
+    "domain": "gohaus.com",
+    "old_status": "READY",
+    "proposed_status": "HELD_FOR_REVIEW",
+    "signal_decision": "REVIEW_REQUIRED",
+    "signal_reasons": [
+      "PRICE_CURRENCY_OR_DISCOUNT_DISCREPANCY_REQUIRES_INVESTIGATION"
+    ],
+    "evidence_snippet": "Bundle says $99 AUD but when added to cart it switches",
+    "evidence_date": "2026-09-19T04:14:27+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@gohaus.com"
+  },
+  {
+    "id": 1029,
+    "domain": "popur.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-27T05:22:38+00:00 is 26 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@popur.com"
+  },
+  {
+    "id": 1030,
+    "domain": "kissprom.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "Beware of the situation with their \"inventory\"\nWe ordered a dress with the $40 express delivery. THREE WEEKS later we learned that the dress",
+    "evidence_date": "2026-09-17T17:43:50+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "service@kissprom.com"
+  },
+  {
+    "id": 1031,
+    "domain": "tikamoon.co",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-18T16:15:37+00:00 is 34 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "help@tikamoon.com"
+  },
+  {
+    "id": 1032,
+    "domain": "getlambs.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-02T21:03:00+00:00 is 19 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "hello@havnwear.com"
+  },
+  {
+    "id": 1033,
+    "domain": "tangand.co.uk",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-06T19:34:33+00:00 is 46 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "info@tangand.co.uk"
+  },
+  {
+    "id": 1034,
+    "domain": "theguushop.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-07T03:33:46+00:00 is 15 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "service@theguushop.com"
+  },
+  {
+    "id": 1035,
+    "domain": "gothelist.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-17T11:31:31+00:00 is 35 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "customercare@gothelist.com"
+  },
+  {
+    "id": 1036,
+    "domain": "jamesleather.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-01T19:58:11+00:00 is 20 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "info@jamesleather.com"
+  },
+  {
+    "id": 1037,
+    "domain": "trypuppyharbor.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-14T01:16:56+00:00 is 8 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "info@trypuppyharbor.com"
+  },
+  {
+    "id": 1038,
+    "domain": "proseprint.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-07-07T18:19:48+00:00 is 76 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@proseprint.com"
+  },
+  {
+    "id": 1039,
+    "domain": "discountdressshop.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-04T23:47:57+00:00 is 17 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "info@discountdressshop.com"
+  },
+  {
+    "id": 1040,
+    "domain": "cozyearth.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "So very frustrating.\nSo very frustrating.\nPromo code that THEY sent did not work.\nWas told by customer service that it was expired.  They se",
+    "evidence_date": "2026-09-16T22:52:57+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@cozyearth.com"
+  },
+  {
+    "id": 1041,
+    "domain": "uspoloassn.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "I did not receive my order and no one\u2026\nI did not receive my order and no one answerd to my call",
+    "evidence_date": "2026-09-20T14:01:46+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "serviceUSA@e.uspoloassn.com"
+  },
+  {
+    "id": 1042,
+    "domain": "kovovy.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-07-09T12:17:51+00:00 is 74 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "Marketing@kovovy.com"
+  },
+  {
+    "id": 1043,
+    "domain": "spiralusa.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "FULFILLMENT_OR_COURIER_ISSUE"
+    ],
+    "evidence_snippet": "Never received",
+    "evidence_date": "2026-09-17T02:10:04+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "info@spiralusa.com"
+  },
+  {
+    "id": 1044,
+    "domain": "polynesianpride.co",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-05T15:46:08+00:00 is 16 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@polynesianpride.co"
+  },
+  {
+    "id": 1045,
+    "domain": "zimasya.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "Don't buy anything from Zimasya!!\nDon't buy anything from Zimasya!!!  It's A SCAM!!!  Much lower quality products than what they presented o",
+    "evidence_date": "2026-09-21T00:32:38+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@zimasya.com"
+  },
+  {
+    "id": 1046,
+    "domain": "amazingcustomize.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-19T19:01:00+00:00 is 33 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@amazingcustomize.com"
+  },
+  {
+    "id": 1047,
+    "domain": "ornamentus.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "Nightmare customer support\nIf you have a size exchange or return to make it really is over. \nI purchased a bracelet that was too big so I wa",
+    "evidence_date": "2026-09-15T22:31:36+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@ornamentus.com"
+  },
+  {
+    "id": 1048,
+    "domain": "iamgia.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-01T12:25:24+00:00 is 20 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "customercare@iamgia.com"
+  },
+  {
+    "id": 1049,
+    "domain": "purepathshop.co",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "I do not advise ordering from this\u2026\nI do not advise ordering from this company. The PurePath hair removal glove did not work as advertised. ",
+    "evidence_date": "2026-09-21T01:27:37+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@purepathshop.ca"
+  },
+  {
+    "id": 1050,
+    "domain": "tinybigbag.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "Do not recommend\nI purchased a tiny big bag and when i received it, it was not very good quality and looks really cheap. I send three emails",
+    "evidence_date": "2026-09-16T05:45:09+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@tinybigbag.com"
+  },
+  {
+    "id": 1051,
+    "domain": "laluva.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-22T01:44:38+00:00 is 31 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "hello@laluva.com"
+  },
+  {
+    "id": 1052,
+    "domain": "greengruff.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-15T04:49:27+00:00 is 7 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "info@greengruff.com"
+  },
+  {
+    "id": 1053,
+    "domain": "yumwoof.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "Not what I thought I was getting\nI ordered a sample and it came in small morsels. My dog seemed to like it and I ordered 2 bags of the same ",
+    "evidence_date": "2026-09-15T19:22:05+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "woof@yumwoof.com"
+  },
+  {
+    "id": 1054,
+    "domain": "moxielash.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-08T16:57:12+00:00 is 44 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@moxielash.com"
+  },
+  {
+    "id": 1055,
+    "domain": "www.kushqueen.shop",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-14T12:40:20+00:00 is 7 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@kushqueen.shop"
+  },
+  {
+    "id": 1056,
+    "domain": "www.honestpaws.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-04T01:21:32+00:00 is 18 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "ask@honestpaws.com"
+  },
+  {
+    "id": 1057,
+    "domain": "hoodiesforheroes.shop",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "Very disappointing quality\nVery disappointing quality and customer service\n\nI was really looking forward to receiving this hoodie because I ",
+    "evidence_date": "2026-09-20T14:48:21+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@hoodiesforheroes.shop"
+  },
+  {
+    "id": 1058,
+    "domain": "haybox.club",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-03T15:54:55+00:00 is 18 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "hello@haybox.club"
+  },
+  {
+    "id": 1059,
+    "domain": "pinkblushmaternity.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-08-11T19:32:20+00:00 is 41 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@shoppinkblush.com"
+  },
+  {
+    "id": 1060,
+    "domain": "tartanvibesclothing.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "NO_ACTIONABLE_STOREFRONT_INCIDENT_FOUND"
+    ],
+    "evidence_snippet": "Delivery company is useless\nFirst delivery of order was made somewhere.  Unfortunately nowhere in our village!\nReplacement promised within 3",
+    "evidence_date": "2026-09-16T14:04:25+00:00",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "support@tartanvibesclothing.com"
+  },
+  {
+    "id": 1061,
+    "domain": "onewithswim.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-02T16:26:21+00:00 is 19 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "info@onewithswim.com"
+  },
+  {
+    "id": 1062,
+    "domain": "benisouk.com",
+    "old_status": "READY",
+    "proposed_status": "CANDIDATE",
+    "signal_decision": "NO_MATCH",
+    "signal_reasons": [
+      "STALE_INCIDENT_OLDER_THAN_7_DAYS"
+    ],
+    "evidence_snippet": "Review date 2026-09-12T15:11:11+00:00 is 9 days old (>7d limit)",
+    "evidence_date": "",
+    "contact_type": "GENERIC_SUPPORT",
+    "contact_email": "contact@benisouk.com"
+  }
+]

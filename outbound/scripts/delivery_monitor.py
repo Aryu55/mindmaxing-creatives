@@ -20,10 +20,12 @@ Persists collector health and polling status in collector_health table.
 """
 
 import os
+import sys
 import re
 import json
 import imaplib
 import email
+import fcntl
 from email import policy
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Tuple
@@ -32,6 +34,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.environ.get("MINDMAXING_BASE_DIR") or (
     "/root/outbound" if os.path.exists("/root/outbound/data") else os.path.dirname(SCRIPT_DIR)
 )
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
 try:
     import volume_controller
@@ -44,6 +47,14 @@ try:
 except ImportError:
     from outbound.scripts import delivery_events
     from outbound.scripts.delivery_events import BounceCategory, ReplyType
+
+try:
+    from alert_notifier import notify_reply_detected
+except ImportError:
+    try:
+        from outbound.scripts.alert_notifier import notify_reply_detected
+    except ImportError:
+        notify_reply_detected = None
 
 MAILBOXES_FILE = os.path.join(BASE_DIR, "config", "mailboxes.json")
 TEST_INBOXES_FILE = os.path.join(BASE_DIR, "config", "test_inboxes.json")
@@ -80,16 +91,29 @@ def update_collector_health(mailbox: str, mailbox_type: str, status: str, error_
     c = conn.cursor()
     now_iso = datetime.now(timezone.utc).isoformat()
     last_success = now_iso if status == "healthy" else None
+
+    # Check if column consecutive_successes exists
+    c.execute("PRAGMA table_info(collector_health)")
+    cols = [r[1] for r in c.fetchall()]
+    if "consecutive_successes" not in cols:
+        try:
+            c.execute("ALTER TABLE collector_health ADD COLUMN consecutive_successes INTEGER DEFAULT 0")
+            conn.commit()
+        except Exception:
+            pass
+
     c.execute("""
-    INSERT INTO collector_health (mailbox, mailbox_type, last_scan_at, status, error_message, messages_scanned, last_success_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO collector_health (mailbox, mailbox_type, last_scan_at, status, error_message, messages_scanned, last_success_at, consecutive_successes)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(mailbox) DO UPDATE SET
         last_scan_at = excluded.last_scan_at,
         status = excluded.status,
         error_message = excluded.error_message,
         messages_scanned = messages_scanned + excluded.messages_scanned,
-        last_success_at = COALESCE(excluded.last_success_at, collector_health.last_success_at)
-    """, (mailbox, mailbox_type, now_iso, status, error_msg, scanned_cnt, last_success))
+        last_success_at = COALESCE(excluded.last_success_at, collector_health.last_success_at),
+        consecutive_successes = CASE WHEN excluded.status = 'healthy' THEN COALESCE(collector_health.consecutive_successes, 0) + 1 ELSE 0 END
+    """, (mailbox, mailbox_type, now_iso, status, error_msg, scanned_cnt, last_success, 1 if status == "healthy" else 0))
+    conn.commit()
     conn.close()
 
 
@@ -98,30 +122,32 @@ def poll_ionos_mailbox(mailbox_info: dict):
     email_addr = mailbox_info["email"]
     ionos_pwd = get_ionos_password()
     scanned_cnt = 0
+    mail = None
+    conn = None
 
     try:
-        mail = imaplib.IMAP4_SSL(IONOS_IMAP_HOST, 993, timeout=20)
-        mail.login(email_addr, ionos_pwd)
-    except Exception as e:
-        update_collector_health(email_addr, "sender", "error", f"IMAP Login Failed: {str(e)}")
-        return
+        try:
+            mail = imaplib.IMAP4_SSL(IONOS_IMAP_HOST, 993, timeout=15)
+            mail.login(email_addr, ionos_pwd)
+        except Exception as e:
+            update_collector_health(email_addr, "sender", "error", f"IMAP Login Failed: {str(e)}")
+            return
 
-    folders_to_check = ["INBOX"]
-    # Check if Spam / Junk exists
-    status, folder_list = mail.list()
-    if status == "OK":
-        for f in folder_list:
-            decoded = f.decode("utf-8", errors="ignore")
-            if any(s in decoded.lower() for s in ["spam", "junk"]):
-                m = re.search(r'"([^"]+)"$', decoded) or re.search(r'([^\s]+)$', decoded)
-                if m and m.group(1) not in folders_to_check:
-                    folders_to_check.append(m.group(1))
+        folders_to_check = ["INBOX"]
+        # Check if Spam / Junk exists inside outer exception boundary
+        status, folder_list = mail.list()
+        if status == "OK" and folder_list:
+            for f in folder_list:
+                decoded = f.decode("utf-8", errors="ignore")
+                if any(s in decoded.lower() for s in ["spam", "junk"]):
+                    m = re.search(r'"([^"]+)"$', decoded) or re.search(r'([^\s]+)$', decoded)
+                    if m and m.group(1) not in folders_to_check:
+                        folders_to_check.append(m.group(1))
 
-    conn = volume_controller.get_db_connection()
-    c = conn.cursor()
-    folder_errors = []
+        conn = volume_controller.get_db_connection()
+        c = conn.cursor()
+        folder_errors = []
 
-    try:
         for folder in folders_to_check:
             folder_arg = f'"{folder}"' if (' ' in folder or '[' in folder) and not folder.startswith('"') else folder
             res, _ = mail.select(folder_arg, readonly=True)
@@ -337,6 +363,17 @@ def poll_ionos_mailbox(mailbox_info: dict):
                                     INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
                                     VALUES (?, 'reply_human', ?, ?, ?, ?)
                                 """, (target_mid, now_iso, email_addr, folder, f"From: {reply.from_email} | Subj: {reply.subject[:100]}"))
+                                if notify_reply_detected:
+                                    try:
+                                        notify_reply_detected(
+                                            source_mailbox=email_addr,
+                                            prospect_email=reply.from_email,
+                                            subject=reply.subject,
+                                            snippet=reply.body_excerpt,
+                                            reply_type="HUMAN_REPLY"
+                                        )
+                                    except Exception as ne:
+                                        print(f"Reply alert warning: {ne}")
 
                         # Case C: Out of Office
                         elif reply.reply_type == ReplyType.OUT_OF_OFFICE:
@@ -365,6 +402,17 @@ def poll_ionos_mailbox(mailbox_info: dict):
                                         INSERT INTO delivery_events (message_id, event_type, detected_at, source_mailbox, folder, details)
                                         VALUES (?, 'reply_auto_response', ?, ?, ?, ?)
                                     """, (target_mid, now_iso, email_addr, folder, f"Auto-reply from {reply.from_email}"))
+                                    if notify_reply_detected:
+                                        try:
+                                            notify_reply_detected(
+                                                source_mailbox=email_addr,
+                                                prospect_email=reply.from_email,
+                                                subject=reply.subject,
+                                                snippet=reply.body_excerpt,
+                                                reply_type="AUTO_RESPONSE"
+                                            )
+                                        except Exception as ne:
+                                            print(f"Auto-reply alert warning: {ne}")
 
             # Update IMAP cursor for folder
             now_iso = datetime.now(timezone.utc).isoformat()
@@ -378,8 +426,6 @@ def poll_ionos_mailbox(mailbox_info: dict):
             """, (email_addr, folder, current_uidvalidity, max_uid_processed, now_iso))
             conn.commit()
 
-        mail.close()
-        mail.logout()
         if folder_errors:
             update_collector_health(email_addr, "sender", "error", f"Folder errors: {'; '.join(folder_errors)}", scanned_cnt)
         else:
@@ -388,7 +434,20 @@ def poll_ionos_mailbox(mailbox_info: dict):
     except Exception as e:
         update_collector_health(email_addr, "sender", "error", f"Scan error: {str(e)}", scanned_cnt)
     finally:
-        conn.close()
+        if mail:
+            try:
+                mail.close()
+            except Exception:
+                pass
+            try:
+                mail.logout()
+            except Exception:
+                pass
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def poll_gmail_test_inbox(gmail_info: dict):
@@ -396,20 +455,22 @@ def poll_gmail_test_inbox(gmail_info: dict):
     gmail_addr = gmail_info["email"]
     app_pwd = gmail_info["app_password"]
     scanned_cnt = 0
+    mail = None
+    conn = None
 
     try:
-        mail = imaplib.IMAP4_SSL(GMAIL_IMAP_HOST, 993, timeout=20)
-        mail.login(gmail_addr, app_pwd)
-    except Exception as e:
-        update_collector_health(gmail_addr, "test_inbox", "error", f"Gmail IMAP login failed: {str(e)}")
-        return
+        try:
+            mail = imaplib.IMAP4_SSL(GMAIL_IMAP_HOST, 993, timeout=15)
+            mail.login(gmail_addr, app_pwd)
+        except Exception as e:
+            update_collector_health(gmail_addr, "test_inbox", "error", f"Gmail IMAP login failed: {str(e)}")
+            return
 
-    folders = ["INBOX", "[Gmail]/Spam"]
-    conn = volume_controller.get_db_connection()
-    c = conn.cursor()
-    folder_errors = []
+        folders = ["INBOX", "[Gmail]/Spam"]
+        conn = volume_controller.get_db_connection()
+        c = conn.cursor()
+        folder_errors = []
 
-    try:
         for folder in folders:
             folder_arg = f'"{folder}"' if (' ' in folder or '[' in folder) and not folder.startswith('"') else folder
             res, _ = mail.select(folder_arg, readonly=True) # Strict read-only mode!
@@ -555,8 +616,6 @@ def poll_gmail_test_inbox(gmail_info: dict):
             """, (gmail_addr, folder, current_uidvalidity, max_uid_processed, now_iso))
             conn.commit()
 
-        mail.close()
-        mail.logout()
         if folder_errors:
             update_collector_health(gmail_addr, "test_inbox", "error", f"Folder errors: {'; '.join(folder_errors)}", scanned_cnt)
         else:
@@ -565,37 +624,101 @@ def poll_gmail_test_inbox(gmail_info: dict):
     except Exception as e:
         update_collector_health(gmail_addr, "test_inbox", "error", f"Gmail scan error: {str(e)}", scanned_cnt)
     finally:
-        conn.close()
+        if mail:
+            try:
+                mail.close()
+            except Exception:
+                pass
+            try:
+                mail.logout()
+            except Exception:
+                pass
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def run_monitor_cycle():
-    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    os.makedirs(DATA_DIR, exist_ok=True)
+    lock_file_path = os.path.join(DATA_DIR, "delivery_monitor.lock")
+    lock_fd = None
+    try:
+        lock_fd = open(lock_file_path, "w")
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except (IOError, BlockingIOError):
+        now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        print(f"[{now_utc} UTC] Another Delivery Monitor cycle is already active. Skipping.")
+        if lock_fd:
+            try:
+                lock_fd.close()
+            except Exception:
+                pass
+        return
+
+    start_time = datetime.now(timezone.utc)
+    now_utc = start_time.strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{now_utc} UTC] Starting Delivery Monitor & Diagnostic Inspection cycle...")
-    
-    # 1. Poll 25 IONOS mailboxes
-    mailboxes = load_mailboxes()
-    print(f"  Scanning {len(mailboxes)} IONOS mailboxes for bounces and replies...")
-    for m in mailboxes:
-        poll_ionos_mailbox(m)
 
-    # 2. Poll 8 Gmail test inboxes
-    test_inboxes = load_test_inboxes()
-    print(f"  Scanning {len(test_inboxes)} Gmail test inboxes for diagnostic telemetry...")
-    for g in test_inboxes:
-        poll_gmail_test_inbox(g)
+    try:
+        from service_heartbeats import record_heartbeat_start, record_heartbeat_success, record_heartbeat_failure
+    except ImportError:
+        try:
+            from outbound.scripts.service_heartbeats import record_heartbeat_start, record_heartbeat_success, record_heartbeat_failure
+        except ImportError:
+            record_heartbeat_start = lambda s, **kw: None
+            record_heartbeat_success = lambda s, **kw: None
+            record_heartbeat_failure = lambda s, **kw: None
 
-    # 3. Mark unobserved diagnostics older than 24h as 'not_observed_24h'
-    conn = volume_controller.get_db_connection()
-    c = conn.cursor()
-    twenty_four_hours_ago = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
-    c.execute("""
-        UPDATE messages SET delivery_state = 'not_observed_24h', last_event_at = ?
-        WHERE purpose = 'test' AND delivery_state = 'accepted' AND sent_at < ?
-    """, (datetime.now(timezone.utc).isoformat(), twenty_four_hours_ago))
-    conn.commit()
-    conn.close()
+    record_heartbeat_start("delivery_monitor")
 
-    print(f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC] Monitor cycle complete.")
+    try:
+        # 1. Poll 25 IONOS mailboxes with per-mailbox isolation
+        mailboxes = load_mailboxes()
+        print(f"  Scanning {len(mailboxes)} IONOS mailboxes for bounces and replies...")
+        for m in mailboxes:
+            try:
+                poll_ionos_mailbox(m)
+            except Exception as e:
+                update_collector_health(m.get("email", "unknown"), "sender", "error", f"Uncaught mailbox scan exception: {str(e)}")
+
+        # 2. Poll 8 Gmail test inboxes with per-mailbox isolation
+        test_inboxes = load_test_inboxes()
+        print(f"  Scanning {len(test_inboxes)} Gmail test inboxes for diagnostic telemetry...")
+        for g in test_inboxes:
+            try:
+                poll_gmail_test_inbox(g)
+            except Exception as e:
+                update_collector_health(g.get("email", "unknown"), "test_inbox", "error", f"Uncaught test inbox scan exception: {str(e)}")
+
+        # 3. Mark unobserved diagnostics older than 24h as 'not_observed_24h'
+        try:
+            conn = volume_controller.get_db_connection()
+            c = conn.cursor()
+            twenty_four_hours_ago = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+            c.execute("""
+                UPDATE messages SET delivery_state = 'not_observed_24h', last_event_at = ?
+                WHERE purpose = 'test' AND delivery_state = 'accepted' AND sent_at < ?
+            """, (datetime.now(timezone.utc).isoformat(), twenty_four_hours_ago))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"  Warning: failed to update stale diagnostics: {e}")
+
+        elapsed = (datetime.now(timezone.utc) - start_time).total_seconds()
+        print(f"[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC] Monitor cycle complete in {elapsed:.1f}s.")
+        record_heartbeat_success("delivery_monitor", items_processed=len(mailboxes) + len(test_inboxes))
+    except Exception as e:
+        record_heartbeat_failure("delivery_monitor", str(e))
+        raise e
+    finally:
+        if lock_fd:
+            try:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                lock_fd.close()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":

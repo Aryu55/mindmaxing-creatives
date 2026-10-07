@@ -143,6 +143,52 @@ def generate_period_report(period_id: str) -> Dict[str, Any]:
     historical_first = hist_row["first_sent"] if hist_row else None
     historical_last = hist_row["last_sent"] if hist_row else None
 
+    # 9. Pipeline Readiness Gate Separation (Task A)
+    try:
+        c.execute("SELECT count(*) as count FROM leads WHERE signal_decision = 'INCIDENT_CANDIDATE'")
+        incident_qualified_count = c.fetchone()["count"]
+
+        c.execute("SELECT count(*) as count FROM leads WHERE signal_decision = 'REVIEW_REQUIRED' OR status = 'HELD_FOR_REVIEW'")
+        review_required_count = c.fetchone()["count"]
+
+        c.execute("""
+            SELECT count(*) as count FROM leads
+            WHERE contact_type IN ('FOUNDER_DIRECT', 'FOUNDER_NAMED_DESK', 'FOUNDER_RESOLVED')
+              AND resolved_email IS NOT NULL AND resolved_email != ''
+        """)
+        contact_eligible_count = c.fetchone()["count"]
+
+        c.execute("SELECT count(*) as count FROM leads WHERE status = 'HUMAN_APPROVED'")
+        human_approved_count = c.fetchone()["count"]
+
+        c.execute("SELECT count(*) as count FROM outbound_jobs WHERE status = 'PENDING'")
+        queued_jobs_count = c.fetchone()["count"]
+
+        c.execute("SELECT status, count(*) as count FROM leads GROUP BY status")
+        leads_by_status = {r["status"]: r["count"] for r in c.fetchall()}
+    except Exception:
+        incident_qualified_count = 0
+        review_required_count = 0
+        contact_eligible_count = 0
+        human_approved_count = 0
+        queued_jobs_count = 0
+        leads_by_status = {}
+
+    # 10. Service Heartbeats (Task D)
+    service_heartbeats = []
+    try:
+        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='service_heartbeats'")
+        if c.fetchone():
+            c.execute("""
+                SELECT service_name, status, started_at, completed_at, last_success_at,
+                       items_processed, items_failed, error_message, updated_at
+                FROM service_heartbeats
+                ORDER BY service_name ASC
+            """)
+            service_heartbeats = [dict(r) for r in c.fetchall()]
+    except Exception:
+        service_heartbeats = []
+
     conn.close()
 
     # Compile per-mailbox telemetry
@@ -218,11 +264,20 @@ def generate_period_report(period_id: str) -> Dict[str, Any]:
         "total_active_capacity": total_active_capacity,
         "suppressions_total": suppressions_total,
         "seed_telemetry": seed_telemetry,
+        "pipeline_readiness": {
+            "incident_qualified": incident_qualified_count,
+            "review_required": review_required_count,
+            "contact_eligible": contact_eligible_count,
+            "human_approved": human_approved_count,
+            "queued_jobs": queued_jobs_count,
+            "leads_by_status": leads_by_status
+        },
         "historical_archive": {
             "accepted_count": historical_campaign_count,
             "first_sent": historical_first,
             "last_sent": historical_last
         },
+        "service_heartbeats": service_heartbeats,
         "mailboxes": mailbox_reports
     }
 
@@ -234,6 +289,15 @@ def format_text_report(rep: Dict[str, Any]) -> str:
     lines.append(f"  Policy: {rep['policy_version']} | Generated: {rep['generated_at_utc']} (UTC)")
     lines.append(f"  Total Senders: {rep['total_senders']} | Total Effective Daily Capacity: {rep['total_active_capacity']} messages")
     lines.append("=" * 80)
+
+    lines.append("\n## PIPELINE READINESS GATES (Separated Verification)")
+    pr = rep.get("pipeline_readiness", {})
+    lines.append(f"  * Incident-Qualified Leads: {pr.get('incident_qualified', 0)} (Storefront malfunction verified <= 7d)")
+    lines.append(f"  * Review Required / Held:   {pr.get('review_required', 0)} (Currency/bundle/unresolved discrepancies)")
+    lines.append(f"  * Contact-Eligible Leads:   {pr.get('contact_eligible', 0)} (Founder verified, personal desk email)")
+    lines.append(f"  * Human-Approved Leads:     {pr.get('human_approved', 0)} (Verified recipient & copy approved)")
+    lines.append(f"  * Queued Outbound Jobs:     {pr.get('queued_jobs', 0)} (Dispatched via scheduler)")
+    lines.append(f"  * CRM Status Breakdown:     {pr.get('leads_by_status', {})}")
 
     lines.append("\n## MAILBOX STATUS & DECISION LEDGER\n")
     lines.append(f"{'#':<3} {'Mailbox':<32} {'Base':<5} {'Eff':<5} {'Used':<5} {'Rem':<5} {'Action':<10} {'Reason'}")
@@ -269,6 +333,20 @@ def format_text_report(rep: Dict[str, Any]) -> str:
             lines.append(f"  * {s['recipient_email']}: {s['tests_received']} tests (Inbox: {s['inbox_count']}, Spam: {s['spam_count']})")
     else:
         lines.append("  * No seed diagnostic messages recorded yet.")
+
+    lines.append("\n## UNATTENDED WORKER HEARTBEATS & SUPERVISION (Task D)")
+    sh_list = rep.get("service_heartbeats", [])
+    if sh_list:
+        lines.append(f"{'Service':<24} {'Status':<10} {'Last Success':<24} {'Processed':<10} {'Error'}")
+        lines.append("-" * 80)
+        for sh in sh_list:
+            last_succ = str(sh.get("last_success_at") or "Never")[:19]
+            err = sh.get("error_message") or ""
+            if len(err) > 30:
+                err = err[:27] + "..."
+            lines.append(f"{sh['service_name']:<24} {sh['status']:<10} {last_succ:<24} {sh.get('items_processed', 0):<10} {err}")
+    else:
+        lines.append("  * No worker heartbeat records found.")
 
     lines.append("=" * 80)
     return "\n".join(lines)

@@ -582,9 +582,11 @@ def audit_and_update_lead(
     lead_row: sqlite3.Row,
     conn: sqlite3.Connection,
     dry_run: bool = False,
-    hunter_adapter: Optional[Any] = None
+    hunter_adapter: Optional[Any] = None,
+    job_id: Optional[int] = None,
+    worker_id: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Resolves a lead, persists candidate evidence and resolution events, preserving active sequences."""
+    """Resolves a lead, persists candidate evidence and resolution events, routing through contact_jobs when queued."""
     lead_id = lead_row["id"]
     domain = lead_row["domain"]
     company_name = lead_row["company_name"] or ""
@@ -603,42 +605,55 @@ def audit_and_update_lead(
 
     if not dry_run:
         c = conn.cursor()
-        
-        # Transactional re-check of current sequence step right before write
-        c.execute("SELECT current_sequence_step, contact_email FROM leads WHERE id = ?", (lead_id,))
-        fresh_lead = c.fetchone()
-        fresh_sequence_step = (fresh_lead["current_sequence_step"] or 0) if fresh_lead else sequence_step
+        all_candidates = res["evidence"].get("candidates") or []
+        formatted_candidates = []
+        for cand in all_candidates:
+            c_name = cand.get("name") or "Unknown"
+            c_role = cand.get("role") or "Founder"
+            c_email = cand.get("email")
+            is_sel = (c_name == resolved_name and c_email == resolved_email)
+            formatted_candidates.append({
+                "name": c_name,
+                "role": c_role,
+                "email": c_email,
+                "email_origin": res.get("email_origin", "PUBLIC_SITE") if is_sel else ("PUBLIC_SITE" if c_email else "LEGACY_UNKNOWN"),
+                "mailbox_status": res.get("mailbox_verification", "UNCHECKED") if is_sel else "UNCHECKED",
+                "identity_status": res.get("identity_status", "FOUNDER_CONFIRMED") if is_sel else "UNCONFIRMED",
+                "evidence": cand,
+                "rejection_reasons": [],
+                "is_selected": is_sel
+            })
 
-        # Invariant: If sequence is active (> 0), never overwrite contact_email!
-        if fresh_sequence_step > 0:
-            c.execute("""
-                UPDATE leads
-                SET resolved_name = ?,
-                    resolved_email = ?,
-                    resolved_role = ?,
-                    resolved_evidence = ?,
-                    resolution_status = ?,
-                    resolved_at = ?
-                WHERE id = ?
-            """, (resolved_name, resolved_email, resolved_role, evidence_json, status, now_iso, lead_id))
+        if job_id:
+            try:
+                import contact_jobs
+            except ImportError:
+                from outbound.scripts import contact_jobs
+            run_id = f"run_{int(time.time())}_{random.randint(1000, 9999)}"
+            lead_summary = {
+                "resolved_name": resolved_name,
+                "resolved_email": resolved_email,
+                "resolved_role": resolved_role,
+                "evidence": res.get("evidence", {}),
+                "resolution_status": status
+            }
+            contact_jobs.complete_job(
+                conn,
+                job_id,
+                run_id,
+                status,
+                formatted_candidates,
+                lead_summary,
+                worker_id=worker_id
+            )
         else:
-            # For uncontacted leads, update contact_email ONLY if FOUNDER_FOUND
-            if status == "FOUNDER_FOUND" and resolved_email:
-                c.execute("""
-                    UPDATE leads
-                    SET original_contact_email = COALESCE(original_contact_email, contact_email),
-                        contact_email = ?,
-                        contact_name = ?,
-                        contact_type = 'FOUNDER_RESOLVED',
-                        resolved_name = ?,
-                        resolved_email = ?,
-                        resolved_role = ?,
-                        resolved_evidence = ?,
-                        resolution_status = ?,
-                        resolved_at = ?
-                    WHERE id = ?
-                """, (resolved_email, resolved_name, resolved_name, resolved_email, resolved_role, evidence_json, status, now_iso, lead_id))
-            else:
+            # Transactional re-check of current sequence step right before write
+            c.execute("SELECT current_sequence_step, contact_email FROM leads WHERE id = ?", (lead_id,))
+            fresh_lead = c.fetchone()
+            fresh_sequence_step = (fresh_lead["current_sequence_step"] or 0) if fresh_lead else sequence_step
+
+            # Invariant: If sequence is active (> 0), never overwrite contact_email!
+            if fresh_sequence_step > 0:
                 c.execute("""
                     UPDATE leads
                     SET resolved_name = ?,
@@ -649,57 +664,78 @@ def audit_and_update_lead(
                         resolved_at = ?
                     WHERE id = ?
                 """, (resolved_name, resolved_email, resolved_role, evidence_json, status, now_iso, lead_id))
+            else:
+                # For uncontacted leads, update contact_email ONLY if FOUNDER_FOUND
+                if status == "FOUNDER_FOUND" and resolved_email:
+                    c.execute("""
+                        UPDATE leads
+                        SET original_contact_email = COALESCE(original_contact_email, contact_email),
+                            contact_email = ?,
+                            contact_name = ?,
+                            contact_type = 'FOUNDER_RESOLVED',
+                            resolved_name = ?,
+                            resolved_email = ?,
+                            resolved_role = ?,
+                            resolved_evidence = ?,
+                            resolution_status = ?,
+                            resolved_at = ?
+                        WHERE id = ?
+                    """, (resolved_email, resolved_name, resolved_name, resolved_email, resolved_role, evidence_json, status, now_iso, lead_id))
+                else:
+                    c.execute("""
+                        UPDATE leads
+                        SET resolved_name = ?,
+                            resolved_email = ?,
+                            resolved_role = ?,
+                            resolved_evidence = ?,
+                            resolution_status = ?,
+                            resolved_at = ?
+                        WHERE id = ?
+                    """, (resolved_name, resolved_email, resolved_role, evidence_json, status, now_iso, lead_id))
 
-        # Persist all discovered candidates into contact_candidates table
-        all_candidates = res["evidence"].get("candidates") or []
-        for cand in all_candidates:
-            c_name = cand.get("name") or "Unknown"
-            c_role = cand.get("role") or "Founder"
-            c_email = cand.get("email")
-            is_sel = (c_name == resolved_name and c_email == resolved_email)
+            # Persist all discovered candidates into contact_candidates table
+            for cand in formatted_candidates:
+                c.execute("""
+                    INSERT INTO contact_candidates (
+                        lead_id, domain, full_name, role, email,
+                        email_origin, mailbox_status, mailbox_checked_at,
+                        identity_status, identity_checked_at, evidence_json,
+                        rejection_reasons, is_selected, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    lead_id, domain, cand["name"], cand["role"], cand["email"],
+                    cand["email_origin"], cand["mailbox_status"],
+                    now_iso if cand["email"] else None,
+                    cand["identity_status"], now_iso,
+                    json.dumps(cand["evidence"]),
+                    json.dumps([]),
+                    1 if cand["is_selected"] else 0,
+                    now_iso, now_iso
+                ))
+
+            # Persist audit transition in contact_resolution_events
+            run_id = f"run_{int(time.time())}_{random.randint(1000, 9999)}"
             c.execute("""
-                INSERT INTO contact_candidates (
-                    lead_id, domain, full_name, role, email,
-                    email_origin, mailbox_status, mailbox_checked_at,
-                    identity_status, identity_checked_at, evidence_json,
-                    rejection_reasons, is_selected, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO contact_resolution_events (
+                    lead_id, domain, run_id, code_version, event_type,
+                    inputs_json, outcome, before_state_json, after_state_json, created_at
+                ) VALUES (?, ?, ?, ?, 'LEAD_AUDITED', ?, ?, ?, ?, ?)
             """, (
-                lead_id, domain, c_name, c_role, c_email,
-                res.get("email_origin", "PUBLIC_SITE") if is_sel else ("PUBLIC_SITE" if c_email else "LEGACY_UNKNOWN"),
-                res.get("mailbox_verification", "UNCHECKED") if is_sel else "UNCHECKED",
-                now_iso if c_email else None,
-                res.get("identity_status", "FOUNDER_CONFIRMED") if is_sel else "UNCONFIRMED",
-                now_iso,
-                json.dumps(cand),
-                json.dumps([]),
-                1 if is_sel else 0,
-                now_iso, now_iso
+                lead_id, domain, run_id, "2.0.0-phase3",
+                json.dumps({"domain": domain, "company_name": company_name}),
+                status,
+                json.dumps({"current_sequence_step": sequence_step}),
+                json.dumps({"resolution_status": status, "resolved_name": resolved_name, "resolved_email": resolved_email}),
+                now_iso
             ))
 
-        # Persist audit transition in contact_resolution_events
-        run_id = f"run_{int(time.time())}_{random.randint(1000, 9999)}"
-        c.execute("""
-            INSERT INTO contact_resolution_events (
-                lead_id, domain, run_id, code_version, event_type,
-                inputs_json, outcome, before_state_json, after_state_json, created_at
-            ) VALUES (?, ?, ?, ?, 'LEAD_AUDITED', ?, ?, ?, ?, ?)
-        """, (
-            lead_id, domain, run_id, "2.0.0-phase3",
-            json.dumps({"domain": domain, "company_name": company_name}),
-            status,
-            json.dumps({"current_sequence_step": sequence_step}),
-            json.dumps({"resolution_status": status, "resolved_name": resolved_name, "resolved_email": resolved_email}),
-            now_iso
-        ))
+            # Check and complete any linked contact_jobs lease
+            c.execute("SELECT id FROM contact_jobs WHERE lead_id = ? AND status = 'RUNNING'", (lead_id,))
+            running_job = c.fetchone()
+            if running_job:
+                c.execute("UPDATE contact_jobs SET status = 'COMPLETED', lease_expires_at = NULL, updated_at = ? WHERE id = ?", (now_iso, running_job["id"]))
 
-        # Check and complete any linked contact_jobs lease
-        c.execute("SELECT id FROM contact_jobs WHERE lead_id = ? AND status = 'RUNNING'", (lead_id,))
-        running_job = c.fetchone()
-        if running_job:
-            c.execute("UPDATE contact_jobs SET status = 'COMPLETED', lease_expires_at = NULL, updated_at = ? WHERE id = ?", (now_iso, running_job["id"]))
-
-        conn.commit()
+            conn.commit()
 
     return res
 
@@ -723,6 +759,18 @@ if __name__ == "__main__":
     conn = sqlite3.connect(args.db)
     conn.row_factory = sqlite3.Row
 
+    try:
+        from service_heartbeats import record_heartbeat_start, record_heartbeat_success, record_heartbeat_failure
+    except ImportError:
+        try:
+            from outbound.scripts.service_heartbeats import record_heartbeat_start, record_heartbeat_success, record_heartbeat_failure
+        except ImportError:
+            record_heartbeat_start = lambda s, **kw: None
+            record_heartbeat_success = lambda s, **kw: None
+            record_heartbeat_failure = lambda s, **kw: None
+
+    record_heartbeat_start("founder_resolver", db_path=args.db)
+
     if args.jobs:
         try:
             import contact_jobs
@@ -733,49 +781,66 @@ if __name__ == "__main__":
         worker_id = f"worker_{os.getpid()}_{int(time.time())}"
         print(f"[*] Running job worker {worker_id} on: {args.db}")
         processed = 0
-        while processed < args.limit:
-            job = contact_jobs.claim_next_job(conn, worker_id)
-            if not job:
-                print("[*] No pending jobs in contact_jobs queue.")
-                break
-            lead_id = job["lead_id"]
-            domain = job["domain"]
-            c = conn.cursor()
-            lead = c.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone()
-            if not lead:
-                contact_jobs.fail_job(conn, job["id"], f"run_{int(time.time())}", "Lead not found in CRM", worker_id=worker_id)
-                continue
-            try:
-                r = audit_and_update_lead(lead, conn, dry_run=args.dry_run)
-                processed += 1
-            except Exception as e:
-                contact_jobs.fail_job(conn, job["id"], f"run_{int(time.time())}", str(e), worker_id=worker_id)
-                processed += 1
-        print(f"[*] Processed {processed} jobs from queue.")
-        conn.close()
+        failed = 0
+        try:
+            while processed < args.limit:
+                job = contact_jobs.claim_next_job(conn, worker_id)
+                if not job:
+                    print("[*] No pending jobs in contact_jobs queue.")
+                    break
+                lead_id = job["lead_id"]
+                domain = job["domain"]
+                c = conn.cursor()
+                lead = c.execute("SELECT * FROM leads WHERE id = ?", (lead_id,)).fetchone()
+                if not lead:
+                    contact_jobs.fail_job(conn, job["id"], f"run_{int(time.time())}", "Lead not found in CRM", worker_id=worker_id)
+                    failed += 1
+                    continue
+                try:
+                    r = audit_and_update_lead(lead, conn, dry_run=args.dry_run, job_id=job["id"], worker_id=worker_id)
+                    processed += 1
+                except Exception as e:
+                    contact_jobs.fail_job(conn, job["id"], f"run_{int(time.time())}", str(e), worker_id=worker_id)
+                    failed += 1
+            print(f"[*] Processed {processed} jobs from queue.")
+            record_heartbeat_success("founder_resolver", items_processed=processed, items_failed=failed, db_path=args.db)
+        except Exception as e:
+            record_heartbeat_failure("founder_resolver", str(e), items_processed=processed, items_failed=failed, db_path=args.db)
+            raise e
+        finally:
+            conn.close()
         sys.exit(0)
 
     print(f"[*] Running database batch audit on: {args.db}")
     print(f"[*] Limit: {args.limit} | Dry-run: {args.dry_run}\n")
 
     cursor = conn.cursor()
-    leads = cursor.execute("""
-        SELECT * FROM leads 
-        WHERE resolution_status IS NULL OR resolution_status = 'UNRESOLVED'
-        ORDER BY id ASC
-        LIMIT ?
-    """, (args.limit,)).fetchall()
+    cursor.execute("PRAGMA table_info(leads)")
+    l_cols = [c[1] for c in cursor.fetchall()]
+    q = "SELECT * FROM leads WHERE (resolution_status IS NULL OR resolution_status = 'UNRESOLVED')"
+    if "signal_decision" in l_cols:
+        q += " AND (signal_decision = 'INCIDENT_CANDIDATE' OR status = 'HELD_FOR_REVIEW')"
+    q += " ORDER BY id ASC LIMIT ?"
+    leads = cursor.execute(q, (args.limit,)).fetchall()
 
     print(f"[*] Found {len(leads)} leads ready for founder audit.\n")
 
     stats = {"FOUNDER_FOUND": 0, "NAME_ONLY": 0, "NO_PUBLIC_FOUNDER": 0, "CRAWL_FAILED": 0}
-    for lead in leads:
-        r = audit_and_update_lead(lead, conn, dry_run=args.dry_run)
-        st = r["resolution_status"]
-        stats[st] = stats.get(st, 0) + 1
+    processed = 0
+    try:
+        for lead in leads:
+            r = audit_and_update_lead(lead, conn, dry_run=args.dry_run)
+            st = r["resolution_status"]
+            stats[st] = stats.get(st, 0) + 1
+            processed += 1
 
-    print("\n=== BATCH AUDIT SUMMARY ===")
-    for k, v in stats.items():
-        print(f"  {k:22}: {v}")
-    print("===========================\n")
-    conn.close()
+        print("\n=== BATCH AUDIT SUMMARY ===")
+        for k, v in stats.items():
+            print(f"  {k:22}: {v}")
+        print("===========================\n")
+        record_heartbeat_success("founder_resolver", items_processed=processed, db_path=args.db)
+    except Exception as e:
+        record_heartbeat_failure("founder_resolver", str(e), items_processed=processed, db_path=args.db)
+        raise e
+    finally:
+        conn.close()

@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "npm run build && node scripts/preview-site.mjs",
     "build": "node scripts/build-site.mjs",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name mindmaxing-creatives",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name mindmaxing-creatives --branch main",
     "logs": "ssh root@72.62.230.37 'tail -f /root/outbound/data/harvester.log'",
     "leads": "ssh root@72.62.230.37 'cat /root/outbound/data/leads_250.json'",
     "x:source": "ssh root@72.62.230.37 'python3 /root/outbound/scripts/twitter_signal_scraper.py' && scp root@72.62.230.37:/root/outbound/reports/twitter_sourced_leads.* outbound/reports/",

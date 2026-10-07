@@ -532,6 +532,15 @@ class TestRevisedPlan(unittest.TestCase):
         c.execute("INSERT OR REPLACE INTO mailbox_levels VALUES (?, 'mindmaxing.online', 2, ?, 'active', NULL, NULL)", (mb, now_iso))
         c.execute("INSERT OR REPLACE INTO collector_health VALUES (?, 'sender', ?, 'healthy', NULL, 5, ?)", (mb, now_iso, now_iso))
         c.execute("INSERT OR REPLACE INTO collector_health VALUES ('seed@gmail.com', 'test_inbox', ?, 'healthy', NULL, 5, ?)", (now_iso, now_iso))
+        # Insert a clean diagnostic so mailbox is active and eligible for DECREASE on 4xx errors
+        two_hours_ago = (now - timedelta(hours=2)).isoformat()
+        c.execute("""
+            INSERT INTO messages (
+                message_id, sender_email, sender_domain, recipient_email, recipient_domain,
+                recipient_provider, purpose, sent_at, sent_date, smtp_status, delivery_state,
+                auth_spf, auth_dkim, auth_dmarc, last_event_at
+            ) VALUES ('<clean-diag-4xx@mindmaxing.online>', ?, 'mindmaxing.online', 'seed@gmail.com', 'gmail.com', 'gmail', 'test', ?, '2026-09-22', 'accepted', 'inbox', 'pass', 'pass', 'pass', ?)
+        """, (mb, two_hours_ago, two_hours_ago))
         # Insert 3 consecutive 4xx temp failures within 24h
         for i in range(3):
             c.execute("""
