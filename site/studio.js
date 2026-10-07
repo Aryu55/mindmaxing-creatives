@@ -15,7 +15,7 @@ if(/^\/(?:index\.html|case-studies(?:\.html)?\/?)?$/.test(location.pathname)&&lo
   if(known.includes(slug))location.replace(`/case-studies/${slug}`);
 }
 
-const search=$('#project-search'),filters=$$('[data-filter]'),leadBtns=$$('[data-filter-lead]'),leadActiveBar=$('#lead-active-bar'),leadActiveText=$('#lead-active-text'),leadClearBtn=$('#lead-clear-btn');
+const search=$('#project-search'),filters=$$('[data-filter]');
 if(search){
   const rows=$$('.work-row');
   function apply(readURL=false){
@@ -23,46 +23,15 @@ if(search){
     if(readURL)search.value=params.get('q')||'';
     let category=params.get('category')||'all';
     if(!filters.some(b=>b.dataset.filter===category))category='all';
-    let lead=params.get('lead')||'';
-    if(lead!=='aryan'&&lead!=='rahul')lead='';
-
     const query=search.value.trim().toLocaleLowerCase();let count=0;
-    rows.forEach(row=>{
-      const matchCat=(category==='all'||row.dataset.category===category);
-      const matchLead=(!lead||row.dataset.lead===lead);
-      const matchQuery=(!query||row.dataset.search.includes(query));
-      const show=matchCat&&matchLead&&matchQuery;
-      row.hidden=!show;
-      if(show)count++;
-    });
+    rows.forEach(row=>{const show=(category==='all'||row.dataset.category===category)&&row.dataset.search.includes(query);row.hidden=!show;if(show)count++;});
     filters.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.filter===category)));
-    leadBtns.forEach(b=>b.classList.toggle('is-active',b.dataset.filterLead===lead));
-    $$('.authorship-card').forEach(c=>c.classList.toggle('is-active',c.dataset.leadCard===lead));
-    if(leadActiveBar){
-      if(lead){
-        leadActiveBar.hidden=false;
-        leadActiveText.textContent=`Showing ${lead==='aryan'?'Aryan Panchal’s (Technical)':'Rahul Saranya’s (Creative)'} work (${count} ${count===1?'project':'projects'})`;
-      } else {
-        leadActiveBar.hidden=true;
-      }
-    }
     $('#result-count').textContent=`${count} ${count===1?'project':'projects'}`;
     $('.empty-state').hidden=count!==0;
   }
   function setParams(p){const next=`${location.pathname}${p.size?'?'+p:''}`;history.replaceState(history.state,'',next);apply();}
   search.addEventListener('input',()=>{const p=new URLSearchParams(location.search);search.value.trim()?p.set('q',search.value.trim()):p.delete('q');setParams(p);});
   filters.forEach(b=>b.addEventListener('click',()=>{const p=new URLSearchParams(location.search);b.dataset.filter==='all'?p.delete('category'):p.set('category',b.dataset.filter);setParams(p);}));
-  leadBtns.forEach(b=>b.addEventListener('click',()=>{
-    const p=new URLSearchParams(location.search);
-    const target=b.dataset.filterLead;
-    if(p.get('lead')===target){p.delete('lead');}else{p.set('lead',target);p.delete('category');}
-    setParams(p);
-  }));
-  leadClearBtn?.addEventListener('click',()=>{
-    const p=new URLSearchParams(location.search);
-    p.delete('lead');
-    setParams(p);
-  });
   $('[data-clear-filters]')?.addEventListener('click',()=>{search.value='';setParams(new URLSearchParams());search.focus();});
   window.addEventListener('popstate',()=>apply(true));apply(true);
   rows.forEach(a=>a.addEventListener('click',()=>{try{sessionStorage.setItem('mindmaxing-work-return',JSON.stringify({path:location.pathname+location.search,scroll:scrollY}));}catch{}}));
