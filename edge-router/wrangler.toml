@@ -1,0 +1,9 @@
+name = "mindmaxing-router"
+main = "index.js"
+compatibility_date = "2024-09-23"
+account_id = "ce241921519270fdb5501ea2a85270ae"
+
+routes = [
+  { pattern = "mindmaxing.one/*", zone_name = "mindmaxing.one" },
+  { pattern = "www.mindmaxing.one/*", zone_name = "mindmaxing.one" }
+]
