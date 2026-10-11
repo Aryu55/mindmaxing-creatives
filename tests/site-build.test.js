@@ -18,20 +18,21 @@ test('build produces 58 standalone project pages and an isolated public release'
 
   // Leadership checks on home and about
   assert.match(home, /Aryan Panchal/);
-  assert.match(home, /Founder & Engineering Lead/);
+  assert.match(home, /Co-founder & Engineering Lead/);
   assert.match(home, /assets\/aryan-perfect\.jpg/);
   assert.match(home, /Rahul Saranya/);
-  assert.match(home, /Partner & Motion Graphics Lead/);
+  assert.match(home, /Co-founder & Commercial Ad Campaign Director/);
   assert.match(home, /assets\/rahul\.jpg/);
   assert.doesNotMatch(home, /himanshu/i);
 
   const about = readFileSync('dist/about/index.html', 'utf8');
   assert.match(about, /Aryan Panchal/);
-  assert.match(about, /Founder & Engineering Lead/);
+  assert.match(about, /Co-founder & Engineering Lead/);
   assert.match(about, /assets\/aryan-perfect\.jpg/);
   assert.match(about, /Rahul Saranya/);
-  assert.match(about, /Partner & Motion Graphics Lead/);
+  assert.match(about, /Co-founder & Commercial Ad Campaign Director/);
   assert.match(about, /assets\/rahul\.jpg/);
+  assert.match(about, /Co-founders of this agency/);
   assert.doesNotMatch(about, /himanshu/i);
 
   // Verify all 58 published project pages
@@ -71,7 +72,7 @@ test('build produces 58 standalone project pages and an isolated public release'
   assert.ok(existsSync('dist/case-studies/index.html'));
   const archiveHtml = readFileSync('dist/case-studies/index.html', 'utf8');
   assert.match(archiveHtml, /Technical systems led by Aryan Panchal/);
-  assert.match(archiveHtml, /Commercial motion and growth led by Rahul Saranya/);
+  assert.match(archiveHtml, /Commercial ad campaigns and growth marketing led by Rahul Saranya/);
 
   // Verify lead attribution on sample project pages
   const zupeeHtml = readFileSync('dist/case-studies/zupee/index.html', 'utf8');

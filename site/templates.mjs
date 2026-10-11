@@ -175,7 +175,7 @@ export function home() {
       <span class="section-kicker">Selected 3D motion & animation</span>
       <h2>Visual direction that commands attention.</h2>
     </div>
-    <p>Commercial 3D product rendering, broadcast TVC slates, and high-impact social films.<br>Led by partner Rahul Saranya.</p>
+    <p>Commercial ad films, broadcast TVC slates, and high-impact 3D product campaigns.<br>Directed by co-founder Rahul Saranya.</p>
   </div>
   <div class="work-list">
     ${featuredMotion.map(workRow).join('')}
@@ -192,7 +192,7 @@ export function home() {
       <span class="section-kicker">Selected marketing & creative work</span>
       <h2>Campaigns that bring people in.</h2>
     </div>
-    <p>Paid search architecture, feed optimization, and high-retention creative.<br>Led by partner Rahul Saranya.</p>
+    <p>Paid acquisition architecture, performance creative, and full-funnel ad campaigns.<br>Directed by co-founder Rahul Saranya.</p>
   </div>
   <div class="work-list">
     ${featuredMarketing.map(workRow).join('')}
@@ -230,13 +230,13 @@ export function home() {
   <a href="/case-studies?category=motion">
     <span>04</span>
     <h3>3D motion & animation</h3>
-    <p>Commercial 3D spots, TVC end slates, photorealistic product rendering, and broadcast animation. Led by partner Rahul Saranya.</p>
+    <p>Commercial ad campaigns, TVC end slates, photorealistic product films, and broadcast animation. Directed by co-founder Rahul Saranya.</p>
     ${arrow}
   </a>
   <a href="/case-studies?category=growth">
     <span>05</span>
     <h3>Marketing & creative</h3>
-    <p>Paid search and Meta campaigns, product feed architecture, direct-response copy, and campaign landing pages. Led by partner Rahul Saranya.</p>
+    <p>Full-funnel ad campaigns, Meta & search creative, direct-response copy, and high-converting acquisition funnels. Directed by co-founder Rahul Saranya.</p>
     ${arrow}
   </a>
 </section>
@@ -247,10 +247,10 @@ export function home() {
   <div class="leadership-grid" style="display:flex;flex-direction:column;gap:64px;">
     <div class="founder-container">
       <div class="founder-portrait-wrap">
-        <img class="founder-portrait" src="/assets/aryan-perfect.jpg" alt="Aryan Panchal - Founder & Engineering Lead" width="700" height="700" loading="lazy" decoding="async">
+        <img class="founder-portrait" src="/assets/aryan-perfect.jpg" alt="Aryan Panchal - Co-founder & Engineering Lead" width="700" height="700" loading="lazy" decoding="async">
       </div>
       <div class="founder-copy">
-        <span class="founder-kicker">Founder & Engineering Lead</span>
+        <span class="founder-kicker">Co-founder & Engineering Lead</span>
         <h2>Aryan Panchal</h2>
         <div class="founder-bio">
           <p>I build web products, Android apps and automation systems. I care about the difficult parts underneath - and how simple the finished experience feels.</p>
@@ -265,18 +265,19 @@ export function home() {
 
     <div class="founder-container">
       <div class="founder-portrait-wrap">
-        <img class="founder-portrait" src="/assets/rahul.jpg" alt="Rahul Saranya - Partner & Motion Graphics Lead" width="700" height="700" loading="lazy" decoding="async">
+        <img class="founder-portrait" src="/assets/rahul.jpg" alt="Rahul Saranya - Co-founder & Commercial Ad Campaign Director · Growth Marketeer" width="700" height="700" loading="lazy" decoding="async">
       </div>
       <div class="founder-copy">
-        <span class="founder-kicker">Partner & Motion Graphics Lead · Creative Growth</span>
+        <span class="founder-kicker">Co-founder & Commercial Ad Campaign Director · Growth Marketeer</span>
         <h2>Rahul Saranya</h2>
         <div class="founder-bio">
-          <p>I direct commercial 3D animation, broadcast motion design, and high-converting marketing campaigns. From national TVC end slates to digital campaign reels and acquisition strategy, I focus on creative that commands attention and drives revenue.</p>
-          <p>Commercial portfolio spans 3D motion and campaign creative across Fevicol, Britannia, Fiama, Cuticura, Zupee, and MotoGP. At Mindmaxing, I lead visual direction, 3D motion, and creative growth.</p>
+          <p>I am a marketeer and commercial ad campaign director. I create and direct national ad campaigns, commercial launch films, and high-converting acquisition creative designed to capture consumer attention and scale revenue.</p>
+          <p>On paper, I hold a degree and credentials in financial management and financial risk (FRM). While my craft is marketing and commercial creative, that finance grounding is my unfair advantage: I treat ad spend and creative production as disciplined capital allocation, holding every campaign accountable to real unit economics, CAC/LTV payback, and measurable commercial return.</p>
+          <p>I have worked with leading consumer and enterprise brands, creating commercial ad campaigns, product launch films, and brand creative for Schbang, Taj Mahal, Britannia, Pidilite (Fevicol), ITC Fiama, Garnier Men, Akasa Air, Park Avenue, MotoGP Bharat, Paramount, and Cuticura. At Mindmaxing, I direct full-funnel ad campaigns, commercial creative, and brand growth.</p>
         </div>
         <div class="founder-actions">
-          <a class="button button-light" href="/case-studies?lead=rahul">Explore creative work (24) ${arrow}</a>
-          <a class="text-link" href="#contact">Discuss creative brief ${arrow}</a>
+          <a class="button button-light" href="/case-studies?lead=rahul">Explore commercial ad campaigns (24) ${arrow}</a>
+          <a class="text-link" href="#contact">Discuss campaign brief ${arrow}</a>
         </div>
       </div>
     </div>
@@ -293,7 +294,7 @@ export function archive() {
     description: `Explore ${projects.length} project records, interactive demonstrations, and creative campaigns by Mindmaxing Studio. Led by Aryan Panchal and Rahul Saranya.`,
     path: '/case-studies',
     active: 'work',
-    body: `<section class="archive-intro shell"><span class="section-kicker">The collection</span><h1>Work you can<br><span>get your hands on.</span></h1><p>Storefronts, useful software, 3D motion and creative campaigns.<br>Technical systems led by Aryan Panchal. Commercial motion and growth led by Rahul Saranya.</p></section><section class="shell archive-section"><div class="archive-controls"><div class="filters" role="group" aria-label="Project category"><button data-filter="all" aria-pressed="true">All work <span>${projects.length}</span></button>${Object.entries(categories).map(([id, label]) => `<button data-filter="${id}" aria-pressed="false">${label} <span>${projects.filter(p => p.category === id).length}</span></button>`).join('')}</div><label class="search"><span class="sr-only">Search projects</span><input id="project-search" type="search" placeholder="Find a project…" autocomplete="off"><span aria-hidden="true">⌕</span></label></div><p id="result-count" class="result-count" role="status">${projects.length} projects</p><div class="work-list" id="work-list">${projects.map(workRow).join('')}</div><div class="empty-state" hidden><h2>No projects found.</h2><p>Try another search or explore all work.</p><button class="button" data-clear-filters>Clear filters</button></div></section>`
+    body: `<section class="archive-intro shell"><span class="section-kicker">The collection</span><h1>Work you can<br><span>get your hands on.</span></h1><p>Storefronts, useful software, 3D motion and creative campaigns.<br>Technical systems led by Aryan Panchal. Commercial ad campaigns and growth marketing led by Rahul Saranya.</p></section><section class="shell archive-section"><div class="archive-controls"><div class="filters" role="group" aria-label="Project category"><button data-filter="all" aria-pressed="true">All work <span>${projects.length}</span></button>${Object.entries(categories).map(([id, label]) => `<button data-filter="${id}" aria-pressed="false">${label} <span>${projects.filter(p => p.category === id).length}</span></button>`).join('')}</div><label class="search"><span class="sr-only">Search projects</span><input id="project-search" type="search" placeholder="Find a project…" autocomplete="off"><span aria-hidden="true">⌕</span></label></div><p id="result-count" class="result-count" role="status">${projects.length} projects</p><div class="work-list" id="work-list">${projects.map(workRow).join('')}</div><div class="empty-state" hidden><h2>No projects found.</h2><p>Try another search or explore all work.</p><button class="button" data-clear-filters>Clear filters</button></div></section>`
   });
 }
 
@@ -509,22 +510,22 @@ export function about() {
     body: `<section class="about-hero shell">
   <span class="section-kicker">Mindmaxing Studio / Mumbai</span>
   <h1>Curiosity starts it.<br><span>Craft carries it through.</span></h1>
-  <p>We are an independent studio working across engineering, design, and marketing. Led by Aryan Panchal (Engineering & Systems) and Rahul Saranya (3D Motion & Growth Campaigns), Mindmaxing brings technical engineering and commercial creative direction together under one roof.</p>
+  <p>We are an independent agency working across engineering, design, and marketing. Co-founded by Aryan Panchal (Engineering & Systems) and Rahul Saranya (Commercial Ad Campaigns & Creative Growth), Mindmaxing brings technical engineering and commercial creative direction together under one roof.</p>
 </section>
 
 <section class="founder-section shell about-founder-section" id="team">
   <div class="about-leadership-head">
     <span class="section-kicker">Leadership</span>
-    <h2>Two partners. Two disciplines.</h2>
-    <p>Aryan leads engineering systems, storefronts, and software. Rahul directs 3D motion, commercial visuals, and growth campaigns.<br>Direct collaboration with the practitioners doing the work.</p>
+    <h2>Co-founders of this agency. Two disciplines.</h2>
+    <p>Aryan leads engineering systems, storefronts, and software. Rahul directs commercial ad campaigns, brand visuals, and growth marketing.<br>Direct collaboration with the practitioners doing the work.</p>
   </div>
   <div class="leadership-grid" style="display:flex;flex-direction:column;gap:64px;">
     <div class="founder-container" data-partner="aryan">
       <div class="founder-portrait-wrap">
-        <img class="founder-portrait" src="/assets/aryan-perfect.jpg" alt="Aryan Panchal - Founder & Engineering Lead" width="700" height="700" loading="lazy" decoding="async">
+        <img class="founder-portrait" src="/assets/aryan-perfect.jpg" alt="Aryan Panchal - Co-founder & Engineering Lead" width="700" height="700" loading="lazy" decoding="async">
       </div>
       <div class="founder-copy">
-        <span class="founder-kicker">Founder & Engineering Lead</span>
+        <span class="founder-kicker">Co-founder & Engineering Lead</span>
         <h2>Aryan Panchal</h2>
         <span class="founder-scope-tag">34 works · Storefronts, Software & Interactive Systems</span>
         <div class="founder-bio">
@@ -540,19 +541,20 @@ export function about() {
 
     <div class="founder-container" data-partner="rahul">
       <div class="founder-portrait-wrap">
-        <img class="founder-portrait" src="/assets/rahul.jpg" alt="Rahul Saranya - Partner & Motion Graphics Lead" width="700" height="700" loading="lazy" decoding="async">
+        <img class="founder-portrait" src="/assets/rahul.jpg" alt="Rahul Saranya - Co-founder & Commercial Ad Campaign Director · Growth Marketeer" width="700" height="700" loading="lazy" decoding="async">
       </div>
       <div class="founder-copy">
-        <span class="founder-kicker">Partner & Motion Graphics Lead · Creative Growth</span>
+        <span class="founder-kicker">Co-founder & Commercial Ad Campaign Director · Growth Marketeer</span>
         <h2>Rahul Saranya</h2>
-        <span class="founder-scope-tag">24 works · 3D Motion, Visuals & Marketing Campaigns</span>
+        <span class="founder-scope-tag">24 works · Commercial Ad Campaigns, Brand Films & Growth Marketing</span>
         <div class="founder-bio">
-          <p>I direct commercial 3D animation, broadcast motion graphics, and high-converting marketing campaigns. From national TVC end slates to digital campaign reels, I focus on creative that commands attention and drives revenue.</p>
-          <p>Commercial portfolio spans 3D motion, visual direction, and growth campaigns across Fevicol, Britannia, Fiama, Cuticura, Zupee, and MotoGP. At Mindmaxing, I lead visual direction, commercial animation, and creative growth.</p>
+          <p>I am a marketeer and commercial ad campaign director. I direct full-funnel ad campaigns, commercial product films, and creative growth strategies engineered to scale consumer brands.</p>
+          <p>Behind the creative lens, I hold a degree and credentials in financial management and financial risk (FRM). That financial foundation gives our marketing an analytical edge: every ad script, visual concept, and media sprint is grounded in unit economics, customer acquisition payback, and capital efficiency.</p>
+          <p>My commercial portfolio spans work with top-tier brands, creating commercial ad campaigns, launch films, and brand creative for Schbang, Taj Mahal, Britannia, Pidilite (Fevicol), ITC Fiama, Garnier Men, Akasa Air, Park Avenue, MotoGP Bharat, Paramount, and Cuticura. At Mindmaxing, I direct commercial ad campaigns, creative production, and performance growth.</p>
         </div>
         <div class="founder-actions">
-          <a class="button button-light" href="/case-studies?lead=rahul">Explore creative work (24) ${arrow}</a>
-          <a class="text-link" href="/#contact">Discuss creative brief ${arrow}</a>
+          <a class="button button-light" href="/case-studies?lead=rahul">Explore commercial ad campaigns (24) ${arrow}</a>
+          <a class="text-link" href="/#contact">Discuss campaign brief ${arrow}</a>
         </div>
       </div>
     </div>
@@ -564,7 +566,7 @@ export function about() {
   <h2>Engineering, 3D motion<br>and <span>visual direction.</span></h2>
   <div>
     <p>How it looks. How it moves. How it responds under load. These are the same conversation.</p>
-    <p>Aryan leads technical architecture, systems engineering, and interactive web software. Rahul directs 3D motion, broadcast animation, and creative growth campaigns.</p>
+    <p>Aryan leads technical architecture, systems engineering, and interactive web software. Rahul directs commercial ad campaigns, 3D visual films, and creative growth marketing.</p>
   </div>
 </section>
 
